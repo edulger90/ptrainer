@@ -1,0 +1,286 @@
+import 'package:flutter/material.dart';
+import 'translations_tr.dart';
+import 'translations_en.dart';
+import 'translations_es.dart';
+import 'translations_nl.dart';
+
+/// Uygulama genelinde kullanılan çeviri metinleri.
+/// Desteklenen diller: Türkçe (tr), İngilizce (en), İspanyolca (es), Flemenkçe (nl).
+class AppLocalizations {
+  final Locale locale;
+  AppLocalizations(this.locale);
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  static const List<Locale> supportedLocales = [
+    Locale('tr'),
+    Locale('en'),
+    Locale('es'),
+    Locale('nl'),
+  ];
+
+  late final Map<String, String> _strings = _loadStrings();
+
+  Map<String, String> _loadStrings() {
+    switch (locale.languageCode) {
+      case 'tr':
+        return trStrings;
+      case 'es':
+        return esStrings;
+      case 'nl':
+        return nlStrings;
+      default:
+        return enStrings;
+    }
+  }
+
+  String get(String key) => _strings[key] ?? key;
+
+  // ── Genel ──
+  String get appTitle => get('appTitle');
+  String get cancel => get('cancel');
+  String get save => get('save');
+  String get add => get('add');
+  String get update => get('update');
+  String get delete => get('delete');
+  String get logout => get('logout');
+  String get edit => get('edit');
+  String get manageAthletesDesc => get('manageAthletesDesc');
+  String get weeklyPlanDesc => get('weeklyPlanDesc');
+
+  // ── Auth ──
+  String get login => get('login');
+  String get register => get('register');
+  String get username => get('username');
+  String get email => get('email');
+  String get password => get('password');
+  String get createAccount => get('createAccount');
+  String get alreadyHaveAccount => get('alreadyHaveAccount');
+  String get usernameEmpty => get('usernameEmpty');
+  String get usernameMinLength => get('usernameMinLength');
+  String get usernameMaxLength => get('usernameMaxLength');
+  String get usernameInvalidChars => get('usernameInvalidChars');
+  String get usernameStartsWithNumber => get('usernameStartsWithNumber');
+  String get emailEmpty => get('emailEmpty');
+  String get emailInvalid => get('emailInvalid');
+  String get passwordEmpty => get('passwordEmpty');
+  String get passwordMinLength => get('passwordMinLength');
+  String get passwordNeedsLowercase => get('passwordNeedsLowercase');
+  String get passwordNeedsUppercase => get('passwordNeedsUppercase');
+  String get usernameAndPasswordRequired => get('usernameAndPasswordRequired');
+  String get invalidCredentials => get('invalidCredentials');
+  String get onlyOneUser => get('onlyOneUser');
+  String get registrationSuccess => get('registrationSuccess');
+  String tooManyAttempts(int seconds) =>
+      get('tooManyAttempts').replaceAll('{seconds}', '$seconds');
+  String welcome(String name) => get('welcome').replaceAll('{name}', name);
+
+  // ── Home ──
+  String get myAthletes => get('myAthletes');
+  String get weeklyPlan => get('weeklyPlan');
+  String get analysis => get('analysis');
+  String get analysisComingSoon => get('analysisComingSoon');
+
+  // ── Client List ──
+  String get noAthletesYet => get('noAthletesYet');
+  String get addAthlete => get('addAthlete');
+  String packageLabel(int count) =>
+      get('packageLabel').replaceAll('{count}', '$count');
+
+  // ── Add Client ──
+  String get addNewAthlete => get('addNewAthlete');
+  String get fullName => get('fullName');
+  String get registrationDate => get('registrationDate');
+  String get nameEmpty => get('nameEmpty');
+  String get atLeastOneSchedule => get('atLeastOneSchedule');
+  String get packageSize => get('packageSize');
+  String packageOption(int count) =>
+      get('packageOption').replaceAll('{count}', '$count');
+  String get lessonSchedules => get('lessonSchedules');
+  String get addLessonTime => get('addLessonTime');
+  String get noScheduleYet => get('noScheduleYet');
+  String get saveAthlete => get('saveAthlete');
+
+  // ── Schedule Dialog ──
+  String get addLessonTimeTitle => get('addLessonTimeTitle');
+  String get selectDay => get('selectDay');
+  String get selectTime => get('selectTime');
+  String get selectDayFirst => get('selectDayFirst');
+
+  // ── Days of Week ──
+  String get monday => get('monday');
+  String get tuesday => get('tuesday');
+  String get wednesday => get('wednesday');
+  String get thursday => get('thursday');
+  String get friday => get('friday');
+  String get saturday => get('saturday');
+  String get sunday => get('sunday');
+
+  List<String> get daysOfWeek => [
+    monday,
+    tuesday,
+    wednesday,
+    thursday,
+    friday,
+    saturday,
+    sunday,
+  ];
+
+  String dayOfWeekByIndex(int weekday) {
+    const keys = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
+    if (weekday >= 1 && weekday <= 7) return get(keys[weekday - 1]);
+    return '';
+  }
+
+  // ── Client Detail ──
+  String get athleteDetail => get('athleteDetail');
+  String get editInfo => get('editInfo');
+  String get editAthleteInfo => get('editAthleteInfo');
+  String get lessonPackage => get('lessonPackage');
+  String get firstRegistration => get('firstRegistration');
+  String get period => get('period');
+
+  // ── Periods ──
+  String get periods => get('periods');
+  String get newPeriod => get('newPeriod');
+  String get noPeriodYet => get('noPeriodYet');
+  String periodNumber(int n) => get('periodNumber').replaceAll('{n}', '$n');
+  String lessonsProgress(int attended, int total) => get(
+    'lessonsProgress',
+  ).replaceAll('{attended}', '$attended').replaceAll('{total}', '$total');
+  String get postponed => get('postponed');
+  String get noPaymentInfo => get('noPaymentInfo');
+  String paymentPaid(String amount) =>
+      get('paymentPaid').replaceAll('{amount}', amount);
+  String paymentPending(String amount) =>
+      get('paymentPending').replaceAll('{amount}', amount);
+  String get payment => get('payment');
+  String get calendar => get('calendar');
+
+  // ── Add Period Dialog ──
+  String get addNewPeriod => get('addNewPeriod');
+  String get selectStartDate => get('selectStartDate');
+  String startDateLabel(String date) =>
+      get('startDateLabel').replaceAll('{date}', date);
+  String get selectEndDate => get('selectEndDate');
+  String endDateLabel(String date) =>
+      get('endDateLabel').replaceAll('{date}', date);
+  String get paymentAmount => get('paymentAmount');
+  String get paymentReceived => get('paymentReceived');
+
+  // ── Period Detail Dialog ──
+  String get periodDetail => get('periodDetail');
+  String startInfo(String date) => get('startInfo').replaceAll('{date}', date);
+  String endInfo(String date) => get('endInfo').replaceAll('{date}', date);
+  String postponedInfo(String date) =>
+      get('postponedInfo').replaceAll('{date}', date);
+  String get paymentInfo => get('paymentInfo');
+  String get paymentCompleted => get('paymentCompleted');
+  String get paymentAwaiting => get('paymentAwaiting');
+
+  // ── Schedules ──
+  String get lessonTimes => get('lessonTimes');
+  String get noScheduleAdded => get('noScheduleAdded');
+  String get editLessonTime => get('editLessonTime');
+  String get day => get('day');
+  String timeLabel(String time) => get('timeLabel').replaceAll('{time}', time);
+
+  // ── Body Measurements ──
+  String get bodyMeasurements => get('bodyMeasurements');
+  String get addMeasurement => get('addMeasurement');
+  String get noMeasurementYet => get('noMeasurementYet');
+  String get chest => get('chest');
+  String get waist => get('waist');
+  String get hips => get('hips');
+  String dateLabel(String date) => get('dateLabel').replaceAll('{date}', date);
+  String get atLeastOneMeasurement => get('atLeastOneMeasurement');
+  String get saveMeasurement => get('saveMeasurement');
+  String get selectDate => get('selectDate');
+  String get measurementSection => get('measurementSection');
+
+  // ── Period Calendar ──
+  String get periodCalendar => get('periodCalendar');
+  String get postponedBadge => get('postponedBadge');
+  String get cancelLesson => get('cancelLesson');
+  String cancelLessonBody(String date) =>
+      get('cancelLessonBody').replaceAll('{date}', date);
+  String get giveUp => get('giveUp');
+  String get confirmCancel => get('confirmCancel');
+  String get undoCancel => get('undoCancel');
+  String undoCancelBody(String date) =>
+      get('undoCancelBody').replaceAll('{date}', date);
+  String get confirmUndo => get('confirmUndo');
+  String get cancelled => get('cancelled');
+  String makeupLabel(String date) =>
+      get('makeupLabel').replaceAll('{date}', date);
+  String get postponedLesson => get('postponedLesson');
+  String get selectMakeupDate => get('selectMakeupDate');
+  String get undoCancelTooltip => get('undoCancelTooltip');
+  String get cancelAndPostpone => get('cancelAndPostpone');
+
+  // ── Weekly Plan ──
+  String get noLessonToday => get('noLessonToday');
+  String periodLabel(int index) =>
+      get('periodLabel').replaceAll('{index}', '$index');
+  String get noPeriod => get('noPeriod');
+
+  // ── Settings & About ──
+  String get settings => get('settings');
+  String get appInfo => get('appInfo');
+  String get versionLabel => get('versionLabel');
+  String get buildNumber => get('buildNumber');
+  String get appVersionLabel => get('appVersionLabel');
+  String get developerTools => get('developerTools');
+  String get versionHistory => get('versionHistory');
+
+  // ── Error Logs ──
+  String get errorLogs => get('errorLogs');
+  String get errorLogsDesc => get('errorLogsDesc');
+  String get errorStats => get('errorStats');
+  String get totalEntries => get('totalEntries');
+  String get noErrorLogs => get('noErrorLogs');
+  String get exportLogs => get('exportLogs');
+  String get exportError => get('exportError');
+  String get clearAllLogs => get('clearAllLogs');
+  String get clearAllLogsConfirm => get('clearAllLogsConfirm');
+  String get errorDetail => get('errorDetail');
+  String get level => get('level');
+  String get date => get('date');
+  String get platformLabel => get('platformLabel');
+  String get route => get('route');
+  String get extraInfo => get('extraInfo');
+  String get errorMessage => get('errorMessage');
+  String get deleteLog => get('deleteLog');
+  String get all => get('all');
+  String get unexpectedError => get('unexpectedError');
+  String get errorReported => get('errorReported');
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) =>
+      ['tr', 'en', 'es', 'nl'].contains(locale.languageCode);
+
+  @override
+  Future<AppLocalizations> load(Locale locale) async =>
+      AppLocalizations(locale);
+
+  @override
+  bool shouldReload(covariant LocalizationsDelegate old) => false;
+}
