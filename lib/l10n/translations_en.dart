@@ -193,4 +193,19 @@ const Map<String, String> enStrings = {
   'all': 'All',
   'unexpectedError': 'An unexpected error occurred',
   'errorReported': 'Error has been logged',
+
+  // Active/Passive
+  'activeAthletes': 'Active Athletes',
+  'passiveAthletes': 'Passive Athletes',
+  'setPassive': 'Set Passive',
+  'setActive': 'Set Active',
+  'noPassiveAthletes': 'No passive athletes',
+  'athleteSetPassive': 'Athlete set to passive',
+  'athleteSetActive': 'Athlete set to active',
+  'confirmDeleteTitle': 'Delete Athlete',
+  'confirmDeleteMessage':
+      'Are you sure you want to delete this athlete? This action cannot be undone.',
+  'confirmDeleteScheduleTitle': 'Delete Lesson Time',
+  'confirmDeleteScheduleMessage':
+      'Are you sure you want to delete this lesson time?',
 };

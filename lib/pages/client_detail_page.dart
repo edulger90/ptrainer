@@ -181,6 +181,135 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     }
   }
 
+  Future<void> _showAddScheduleDialog(BuildContext context) async {
+    const days = [
+      'Pazartesi',
+      'Salı',
+      'Çarşamba',
+      'Perşembe',
+      'Cuma',
+      'Cumartesi',
+      'Pazar',
+    ];
+    String selectedDay = days[0];
+    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final l = AppLocalizations.of(context);
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(l.addLessonTimeTitle),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: selectedDay,
+                    decoration: InputDecoration(labelText: l.day),
+                    items: days
+                        .map(
+                          (d) => DropdownMenuItem(
+                            value: d,
+                            child: Text(_localizedDay(context, d)),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setStateDialog(() => selectedDay = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: selectedTime,
+                      );
+                      if (picked != null) {
+                        setStateDialog(() => selectedTime = picked);
+                      }
+                    },
+                    child: Text(
+                      l.timeLabel(
+                        '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final newSchedule = SessionSchedule(
+                      clientId: widget.client.id,
+                      dayOfWeek: selectedDay,
+                      time:
+                          '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
+                    );
+                    await _db.insertSessionSchedule(newSchedule);
+                    await _loadAllData();
+                    Navigator.pop(context);
+                  },
+                  child: Text(l.save),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteSchedule(SessionSchedule schedule) async {
+    final l = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red[400], size: 28),
+            const SizedBox(width: 10),
+            Expanded(child: Text(l.confirmDeleteScheduleTitle)),
+          ],
+        ),
+        content: Text(l.confirmDeleteScheduleMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l.cancel),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[400],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && schedule.id != null) {
+      await _db.deleteSessionSchedule(schedule.id!);
+      await _loadAllData();
+    }
+  }
+
   Future<void> _showEditScheduleDialog(
     BuildContext context,
     SessionSchedule schedule,
@@ -1006,6 +1135,27 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                               ),
                             ),
                           ),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () => _showAddScheduleDialog(context),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF43A047,
+                                  ).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  color: Color(0xFF43A047),
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -1036,139 +1186,145 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: bgColor,
                                       borderRadius: BorderRadius.circular(14),
-                                      onTap: () => _showEditScheduleDialog(
-                                        context,
-                                        schedule,
-                                      ),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: bgColor,
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          border: Border.all(
-                                            color: accentColor.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                            width: 1.5,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: accentColor.withValues(
-                                                alpha: 0.1,
-                                              ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 3),
-                                            ),
-                                          ],
+                                      border: Border.all(
+                                        color: accentColor.withValues(
+                                          alpha: 0.3,
                                         ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 14,
+                                        width: 1.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: accentColor.withValues(
+                                            alpha: 0.1,
                                           ),
-                                          child: Row(
-                                            children: [
-                                              // Gün rozeti
-                                              Container(
-                                                width: 48,
-                                                height: 48,
-                                                decoration: BoxDecoration(
-                                                  color: accentColor.withValues(
-                                                    alpha: 0.15,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    _localizedDay(
-                                                          context,
-                                                          schedule.dayOfWeek,
-                                                        )
-                                                        .substring(0, 2)
-                                                        .toUpperCase(),
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: accentColor,
-                                                    ),
-                                                  ),
-                                                ),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 14,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          // Gün rozeti
+                                          Container(
+                                            width: 48,
+                                            height: 48,
+                                            decoration: BoxDecoration(
+                                              color: accentColor.withValues(
+                                                alpha: 0.15,
                                               ),
-                                              const SizedBox(width: 14),
-                                              // Gün adı + saat
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      _localizedDay(
-                                                        context,
-                                                        schedule.dayOfWeek,
-                                                      ),
-                                                      style: TextStyle(
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: accentColor
-                                                            .withValues(
-                                                              alpha: 0.85,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 3),
-                                                    Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons.access_time,
-                                                          size: 14,
-                                                          color:
-                                                              Colors.grey[600],
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 4,
-                                                        ),
-                                                        Text(
-                                                          schedule.time,
-                                                          style: TextStyle(
-                                                            fontSize: 13,
-                                                            color: Colors
-                                                                .grey[700],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // Düzenle ikonu
-                                              Container(
-                                                padding: const EdgeInsets.all(
-                                                  6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: accentColor.withValues(
-                                                    alpha: 0.1,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Icon(
-                                                  Icons.edit_outlined,
-                                                  size: 18,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                _localizedDay(
+                                                  context,
+                                                  schedule.dayOfWeek,
+                                                ).substring(0, 2).toUpperCase(),
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
                                                   color: accentColor,
                                                 ),
                                               ),
-                                            ],
+                                            ),
                                           ),
-                                        ),
+                                          const SizedBox(width: 14),
+                                          // Gün adı + saat
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  _localizedDay(
+                                                    context,
+                                                    schedule.dayOfWeek,
+                                                  ),
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: accentColor
+                                                        .withValues(
+                                                          alpha: 0.85,
+                                                        ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 3),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.access_time,
+                                                      size: 14,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      schedule.time,
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.grey[700],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          // Düzenle ikonu
+                                          GestureDetector(
+                                            onTap: () =>
+                                                _showEditScheduleDialog(
+                                                  context,
+                                                  schedule,
+                                                ),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                color: accentColor.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                Icons.edit_outlined,
+                                                size: 18,
+                                                color: accentColor,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          // Sil ikonu
+                                          GestureDetector(
+                                            onTap: () =>
+                                                _deleteSchedule(schedule),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                Icons.delete_outline,
+                                                size: 18,
+                                                color: Colors.red[400],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),

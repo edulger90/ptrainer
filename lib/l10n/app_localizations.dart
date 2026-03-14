@@ -267,6 +267,22 @@ class AppLocalizations {
   String get all => get('all');
   String get unexpectedError => get('unexpectedError');
   String get errorReported => get('errorReported');
+
+  // Active/Passive
+  String get activeAthletes => get('activeAthletes');
+  String get passiveAthletes => get('passiveAthletes');
+  String get setPassive => get('setPassive');
+  String get setActive => get('setActive');
+  String get noPassiveAthletes => get('noPassiveAthletes');
+  String get athleteSetPassive => get('athleteSetPassive');
+  String get athleteSetActive => get('athleteSetActive');
+
+  // Delete confirmation
+  String get confirmDeleteTitle => get('confirmDeleteTitle');
+  String get confirmDeleteMessage => get('confirmDeleteMessage');
+  String get confirmDeleteScheduleTitle => get('confirmDeleteScheduleTitle');
+  String get confirmDeleteScheduleMessage =>
+      get('confirmDeleteScheduleMessage');
 }
 
 class _AppLocalizationsDelegate

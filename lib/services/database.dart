@@ -28,7 +28,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 13,
+      version: 14,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE users(
@@ -48,6 +48,7 @@ class AppDatabase {
             sessionPackage INTEGER NOT NULL,
             createdAt TEXT NOT NULL,
             registrationDate TEXT,
+            isActive INTEGER NOT NULL DEFAULT 1,
             FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
           )
         ''');
@@ -292,6 +293,16 @@ class AppDatabase {
             'UPDATE clients SET registrationDate = createdAt WHERE registrationDate IS NULL',
           );
         }
+        if (oldVersion < 14) {
+          // Add isActive column to clients
+          try {
+            await db.execute(
+              'ALTER TABLE clients ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1',
+            );
+          } catch (e) {
+            // column may already exist
+          }
+        }
       },
     );
   }
@@ -454,6 +465,31 @@ class AppDatabase {
     );
   }
 
+  /// Get the latest period for a given client (most recent by startDate)
+  Future<Period?> getLatestPeriodForClient(int clientId) async {
+    final db = await database;
+    final maps = await db.query(
+      'periods',
+      where: 'clientId = ?',
+      whereArgs: [clientId],
+      orderBy: 'startDate DESC',
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return Period.fromMap(maps.first);
+  }
+
+  /// Get completed lesson count for a specific period
+  /// "Completed" = attendance record exists AND cancelled == 0
+  Future<int> getCompletedCountForPeriod(int clientId, int periodId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as cnt FROM attendances WHERE clientId = ? AND periodId = ? AND cancelled = 0',
+      [clientId, periodId],
+    );
+    return (result.first['cnt'] as int?) ?? 0;
+  }
+
   /// Get all periods for a given client (ordered by start date desc)
   Future<List<Period>> getPeriodsByClient(int clientId) async {
     final db = await database;
@@ -497,6 +533,17 @@ class AppDatabase {
       'session_schedules',
       where: 'id = ?',
       whereArgs: [scheduleId],
+    );
+  }
+
+  /// Toggle client active/passive status
+  Future<void> toggleClientActive(int clientId, bool isActive) async {
+    final db = await database;
+    await db.update(
+      'clients',
+      {'isActive': isActive ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [clientId],
     );
   }
 

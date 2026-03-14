@@ -191,4 +191,19 @@ const Map<String, String> trStrings = {
   'all': 'Tümü',
   'unexpectedError': 'Beklenmeyen bir hata oluştu',
   'errorReported': 'Hata kaydedildi',
+
+  // Active/Passive
+  'activeAthletes': 'Aktif Sporcular',
+  'passiveAthletes': 'Pasif Sporcular',
+  'setPassive': 'Pasife Al',
+  'setActive': 'Aktife Al',
+  'noPassiveAthletes': 'Pasif sporcu yok',
+  'athleteSetPassive': 'Sporcu pasife alındı',
+  'athleteSetActive': 'Sporcu aktife alındı',
+  'confirmDeleteTitle': 'Sporcuyu Sil',
+  'confirmDeleteMessage':
+      'Bu sporcuyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+  'confirmDeleteScheduleTitle': 'Ders Saatini Sil',
+  'confirmDeleteScheduleMessage':
+      'Bu ders saatini silmek istediğinize emin misiniz?',
 };

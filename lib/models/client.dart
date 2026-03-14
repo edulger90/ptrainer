@@ -6,6 +6,7 @@ class Client {
   final int sessionPackage;
   final String? createdAt;
   final String? registrationDate;
+  final bool isActive;
 
   Client({
     this.id,
@@ -14,6 +15,7 @@ class Client {
     required this.sessionPackage,
     this.createdAt,
     this.registrationDate,
+    this.isActive = true,
   });
 
   /// Backward-compatible helper: splits fullName for DB migration
@@ -36,6 +38,7 @@ class Client {
       'sessionPackage': sessionPackage,
       'createdAt': createdAt,
       'registrationDate': registrationDate,
+      'isActive': isActive ? 1 : 0,
     };
   }
 
@@ -50,6 +53,7 @@ class Client {
       sessionPackage: map['sessionPackage'] as int,
       createdAt: map['createdAt'] as String?,
       registrationDate: map['registrationDate'] as String?,
+      isActive: (map['isActive'] as int? ?? 1) == 1,
     );
   }
 
@@ -60,6 +64,7 @@ class Client {
     int? sessionPackage,
     String? createdAt,
     String? registrationDate,
+    bool? isActive,
   }) {
     return Client(
       id: id ?? this.id,
@@ -68,6 +73,7 @@ class Client {
       sessionPackage: sessionPackage ?? this.sessionPackage,
       createdAt: createdAt ?? this.createdAt,
       registrationDate: registrationDate ?? this.registrationDate,
+      isActive: isActive ?? this.isActive,
     );
   }
 }

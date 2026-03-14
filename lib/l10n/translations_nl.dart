@@ -192,4 +192,19 @@ const Map<String, String> nlStrings = {
   'all': 'Alles',
   'unexpectedError': 'Er is een onverwachte fout opgetreden',
   'errorReported': 'Fout is geregistreerd',
+
+  // Active/Passive
+  'activeAthletes': 'Actieve Sporters',
+  'passiveAthletes': 'Passieve Sporters',
+  'setPassive': 'Deactiveren',
+  'setActive': 'Activeren',
+  'noPassiveAthletes': 'Geen passieve sporters',
+  'athleteSetPassive': 'Sporter gedeactiveerd',
+  'athleteSetActive': 'Sporter geactiveerd',
+  'confirmDeleteTitle': 'Sporter Verwijderen',
+  'confirmDeleteMessage':
+      'Weet je zeker dat je deze sporter wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+  'confirmDeleteScheduleTitle': 'Lestijd Verwijderen',
+  'confirmDeleteScheduleMessage':
+      'Weet je zeker dat je deze lestijd wilt verwijderen?',
 };

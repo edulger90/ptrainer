@@ -196,4 +196,19 @@ const Map<String, String> esStrings = {
   'all': 'Todos',
   'unexpectedError': 'Ocurrió un error inesperado',
   'errorReported': 'Error registrado',
+
+  // Active/Passive
+  'activeAthletes': 'Atletas Activos',
+  'passiveAthletes': 'Atletas Pasivos',
+  'setPassive': 'Desactivar',
+  'setActive': 'Activar',
+  'noPassiveAthletes': 'No hay atletas pasivos',
+  'athleteSetPassive': 'Atleta desactivado',
+  'athleteSetActive': 'Atleta activado',
+  'confirmDeleteTitle': 'Eliminar Atleta',
+  'confirmDeleteMessage':
+      '¿Estás seguro de que quieres eliminar este atleta? Esta acción no se puede deshacer.',
+  'confirmDeleteScheduleTitle': 'Eliminar Horario',
+  'confirmDeleteScheduleMessage':
+      '¿Estás seguro de que quieres eliminar este horario de clase?',
 };
