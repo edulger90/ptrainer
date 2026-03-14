@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P-Trainer - Gizlilik Politikası / Privacy Policy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: linear-gradient(135deg, #e0f7fa 0%, #f5f5f5 100%);
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 {
+            color: #00BCD4;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .logo p { color: #666; font-size: 14px; }
+        .lang-switch {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .lang-switch a {
+            display: inline-block;
+            padding: 8px 20px;
+            margin: 0 5px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .lang-switch a.active {
+            background: #00BCD4;
+            color: white;
+        }
+        .lang-switch a:not(.active) {
+            background: #e0f7fa;
+            color: #00897B;
+        }
+        h2 {
+            color: #00897B;
+            font-size: 20px;
+            margin: 25px 0 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0f7fa;
+        }
+        h3 { color: #00BCD4; margin: 15px 0 8px; font-size: 16px; }
+        p, li { margin-bottom: 8px; font-size: 15px; }
+        ul { padding-left: 25px; }
+        .section { margin-bottom: 20px; }
+        .highlight {
+            background: #e0f7fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #00BCD4;
+            margin: 15px 0;
+        }
+        .date { text-align: center; color: #999; font-size: 13px; margin-top: 30px; }
+        .contact { background: #f5f5f5; padding: 15px; border-radius: 10px; margin-top: 20px; }
+        .hidden { display: none; }
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h2 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🏋️ P-Trainer</h1>
+            <p>Pilates & Fitness Trainer App</p>
+        </div>
+
+        <div class="lang-switch">
+            <a href="#" class="active" onclick="showLang('tr', this); return false;">🇹🇷 Türkçe</a>
+            <a href="#" onclick="showLang('en', this); return false;">🇬🇧 English</a>
+        </div>
+
+        <!-- TÜRKÇE -->
+        <div id="lang-tr">
+            <h2>Gizlilik Politikası</h2>
+
+            <div class="highlight">
+                <strong>Özet:</strong> P-Trainer uygulaması verilerinizi yalnızca cihazınızda saklar. Hiçbir kişisel veri sunucularımıza veya üçüncü taraflara gönderilmez.
+            </div>
+
+            <div class="section">
+                <h3>1. Toplanan Veriler</h3>
+                <p>P-Trainer aşağıdaki verileri <strong>yalnızca cihazınızda</strong> (yerel SQLite veritabanında) saklar:</p>
+                <ul>
+                    <li>Kullanıcı adı ve şifrelenmiş parola (SHA-256 + salt)</li>
+                    <li>Sporcu bilgileri (ad, ders paketi, kayıt tarihi)</li>
+                    <li>Ders programları ve takvim verileri</li>
+                    <li>Periyot ve yoklama kayıtları</li>
+                    <li>Beden ölçüleri</li>
+                    <li>Ödeme bilgileri</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>2. Veri Paylaşımı</h3>
+                <p>P-Trainer:</p>
+                <ul>
+                    <li>❌ Hiçbir veriyi internet üzerinden <strong>göndermez</strong></li>
+                    <li>❌ Üçüncü taraf analitik veya reklam servisi <strong>kullanmaz</strong></li>
+                    <li>❌ Konum, kamera, mikrofon veya rehber erişimi <strong>istemez</strong></li>
+                    <li>✅ Tüm veriler yalnızca cihazınızda kalır</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>3. Veri Güvenliği</h3>
+                <ul>
+                    <li>Parolalar SHA-256 + rastgele salt ile hashlenir</li>
+                    <li>Veriler cihazınızın yerel depolama alanında şifreli olarak saklanır</li>
+                    <li>Uygulamayı sildiğinizde tüm veriler kalıcı olarak silinir</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>4. Premium Abonelik</h3>
+                <p>Premium özellikler App Store veya Google Play üzerinden satın alınabilir. Ödeme işlemleri tamamen Apple/Google tarafından yönetilir. P-Trainer kredi kartı veya ödeme bilgilerinizi görmez veya saklamaz.</p>
+            </div>
+
+            <div class="section">
+                <h3>5. Çocukların Gizliliği</h3>
+                <p>P-Trainer 13 yaş altı çocuklara yönelik değildir ve bilerek çocuklardan kişisel bilgi toplamaz.</p>
+            </div>
+
+            <div class="section">
+                <h3>6. Değişiklikler</h3>
+                <p>Bu gizlilik politikası zaman zaman güncellenebilir. Önemli değişiklikler uygulama içinden bildirilir.</p>
+            </div>
+
+            <div class="contact">
+                <h3>📧 İletişim</h3>
+                <p>Sorularınız için: <strong>edulger90@gmail.com</strong></p>
+            </div>
+        </div>
+
+        <!-- ENGLISH -->
+        <div id="lang-en" class="hidden">
+            <h2>Privacy Policy</h2>
+
+            <div class="highlight">
+                <strong>Summary:</strong> P-Trainer stores your data only on your device. No personal data is sent to our servers or any third parties.
+            </div>
+
+            <div class="section">
+                <h3>1. Data Collected</h3>
+                <p>P-Trainer stores the following data <strong>only on your device</strong> (local SQLite database):</p>
+                <ul>
+                    <li>Username and hashed password (SHA-256 + salt)</li>
+                    <li>Athlete information (name, session package, registration date)</li>
+                    <li>Lesson schedules and calendar data</li>
+                    <li>Period and attendance records</li>
+                    <li>Body measurements</li>
+                    <li>Payment information</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>2. Data Sharing</h3>
+                <p>P-Trainer:</p>
+                <ul>
+                    <li>❌ Does <strong>not send</strong> any data over the internet</li>
+                    <li>❌ Does <strong>not use</strong> third-party analytics or advertising services</li>
+                    <li>❌ Does <strong>not request</strong> access to location, camera, microphone, or contacts</li>
+                    <li>✅ All data stays only on your device</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>3. Data Security</h3>
+                <ul>
+                    <li>Passwords are hashed with SHA-256 + random salt</li>
+                    <li>Data is stored encrypted in your device's local storage</li>
+                    <li>Deleting the app permanently removes all data</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>4. Premium Subscription</h3>
+                <p>Premium features can be purchased through the App Store or Google Play. Payment transactions are managed entirely by Apple/Google. P-Trainer does not see or store your credit card or payment information.</p>
+            </div>
+
+            <div class="section">
+                <h3>5. Children's Privacy</h3>
+                <p>P-Trainer is not intended for children under 13 and does not knowingly collect personal information from children.</p>
+            </div>
+
+            <div class="section">
+                <h3>6. Changes</h3>
+                <p>This privacy policy may be updated from time to time. Significant changes will be notified through the app.</p>
+            </div>
+
+            <div class="contact">
+                <h3>📧 Contact</h3>
+                <p>For questions: <strong>edulger90@gmail.com</strong></p>
+            </div>
+        </div>
+
+        <p class="date">Son güncelleme / Last updated: March 14, 2026</p>
+    </div>
+
+    <script>
+        function showLang(lang, el) {
+            document.getElementById('lang-tr').classList.toggle('hidden', lang !== 'tr');
+            document.getElementById('lang-en').classList.toggle('hidden', lang !== 'en');
+            document.querySelectorAll('.lang-switch a').forEach(a => a.classList.remove('active'));
+            el.classList.add('active');
+        }
+    </script>
+</body>
+</html>
