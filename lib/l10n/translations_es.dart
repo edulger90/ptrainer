@@ -211,4 +211,36 @@ const Map<String, String> esStrings = {
   'confirmDeleteScheduleTitle': 'Eliminar Horario',
   'confirmDeleteScheduleMessage':
       '¿Estás seguro de que quieres eliminar este horario de clase?',
+
+  // Premium
+  'premiumTitle': 'Premium',
+  'premiumActive': 'ACTIVO',
+  'premiumThanks': '¡Eres miembro Premium!',
+  'premiumUnlock': 'Desbloquear Todas las Funciones',
+  'premiumActiveDesc': 'Tienes acceso ilimitado a todas las funciones.',
+  'premiumDesc':
+      'Obtén atletas, periodos, medidas corporales, plan semanal y seguimiento de pagos ilimitados con Premium.',
+  'premiumFeatureClients': 'Atletas',
+  'premiumFeaturePeriods': 'Periodos / Atleta',
+  'premiumFeatureMeasurements': 'Medidas Corporales',
+  'premiumFeatureWeeklyPlan': 'Plan Semanal',
+  'premiumFeaturePayments': 'Seguimiento de Pagos',
+  'premiumUnlimited': 'Ilimitado',
+  'premiumFree': 'Gratis',
+  'premiumLabel': 'Premium',
+  'premiumBuy': 'Obtener Premium',
+  'premiumRestore': 'Restaurar Compra',
+  'premiumComingSoon': '¡Compra dentro de la app próximamente!',
+  'maxClientsReached':
+      'El plan gratuito permite hasta {max} atletas. ¡Actualiza a Premium!',
+  'maxPeriodsReached':
+      'El plan gratuito permite hasta {max} periodos por atleta. ¡Actualiza a Premium!',
+  'premiumRequired': 'Esta función requiere una membresía Premium.',
+  'premiumPlan': 'Plan Actual',
+  'upgradeToPremium': 'Actualizar a Premium',
+  'premiumPurchaseSuccess': '¡Premium activado con éxito! 🎉',
+  'premiumRestoreSuccess': '¡Compra restaurada con éxito!',
+  'premiumPurchaseError': 'Ocurrió un error durante la compra.',
+  'premiumStoreUnavailable': 'La tienda no está disponible actualmente.',
+  'premiumProductNotFound': 'Producto no encontrado. Inténtalo más tarde.',
 };

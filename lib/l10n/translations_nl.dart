@@ -207,4 +207,36 @@ const Map<String, String> nlStrings = {
   'confirmDeleteScheduleTitle': 'Lestijd Verwijderen',
   'confirmDeleteScheduleMessage':
       'Weet je zeker dat je deze lestijd wilt verwijderen?',
+
+  // Premium
+  'premiumTitle': 'Premium',
+  'premiumActive': 'ACTIEF',
+  'premiumThanks': 'Je bent een Premium lid!',
+  'premiumUnlock': 'Alle Functies Ontgrendelen',
+  'premiumActiveDesc': 'Je hebt onbeperkte toegang tot alle functies.',
+  'premiumDesc':
+      'Krijg onbeperkte sporters, perioden, lichaamsmaten, weekplanning en betalingsbeheer met Premium.',
+  'premiumFeatureClients': 'Sporters',
+  'premiumFeaturePeriods': 'Perioden / Sporter',
+  'premiumFeatureMeasurements': 'Lichaamsmaten',
+  'premiumFeatureWeeklyPlan': 'Weekplanning',
+  'premiumFeaturePayments': 'Betalingsbeheer',
+  'premiumUnlimited': 'Onbeperkt',
+  'premiumFree': 'Gratis',
+  'premiumLabel': 'Premium',
+  'premiumBuy': 'Premium Kopen',
+  'premiumRestore': 'Aankoop Herstellen',
+  'premiumComingSoon': 'In-app aankoop binnenkort beschikbaar!',
+  'maxClientsReached':
+      'Het gratis plan staat maximaal {max} sporters toe. Upgrade naar Premium!',
+  'maxPeriodsReached':
+      'Het gratis plan staat maximaal {max} perioden per sporter toe. Upgrade naar Premium!',
+  'premiumRequired': 'Deze functie vereist een Premium lidmaatschap.',
+  'premiumPlan': 'Huidig Plan',
+  'upgradeToPremium': 'Upgraden naar Premium',
+  'premiumPurchaseSuccess': 'Premium succesvol geactiveerd! 🎉',
+  'premiumRestoreSuccess': 'Aankoop succesvol hersteld!',
+  'premiumPurchaseError': 'Er is een fout opgetreden tijdens de aankoop.',
+  'premiumStoreUnavailable': 'Winkel is momenteel niet beschikbaar.',
+  'premiumProductNotFound': 'Product niet gevonden. Probeer het later opnieuw.',
 };

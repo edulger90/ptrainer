@@ -208,4 +208,36 @@ const Map<String, String> enStrings = {
   'confirmDeleteScheduleTitle': 'Delete Lesson Time',
   'confirmDeleteScheduleMessage':
       'Are you sure you want to delete this lesson time?',
+
+  // Premium
+  'premiumTitle': 'Premium',
+  'premiumActive': 'ACTIVE',
+  'premiumThanks': 'You are a Premium member!',
+  'premiumUnlock': 'Unlock All Features',
+  'premiumActiveDesc': 'You have unlimited access to all features.',
+  'premiumDesc':
+      'Get unlimited athletes, periods, body measurements, weekly plan and payment tracking with Premium.',
+  'premiumFeatureClients': 'Athletes',
+  'premiumFeaturePeriods': 'Periods / Athlete',
+  'premiumFeatureMeasurements': 'Body Measurements',
+  'premiumFeatureWeeklyPlan': 'Weekly Plan',
+  'premiumFeaturePayments': 'Payment Tracking',
+  'premiumUnlimited': 'Unlimited',
+  'premiumFree': 'Free',
+  'premiumLabel': 'Premium',
+  'premiumBuy': 'Get Premium',
+  'premiumRestore': 'Restore Purchase',
+  'premiumComingSoon': 'In-app purchase coming soon!',
+  'maxClientsReached':
+      'Free plan allows up to {max} athletes. Upgrade to Premium!',
+  'maxPeriodsReached':
+      'Free plan allows up to {max} periods per athlete. Upgrade to Premium!',
+  'premiumRequired': 'This feature requires a Premium membership.',
+  'premiumPlan': 'Current Plan',
+  'upgradeToPremium': 'Upgrade to Premium',
+  'premiumPurchaseSuccess': 'Premium activated successfully! 🎉',
+  'premiumRestoreSuccess': 'Purchase restored successfully!',
+  'premiumPurchaseError': 'An error occurred during purchase.',
+  'premiumStoreUnavailable': 'Store is currently unavailable.',
+  'premiumProductNotFound': 'Product not found. Please try again later.',
 };

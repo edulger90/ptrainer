@@ -1,0 +1,48 @@
+P-Trainer – Athlete Management App for Pilates Instructors
+
+A professional mobile app designed for Pilates instructors to easily manage their athletes and studio operations.
+
+🏋️ ATHLETE MANAGEMENT
+• Create unlimited athlete profiles (Premium)
+• Detailed profiles with name, package info, and registration date
+• Active/Passive athlete separation for easy tracking
+• Access athlete details with a single tap
+
+📅 WEEKLY LESSON PLAN
+• View your lesson schedule for each day of the week
+• Instantly see which athlete has a lesson on which day and time
+• Easily plan your daily lesson workload
+
+📊 PERIOD TRACKING
+• Create lesson periods for each athlete
+• Clear tracking with start/end dates
+• Lesson cancellation and makeup management
+• View progress status in real-time
+
+📏 BODY MEASUREMENTS
+• Record chest, waist, and hip measurements
+• Track progress with historical measurement data
+• Show your athletes' development with concrete data
+
+💰 PAYMENT TRACKING
+• Record payment status per period
+• Instantly view Paid / Pending statuses
+• Simplify your financial tracking
+
+🔐 SECURITY
+• Password-protected login system
+• Your data is securely stored on your device
+• Only you can access personal data
+
+🌍 MULTI-LANGUAGE SUPPORT
+• Turkish, English, Spanish, and Dutch
+
+⭐ PREMIUM FEATURES
+The free version includes a limit of 3 athletes and 1 period per athlete. With Premium:
+• Unlimited athlete profiles
+• Unlimited period creation
+• Body measurements module
+• Weekly lesson plan
+• Payment tracking
+
+Manage your Pilates studio professionally with P-Trainer!

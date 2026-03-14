@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../services/error_logger.dart';
+import '../services/premium_service.dart';
 import 'error_log_page.dart';
+import 'premium_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -52,6 +54,79 @@ class SettingsPage extends StatelessWidget {
                   _infoRow(l.appVersionLabel, AppVersionInfo.version),
                 ],
               ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Premium plan kartı
+          _buildSectionHeader(l.premiumPlan, Icons.workspace_premium),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: PremiumService().isPremium
+                      ? Colors.amber[50]
+                      : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  PremiumService().isPremium
+                      ? Icons.workspace_premium
+                      : Icons.lock_outline,
+                  color: PremiumService().isPremium
+                      ? Colors.amber[700]
+                      : Colors.grey[600],
+                ),
+              ),
+              title: Text(
+                PremiumService().isPremium ? l.premiumLabel : l.premiumFree,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: PremiumService().isPremium
+                      ? Colors.amber[800]
+                      : Colors.grey[700],
+                ),
+              ),
+              subtitle: Text(
+                PremiumService().isPremium
+                    ? l.premiumActiveDesc
+                    : l.premiumDesc,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: PremiumService().isPremium
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.amber[100],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        l.premiumActive,
+                        style: TextStyle(
+                          color: Colors.amber[800],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    )
+                  : const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PremiumPage()),
+                );
+              },
             ),
           ),
 

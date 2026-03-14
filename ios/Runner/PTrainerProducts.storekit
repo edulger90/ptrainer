@@ -1,0 +1,61 @@
+{
+  "identifier" : "6C64A4B6-9A72-4F2C-B5E5-1A2B3C4D5E6F",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "F1A2B3C4-D5E6-7F8A-9B0C-1D2E3F4A5B6C",
+      "localizations" : [
+        {
+          "description" : "Tüm özelliklerin kilidini açın",
+          "displayName" : "P-Trainer Premium",
+          "locale" : "tr"
+        },
+        {
+          "description" : "Unlock all features",
+          "displayName" : "P-Trainer Premium",
+          "locale" : "en"
+        },
+        {
+          "description" : "Desbloquea todas las funciones",
+          "displayName" : "P-Trainer Premium",
+          "locale" : "es"
+        },
+        {
+          "description" : "Ontgrendel alle functies",
+          "displayName" : "P-Trainer Premium",
+          "locale" : "nl"
+        }
+      ],
+      "productID" : "ptrainer_premium",
+      "referenceName" : "P-Trainer Premium",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6740241673",
+    "_developerTeamID" : "PTY45VGS4D",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : "2026-03-14T00:00:00Z",
+    "_storeKitErrors" : [
+      {
+        "current" : {
+          "index" : 0,
+          "type" : "none"
+        },
+        "enabled" : false,
+        "name" : "Load Products"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

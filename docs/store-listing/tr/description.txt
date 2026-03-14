@@ -1,0 +1,48 @@
+P-Trainer – Pilates Eğitmenleri İçin Sporcu Yönetim Uygulaması
+
+Pilates eğitmenleri için tasarlanmış, sporcularınızı kolayca yönetmenizi sağlayan profesyonel bir mobil uygulama.
+
+🏋️ SPORCU YÖNETİMİ
+• Sınırsız sporcu kaydı oluşturun (Premium)
+• Ad, paket bilgisi ve kayıt tarihi ile detaylı profiller
+• Aktif/Pasif sporcu ayrımı ile kolay takip
+• Tek bir dokunuşla sporcu detaylarına erişin
+
+📅 HAFTALIK DERS PLANI
+• Haftanın her günü için ders programınızı görüntüleyin
+• Hangi sporcunuzun hangi gün, saat kaçta dersi olduğunu anında görün
+• Günlük ders yoğunluğunuzu kolayca planlayın
+
+📊 PERİYOT TAKİBİ
+• Her sporcu için ders periyotları oluşturun
+• Başlangıç/bitiş tarihleri ile net takip
+• Ders iptal ve telafi yönetimi
+• İlerleme durumunu anlık görüntüleyin
+
+📏 BEDEN ÖLÇÜMLERİ
+• Göğüs, bel ve basen ölçümlerini kaydedin
+• Tarihsel ölçüm geçmişi ile ilerlemeyi takip edin
+• Sporcularınızın gelişimini somut verilerle gösterin
+
+💰 ÖDEME TAKİBİ
+• Periyot bazlı ödeme durumunu kaydedin
+• Ödendi / Bekliyor durumlarını anlık görün
+• Mali takibinizi kolaylaştırın
+
+🔐 GÜVENLİK
+• Şifreli giriş sistemi
+• Verileriniz cihazınızda güvenle saklanır
+• Kişisel verilere sadece siz erişirsiniz
+
+🌍 ÇOK DİL DESTEĞİ
+• Türkçe, İngilizce, İspanyolca ve Felemenkçe
+
+⭐ PREMIUM ÖZELLİKLER
+Ücretsiz sürümde 3 sporcu ve sporcu başına 1 periyot sınırı bulunur. Premium ile:
+• Sınırsız sporcu kaydı
+• Sınırsız periyot oluşturma
+• Beden ölçümleri modülü
+• Haftalık ders planı
+• Ödeme takibi
+
+P-Trainer ile pilates stüdyonuzu profesyonelce yönetin!

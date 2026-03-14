@@ -7,16 +7,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/user.dart';
 import 'services/database.dart';
 import 'services/error_logger.dart';
+import 'services/premium_service.dart';
 import 'pages/home_page.dart';
 import 'l10n/app_localizations.dart';
 
 void main() {
-  // WidgetsFlutterBinding MUTLAKA runZonedGuarded dışında başlatılmalı
-  WidgetsFlutterBinding.ensureInitialized();
-
   // Tüm hataları yakalamak için runZonedGuarded kullan
   runZonedGuarded(
     () {
+      // WidgetsFlutterBinding runZonedGuarded İÇİNDE başlatılmalı (aynı zone)
+      WidgetsFlutterBinding.ensureInitialized();
       // Flutter framework hatalarını yakala
       FlutterError.onError = (FlutterErrorDetails details) {
         FlutterError.presentError(details);
@@ -82,6 +82,9 @@ void main() {
           ),
         );
       };
+
+      // Premium servisini başlat (fire-and-forget, UI hazır olunca tamamlanır)
+      PremiumService().init();
 
       runApp(const MyApp());
 

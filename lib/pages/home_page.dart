@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../main.dart'; // AuthPage'e dönebilmek için
+import '../services/premium_service.dart';
 import 'client_list_page.dart';
 import 'weekly_plan_page.dart';
 import 'settings_page.dart';
+import 'premium_page.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
 
@@ -130,7 +132,14 @@ class HomePage extends StatelessWidget {
                   title: l.weeklyPlan,
                   subtitle: l.weeklyPlanDesc,
                   gradientColors: const [Color(0xFF1E88E5), Color(0xFF42A5F5)],
+                  isLocked: !PremiumService().canAccessWeeklyPlan,
                   onTap: () {
+                    if (!PremiumService().canAccessWeeklyPlan) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const PremiumPage()),
+                      );
+                      return;
+                    }
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) =>
@@ -155,6 +164,7 @@ class _MenuCard extends StatelessWidget {
   final String subtitle;
   final List<Color> gradientColors;
   final VoidCallback onTap;
+  final bool isLocked;
 
   const _MenuCard({
     required this.icon,
@@ -162,6 +172,7 @@ class _MenuCard extends StatelessWidget {
     required this.subtitle,
     required this.gradientColors,
     required this.onTap,
+    this.isLocked = false,
   });
 
   @override
@@ -237,9 +248,9 @@ class _MenuCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  Icons.arrow_forward_ios,
+                  isLocked ? Icons.lock : Icons.arrow_forward_ios,
                   size: 16,
-                  color: gradientColors[0],
+                  color: isLocked ? Colors.amber[700] : gradientColors[0],
                 ),
               ),
             ],

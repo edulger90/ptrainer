@@ -283,6 +283,37 @@ class AppLocalizations {
   String get confirmDeleteScheduleTitle => get('confirmDeleteScheduleTitle');
   String get confirmDeleteScheduleMessage =>
       get('confirmDeleteScheduleMessage');
+
+  // ── Premium ──
+  String get premiumTitle => get('premiumTitle');
+  String get premiumActive => get('premiumActive');
+  String get premiumThanks => get('premiumThanks');
+  String get premiumUnlock => get('premiumUnlock');
+  String get premiumActiveDesc => get('premiumActiveDesc');
+  String get premiumDesc => get('premiumDesc');
+  String get premiumFeatureClients => get('premiumFeatureClients');
+  String get premiumFeaturePeriods => get('premiumFeaturePeriods');
+  String get premiumFeatureMeasurements => get('premiumFeatureMeasurements');
+  String get premiumFeatureWeeklyPlan => get('premiumFeatureWeeklyPlan');
+  String get premiumFeaturePayments => get('premiumFeaturePayments');
+  String get premiumUnlimited => get('premiumUnlimited');
+  String get premiumFree => get('premiumFree');
+  String get premiumLabel => get('premiumLabel');
+  String get premiumBuy => get('premiumBuy');
+  String get premiumRestore => get('premiumRestore');
+  String get premiumComingSoon => get('premiumComingSoon');
+  String maxClientsReached(int max) =>
+      get('maxClientsReached').replaceAll('{max}', '$max');
+  String maxPeriodsReached(int max) =>
+      get('maxPeriodsReached').replaceAll('{max}', '$max');
+  String get premiumRequired => get('premiumRequired');
+  String get premiumPlan => get('premiumPlan');
+  String get upgradeToPremium => get('upgradeToPremium');
+  String get premiumPurchaseSuccess => get('premiumPurchaseSuccess');
+  String get premiumRestoreSuccess => get('premiumRestoreSuccess');
+  String get premiumPurchaseError => get('premiumPurchaseError');
+  String get premiumStoreUnavailable => get('premiumStoreUnavailable');
+  String get premiumProductNotFound => get('premiumProductNotFound');
 }
 
 class _AppLocalizationsDelegate

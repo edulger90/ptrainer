@@ -1,0 +1,1 @@
+pilates,eğitmen,sporcu,yönetim,ders,plan,ödeme,takip,beden,ölçüm,stüdyo,fitness

@@ -4,6 +4,8 @@ import '../models/period.dart';
 import '../models/user.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
+import '../services/premium_service.dart';
+import '../pages/premium_page.dart';
 import 'add_client_page.dart';
 import 'client_detail_page.dart';
 import '../main.dart';
@@ -127,6 +129,30 @@ class _ClientListPageState extends State<ClientListPage> {
   }
 
   void _goToAddClient() async {
+    // Premium kontrolü: ücretsiz planda max 3 sporcu
+    final activeCount = _clients.where((c) => c.isActive).length;
+    if (!PremiumService().canAddClient(activeCount)) {
+      if (!mounted) return;
+      final l = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.maxClientsReached(PremiumService.freeMaxClients)),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          action: SnackBarAction(
+            label: 'Premium',
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PremiumPage()));
+            },
+          ),
+        ),
+      );
+      return;
+    }
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => AddClientPage(currentUser: widget.currentUser),

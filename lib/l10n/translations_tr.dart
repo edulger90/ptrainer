@@ -206,4 +206,37 @@ const Map<String, String> trStrings = {
   'confirmDeleteScheduleTitle': 'Ders Saatini Sil',
   'confirmDeleteScheduleMessage':
       'Bu ders saatini silmek istediğinize emin misiniz?',
+
+  // Premium
+  'premiumTitle': 'Premium',
+  'premiumActive': 'AKTİF',
+  'premiumThanks': 'Premium üyesiniz!',
+  'premiumUnlock': 'Tüm Özelliklerin Kilidini Aç',
+  'premiumActiveDesc': 'Tüm özelliklerden sınırsız yararlanıyorsunuz.',
+  'premiumDesc':
+      'Premium üyelik ile sınırsız sporcu, periyot, beden ölçümü, haftalık plan ve ödeme takibi.',
+  'premiumFeatureClients': 'Sporcu Sayısı',
+  'premiumFeaturePeriods': 'Periyot / Sporcu',
+  'premiumFeatureMeasurements': 'Beden Ölçümleri',
+  'premiumFeatureWeeklyPlan': 'Haftalık Plan',
+  'premiumFeaturePayments': 'Ödeme Takibi',
+  'premiumUnlimited': 'Sınırsız',
+  'premiumFree': 'Ücretsiz',
+  'premiumLabel': 'Premium',
+  'premiumBuy': 'Premium Al',
+  'premiumRestore': 'Satın Almayı Geri Yükle',
+  'premiumComingSoon': 'Yakında satın alma aktif olacak!',
+  'maxClientsReached':
+      'Ücretsiz planda en fazla {max} sporcu ekleyebilirsiniz. Premium\'a geçin!',
+  'maxPeriodsReached':
+      'Ücretsiz planda sporcu başına en fazla {max} periyot ekleyebilirsiniz. Premium\'a geçin!',
+  'premiumRequired': 'Bu özellik Premium üyelik gerektirir.',
+  'premiumPlan': 'Mevcut Plan',
+  'upgradeToPremium': 'Premium\'a Yükselt',
+  'premiumPurchaseSuccess': 'Premium başarıyla aktifleştirildi! 🎉',
+  'premiumRestoreSuccess': 'Satın alma başarıyla geri yüklendi!',
+  'premiumPurchaseError': 'Satın alma sırasında bir hata oluştu.',
+  'premiumStoreUnavailable': 'Mağaza şu anda kullanılamıyor.',
+  'premiumProductNotFound':
+      'Ürün bulunamadı. Lütfen daha sonra tekrar deneyin.',
 };
