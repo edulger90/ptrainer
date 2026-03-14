@@ -43,7 +43,7 @@ SCREENS_TR = {
     "03_athletes.png": ("Sporcularım", "Sporcularınızı kolayca\nyönetin ve takip edin"),
     "04_detail.png": ("Sporcu Detayı", "Periyot, ders ve ödeme\nbilgilerini görüntüleyin"),
     "05_weekly.png": ("Haftalık Plan", "Haftanın her günü için\nders programınız"),
-    "06_premium.png": ("Premium", "Tüm özelliklerin kilidini\naçın"),
+    "06_period.png": ("Periyot Takibi", "Ders ve yoklama\nkayıtlarınız"),
 }
 
 SCREENS_EN = {
@@ -52,7 +52,7 @@ SCREENS_EN = {
     "03_athletes.png": ("My Athletes", "Easily manage and\ntrack your athletes"),
     "04_detail.png": ("Athlete Detail", "View periods, lessons\nand payment info"),
     "05_weekly.png": ("Weekly Plan", "Your lesson schedule\nfor every day"),
-    "06_premium.png": ("Premium", "Unlock all features"),
+    "06_period.png": ("Period Tracking", "Lesson and attendance\nrecords"),
 }
 
 # Gradient renkleri (turkuaz tema)
