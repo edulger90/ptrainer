@@ -211,7 +211,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedDay,
+                    initialValue: selectedDay,
                     decoration: InputDecoration(labelText: l.day),
                     items: days
                         .map(
@@ -344,7 +344,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedDay,
+                    initialValue: selectedDay,
                     decoration: InputDecoration(labelText: l.day),
                     items: days
                         .map(
@@ -663,6 +663,20 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     );
     bool isPaid = period.isPaid;
 
+    // Mutable start/end dates for editing
+    DateTime periodStart = DateTime.parse(period.startDate);
+    DateTime periodEnd = DateTime.parse(period.endDate);
+    // Allow editing if no session has been attended (period not started)
+    int attendedCount = 0;
+    try {
+      if (period.id != null && _attendedCounts.containsKey(period.id!)) {
+        attendedCount = _attendedCounts[period.id!] ?? 0;
+      }
+    } catch (_) {
+      attendedCount = 0;
+    }
+    final bool canEditStart = attendedCount == 0 && period.id != null;
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -683,19 +697,63 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today, size: 18),
-                                const SizedBox(width: 8),
-                                Text(
-                                  l.startInfo(
-                                    period.startDate.substring(0, 10),
+                            InkWell(
+                              onTap: canEditStart
+                                  ? () async {
+                                      final today = DateTime.now();
+                                      final safeInitialDate =
+                                          periodStart.isBefore(today)
+                                          ? today
+                                          : periodStart;
+                                      final safeFirstDate = today.subtract(
+                                        const Duration(days: 7),
+                                      );
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: safeInitialDate,
+                                        firstDate: safeFirstDate,
+                                        lastDate: safeFirstDate.add(
+                                          const Duration(days: 365),
+                                        ),
+                                      );
+                                      if (picked != null) {
+                                        final newStart = _findFirstLessonDay(
+                                          picked,
+                                        );
+                                        final newEnd = _calculateEndDate(
+                                          newStart,
+                                        );
+                                        setStateDialog(() {
+                                          periodStart = newStart;
+                                          if (newEnd != null) {
+                                            periodEnd = newEnd;
+                                          }
+                                        });
+                                      }
+                                    }
+                                  : null,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_today, size: 18),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      l.startInfo(
+                                        '${periodStart.day.toString().padLeft(2, '0')}.${periodStart.month.toString().padLeft(2, '0')}.${periodStart.year}',
+                                      ),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
+                                  if (canEditStart)
+                                    const Icon(
+                                      Icons.edit_calendar,
+                                      size: 18,
+                                      color: Color(0xFF00897B),
+                                    ),
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 8),
                             Row(
@@ -703,7 +761,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                 const Icon(Icons.event, size: 18),
                                 const SizedBox(width: 8),
                                 Text(
-                                  l.endInfo(period.endDate.substring(0, 10)),
+                                  l.endInfo(
+                                    '${periodEnd.day.toString().padLeft(2, '0')}.${periodEnd.month.toString().padLeft(2, '0')}.${periodEnd.year}',
+                                  ),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -788,6 +848,8 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       paymentController.text,
                     );
                     final updatedPeriod = period.copyWith(
+                      startDate: periodStart.toIso8601String(),
+                      endDate: periodEnd.toIso8601String(),
                       paymentAmount: paymentAmount,
                       isPaid: isPaid,
                     );
