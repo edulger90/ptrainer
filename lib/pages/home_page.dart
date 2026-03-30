@@ -8,148 +8,217 @@ import 'settings_page.dart';
 import 'premium_page.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
+import 'help_guide_page.dart';
+import 'dart:async';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final User currentUser;
   const HomePage({super.key, required this.currentUser});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  Timer? _sessionTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetSessionTimer();
+  }
+
+  @override
+  void dispose() {
+    _sessionTimer?.cancel();
+    super.dispose();
+  }
+
+  void _resetSessionTimer() {
+    _sessionTimer?.cancel();
+    _sessionTimer = Timer(const Duration(minutes: 5), _logout);
+  }
+
+  void _logout() {
+    if (!mounted) return;
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const AuthPage()));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return Scaffold(
-      body: AppBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ── Üst Bar: Logo + Çıkış ──
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF00897B), Color(0xFF00BCD4)],
+    return Listener(
+      onPointerDown: (_) => _resetSessionTimer(),
+      behavior: HitTestBehavior.translucent,
+      child: Scaffold(
+        body: AppBackground(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Üst Bar: Logo + Çıkış + Yardım ──
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00897B), Color(0xFF00BCD4)],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF00BCD4,
+                              ).withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFF00BCD4,
-                            ).withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                        child: const Icon(
+                          Icons.fitness_center,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.fitness_center,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l.appTitle,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00897B),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l.appTitle,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF00897B),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            l.welcome(currentUser.username),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
+                            const SizedBox(height: 2),
+                            Text(
+                              l.welcome(widget.currentUser.username),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
                             ),
+                          ],
+                        ),
+                      ),
+                      // Yardım Butonu
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.help_outline,
+                            color: Colors.blue[400],
                           ),
-                        ],
+                          tooltip: 'Yardım',
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const HelpGuidePage(),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.teal[50],
-                        borderRadius: BorderRadius.circular(12),
+                      const SizedBox(width: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.teal[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.settings, color: Colors.teal[400]),
+                          tooltip: l.settings,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const SettingsPage(),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                      child: IconButton(
-                        icon: Icon(Icons.settings, color: Colors.teal[400]),
-                        tooltip: l.settings,
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const SettingsPage(),
-                            ),
-                          );
-                        },
+                      const SizedBox(width: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.logout, color: Colors.red[400]),
+                          tooltip: l.logout,
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (_) => const AuthPage(),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.logout, color: Colors.red[400]),
-                        tooltip: l.logout,
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (_) => const AuthPage()),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
 
-                // ── Menü Kartları ──
-                _MenuCard(
-                  icon: Icons.people_alt_rounded,
-                  title: l.myAthletes,
-                  subtitle: l.manageAthletesDesc,
-                  gradientColors: const [Color(0xFF00897B), Color(0xFF00BCD4)],
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ClientListPage(currentUser: currentUser),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                _MenuCard(
-                  icon: Icons.calendar_month_rounded,
-                  title: l.weeklyPlan,
-                  subtitle: l.weeklyPlanDesc,
-                  gradientColors: const [Color(0xFF1E88E5), Color(0xFF42A5F5)],
-                  isLocked: !PremiumService().canAccessWeeklyPlan,
-                  onTap: () {
-                    if (!PremiumService().canAccessWeeklyPlan) {
+                  // ── Menü Kartları ──
+                  _MenuCard(
+                    icon: Icons.people_alt_rounded,
+                    title: l.myAthletes,
+                    subtitle: l.manageAthletesDesc,
+                    gradientColors: const [
+                      Color(0xFF00897B),
+                      Color(0xFF00BCD4),
+                    ],
+                    onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const PremiumPage()),
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              ClientListPage(currentUser: widget.currentUser),
+                        ),
                       );
-                      return;
-                    }
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            WeeklyPlanPage(currentUser: currentUser),
-                      ),
-                    );
-                  },
-                ),
-                // Analiz kartı ileride eklenecek
-              ],
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _MenuCard(
+                    icon: Icons.calendar_month_rounded,
+                    title: l.weeklyPlan,
+                    subtitle: l.weeklyPlanDesc,
+                    gradientColors: const [
+                      Color(0xFF1E88E5),
+                      Color(0xFF42A5F5),
+                    ],
+                    isLocked: !PremiumService().canAccessWeeklyPlan,
+                    onTap: () {
+                      if (!PremiumService().canAccessWeeklyPlan) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const PremiumPage(),
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              WeeklyPlanPage(currentUser: widget.currentUser),
+                        ),
+                      );
+                    },
+                  ),
+                  // Analiz kartı ileride eklenecek
+                ],
+              ),
             ),
           ),
         ),

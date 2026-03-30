@@ -348,6 +348,14 @@ class AppLocalizations {
   String get premiumPurchaseError => get('premiumPurchaseError');
   String get premiumStoreUnavailable => get('premiumStoreUnavailable');
   String get premiumProductNotFound => get('premiumProductNotFound');
+  // ── Help Guide ──
+  String get help => get('help');
+  String get helpGuideTitle => get('helpGuideTitle');
+  String get helpGuidePurpose => get('helpGuidePurpose');
+  String get helpGuideFeatures => get('helpGuideFeatures');
+  String get helpGuideScreens => get('helpGuideScreens');
+  String get helpGuideFAQ => get('helpGuideFAQ');
+  String get helpGuideContact => get('helpGuideContact');
 }
 
 class _AppLocalizationsDelegate

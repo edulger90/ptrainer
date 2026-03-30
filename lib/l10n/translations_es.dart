@@ -251,4 +251,18 @@ const Map<String, String> esStrings = {
   'premiumStoreUnavailable': 'La tienda no está disponible actualmente.',
   'premiumProductNotFound': 'Producto no encontrado. Inténtalo más tarde.',
   'selectReason': 'Seleccionar motivo',
+
+  // Help Guide
+  'help': 'Ayuda',
+  'helpGuideTitle': 'Guía de Uso de la App',
+  'helpGuidePurpose':
+      '1. Propósito y Visión General\n   - Esta app está diseñada para el seguimiento de deportistas, planificación de clases y gestión de periodos.',
+  'helpGuideFeatures':
+      '2. Funcionalidades Principales\n   - Añadir, editar y eliminar deportistas\n   - Crear periodos y definir días de clase\n   - Ver el plan semanal y el calendario\n   - Cancelar/recuperar clases y seleccionar motivos\n   - Seguimiento de clases completadas y progreso',
+  'helpGuideScreens':
+      '3. Pantallas y Navegación\n   - Inicio: Deportistas y resumen\n   - Detalle del Deportista: Periodos, mediciones e historial de clases\n   - Calendario de Periodo: Estado diario de clases, cancelar/recuperar\n   - Plan Semanal: Horario semanal de clases',
+  'helpGuideFAQ':
+      '4. Preguntas Frecuentes\n   - ¿Cómo cancelar una clase?\n   - ¿Cómo extender un periodo?\n   - ¿Cómo se calculan las clases completadas?\n   - ¿Qué hacer ante entradas incorrectas?',
+  'helpGuideContact':
+      '5. Contacto y Soporte\n   - Para problemas, contacta al desarrollador: example@mail.com',
 };

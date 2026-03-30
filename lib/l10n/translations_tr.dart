@@ -253,4 +253,16 @@ const Map<String, String> trStrings = {
   'premiumProductNotFound':
       'Ürün bulunamadı. Lütfen daha sonra tekrar deneyin.',
   'selectReason': 'Sebep Seçin',
+  'help': 'Yardım',
+  'helpGuideTitle': 'Uygulama Kullanım Rehberi',
+  'helpGuidePurpose':
+      '1. Amaç ve Genel Bakış\n   - Bu uygulama, sporcu takibi, ders planlama ve periyot yönetimi için tasarlanmıştır.',
+  'helpGuideFeatures':
+      '2. Ana Özellikler\n   - Sporcu ekleme, düzenleme ve silme\n   - Periyot oluşturma ve ders günlerini belirleme\n   - Haftalık ders planı ve takvim görüntüleme\n   - Ders iptal/telafi işlemleri ve sebep seçimi\n   - Tamamlanan ders sayısı ve ilerleme takibi',
+  'helpGuideScreens':
+      '3. Ekranlar ve Navigasyon\n   - Ana sayfa: Sporcular ve genel özet\n   - Sporcu Detay: Periyotlar, ölçümler ve geçmiş dersler\n   - Periyot Takvimi: Günlük ders durumu, iptal/telafi işlemleri\n   - Haftalık Plan: Haftanın ders programı',
+  'helpGuideFAQ':
+      '4. Sıkça Sorulanlar\n   - Ders nasıl iptal edilir?\n   - Periyot nasıl uzatılır?\n   - Tamamlanan dersler nasıl hesaplanır?\n   - Hatalı girişlerde ne yapılmalı?',
+  'helpGuideContact':
+      '5. İletişim ve Destek\n   - Sorunlarınız için uygulama geliştiricisine ulaşabilirsiniz: ptrainer@edhelperapp.com',
 };

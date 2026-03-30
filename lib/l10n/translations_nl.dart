@@ -253,4 +253,16 @@ const Map<String, String> nlStrings = {
   'premiumStoreUnavailable': 'Winkel is momenteel niet beschikbaar.',
   'premiumProductNotFound': 'Product niet gevonden. Probeer het later opnieuw.',
   'selectReason': 'Reden selecteren',
+  'help': 'Help',
+  'helpGuideTitle': 'App Gebruikersgids',
+  'helpGuidePurpose':
+      '1. Doel en Overzicht\n   - Deze app is ontworpen voor sporterstracking, lesplanning en periodebeheer.',
+  'helpGuideFeatures':
+      '2. Belangrijkste Functies\n   - Sporters toevoegen, bewerken en verwijderen\n   - Periodes aanmaken en lesdagen instellen\n   - Bekijk het wekelijkse lesrooster en de kalender\n   - Lessen annuleren/inhalen en redenen selecteren\n   - Voltooide lessen en voortgang bijhouden',
+  'helpGuideScreens':
+      '3. Schermen en Navigatie\n   - Home: Sporters en overzicht\n   - Sporter Detail: Periodes, metingen en lesgeschiedenis\n   - Periodekalender: Dagelijkse lesstatus, annuleren/inhalen\n   - Weekplanning: Wekelijks lesrooster',
+  'helpGuideFAQ':
+      '4. Veelgestelde Vragen\n   - Hoe annuleer ik een les?\n   - Hoe verleng ik een periode?\n   - Hoe worden voltooide lessen berekend?\n   - Wat te doen bij foutieve invoer?',
+  'helpGuideContact':
+      '5. Contact & Ondersteuning\n   - Voor problemen, neem contact op met de ontwikkelaar: example@mail.com',
 };

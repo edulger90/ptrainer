@@ -254,4 +254,18 @@ const Map<String, String> enStrings = {
   'premiumStoreUnavailable': 'Store is currently unavailable.',
   'premiumProductNotFound': 'Product not found. Please try again later.',
   'selectReason': 'Select Reason',
+
+  // Help
+  'help': 'Help',
+  'helpGuideTitle': 'App Usage Guide',
+  'helpGuidePurpose':
+      '1. Purpose and Overview\n   - This app is designed for athlete tracking, lesson planning, and period management.',
+  'helpGuideFeatures':
+      '2. Main Features\n   - Add, edit, and delete athletes\n   - Create periods and set lesson days\n   - View weekly lesson plan and calendar\n   - Cancel/make up lessons and select reasons\n   - Track completed lessons and progress',
+  'helpGuideScreens':
+      '3. Screens and Navigation\n   - Home: Athletes and overview\n   - Athlete Detail: Periods, measurements, and lesson history\n   - Period Calendar: Daily lesson status, cancel/make up\n   - Weekly Plan: Weekly lesson schedule',
+  'helpGuideFAQ':
+      '4. Frequently Asked Questions\n   - How to cancel a lesson?\n   - How to extend a period?\n   - How are completed lessons calculated?\n   - What to do in case of incorrect entries?',
+  'helpGuideContact':
+      '5. Contact & Support\n   - For issues, contact the app developer: ptrainer@edhelperapp.com',
 };
