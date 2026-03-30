@@ -1,3 +1,4 @@
+import '../utils/lesson_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/period.dart';
@@ -44,8 +45,15 @@ class _ClientListPageState extends State<ClientListPage> {
         try {
           final period = await _db.getLatestPeriodForClient(cid);
           int completed = 0;
-          if (period?.id != null) {
-            completed = await _db.getCompletedCountForPeriod(cid, period!.id!);
+          if (period != null && period.id != null) {
+            final attendanceRecords = await _db.getAttendanceForPeriod(
+              cid,
+              period.id!,
+            );
+            completed = LessonUtils.completedLessonCount(
+              attendanceRecords.values,
+              period,
+            );
           }
           periodInfo[cid] = (period, completed);
         } catch (_) {
@@ -130,8 +138,8 @@ class _ClientListPageState extends State<ClientListPage> {
 
   void _goToAddClient() async {
     // Premium kontrolü: ücretsiz planda max 3 sporcu
-    final activeCount = _clients.where((c) => c.isActive).length;
-    if (!PremiumService().canAddClient(activeCount)) {
+    final clientCount = _clients.length;
+    if (!PremiumService().canAddClient(clientCount)) {
       if (!mounted) return;
       final l = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(

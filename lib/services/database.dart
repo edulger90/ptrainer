@@ -28,7 +28,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 14,
+      version: 15,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE users(
@@ -92,8 +92,10 @@ class AppDatabase {
             lessonDate TEXT NOT NULL,
             attended INTEGER NOT NULL,
             cancelled INTEGER NOT NULL DEFAULT 0,
+            isPostponed INTEGER NOT NULL DEFAULT 0,
             attendedDate TEXT,
             makeupDate TEXT,
+            reason INTEGER,
             FOREIGN KEY (clientId) REFERENCES clients(id) ON DELETE CASCADE,
             FOREIGN KEY (periodId) REFERENCES periods(id) ON DELETE CASCADE
           )
@@ -104,6 +106,24 @@ class AppDatabase {
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 15) {
+          // Add reason column to attendances
+          try {
+            await db.execute(
+              'ALTER TABLE attendances ADD COLUMN reason INTEGER',
+            );
+          } catch (e) {
+            // column may already exist
+          }
+          // Add isPostponed column to attendances
+          try {
+            await db.execute(
+              'ALTER TABLE attendances ADD COLUMN isPostponed INTEGER NOT NULL DEFAULT 0',
+            );
+          } catch (e) {
+            // column may already exist
+          }
+        }
         if (oldVersion < 2) {
           // add password column for older databases
           await db.execute('''
@@ -481,15 +501,6 @@ class AppDatabase {
 
   /// Get completed lesson count for a specific period
   /// "Completed" = attendance record exists AND cancelled == 0
-  Future<int> getCompletedCountForPeriod(int clientId, int periodId) async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT COUNT(*) as cnt FROM attendances WHERE clientId = ? AND periodId = ? AND cancelled = 0',
-      [clientId, periodId],
-    );
-    return (result.first['cnt'] as int?) ?? 0;
-  }
-
   /// Get all periods for a given client (ordered by start date desc)
   Future<List<Period>> getPeriodsByClient(int clientId) async {
     final db = await database;
@@ -560,8 +571,10 @@ class AppDatabase {
     required DateTime lessonDate,
     required bool attended,
     bool cancelled = false,
+    bool isPostponed = false,
     DateTime? attendedDate,
     DateTime? makeupDate,
+    int? reason,
   }) async {
     final db = await database;
     final lessonDateStr = lessonDate.toIso8601String();
@@ -579,8 +592,10 @@ class AppDatabase {
         {
           'attended': attended ? 1 : 0,
           'cancelled': cancelled ? 1 : 0,
+          'isPostponed': isPostponed ? 1 : 0,
           'attendedDate': attendedDateStr,
           'makeupDate': makeupDateStr,
+          'reason': reason,
         },
         where: 'id = ?',
         whereArgs: [existing.first['id']],
@@ -592,8 +607,10 @@ class AppDatabase {
         'lessonDate': lessonDateStr,
         'attended': attended ? 1 : 0,
         'cancelled': cancelled ? 1 : 0,
+        'isPostponed': isPostponed ? 1 : 0,
         'attendedDate': attendedDateStr,
         'makeupDate': makeupDateStr,
+        'reason': reason,
       });
     }
   }

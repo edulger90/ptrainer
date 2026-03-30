@@ -1,3 +1,4 @@
+import '../utils/lesson_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/period.dart';
@@ -10,6 +11,7 @@ import '../widgets/app_background.dart';
 import '../widgets/period_list_section.dart';
 import '../l10n/app_localizations.dart';
 import 'premium_page.dart';
+import '../utils/day_localization.dart';
 
 class ClientDetailPage extends StatefulWidget {
   final Client client;
@@ -52,10 +54,11 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
             clientId,
             period.id!,
           );
-          final attended = attendanceRecords.values
-              .where((r) => (r['cancelled'] as int? ?? 0) == 0)
-              .length;
-          attendedCounts[period.id!] = attended;
+          final completed = LessonUtils.completedLessonCount(
+            attendanceRecords.values,
+            period,
+          );
+          attendedCounts[period.id!] = completed;
         }
       }
       if (!mounted) return;
@@ -161,28 +164,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     );
   }
 
-  String _localizedDay(BuildContext context, String dayKey) {
-    final l = AppLocalizations.of(context);
-    switch (dayKey) {
-      case 'Pazartesi':
-        return l.monday;
-      case 'Salı':
-        return l.tuesday;
-      case 'Çarşamba':
-        return l.wednesday;
-      case 'Perşembe':
-        return l.thursday;
-      case 'Cuma':
-        return l.friday;
-      case 'Cumartesi':
-        return l.saturday;
-      case 'Pazar':
-        return l.sunday;
-      default:
-        return dayKey;
-    }
-  }
-
   Future<void> _showAddScheduleDialog(BuildContext context) async {
     const days = [
       'Pazartesi',
@@ -217,7 +198,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                         .map(
                           (d) => DropdownMenuItem(
                             value: d,
-                            child: Text(_localizedDay(context, d)),
+                            child: Text(
+                              DayLocalizationHelper.localizedDay(context, d),
+                            ),
                           ),
                         )
                         .toList(),
@@ -350,7 +333,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                         .map(
                           (d) => DropdownMenuItem(
                             value: d,
-                            child: Text(_localizedDay(context, d)),
+                            child: Text(
+                              DayLocalizationHelper.localizedDay(context, d),
+                            ),
                           ),
                         )
                         .toList(),
@@ -1317,7 +1302,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                             ),
                                             child: Center(
                                               child: Text(
-                                                _localizedDay(
+                                                DayLocalizationHelper.localizedDay(
                                                   context,
                                                   schedule.dayOfWeek,
                                                 ).substring(0, 2).toUpperCase(),
@@ -1337,7 +1322,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  _localizedDay(
+                                                  DayLocalizationHelper.localizedDay(
                                                     context,
                                                     schedule.dayOfWeek,
                                                   ),

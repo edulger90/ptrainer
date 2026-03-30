@@ -1,4 +1,17 @@
 const Map<String, String> nlStrings = {
+  'completedLessonCount': 'Voltooide Lessen: {count}',
+  // Lesson Reason
+  'reasonResmiTatil': 'Officiële Feestdag',
+  'reasonSporcuHasta': 'Sporters Ziek',
+  'reasonTrainerHasta': 'Trainer Ziek',
+  'reasonSporcuKisisel': 'Sporters Persoonlijk',
+  'reasonTrainerKisisel': 'Trainer Persoonlijk',
+  // Les aan einde van periode toevoegen dialoog
+  'addLessonToPeriodEndTitle': 'Les aan einde van periode toevoegen?',
+  'addLessonToPeriodEndBody':
+      'Je hebt deze les geannuleerd. Wil je een nieuwe les aan het einde van de periode toevoegen?',
+  'yes': 'Ja',
+  'no': 'Nee',
   // General
   'appTitle': 'P-Trainer',
   'cancel': 'Annuleren',
@@ -239,4 +252,5 @@ const Map<String, String> nlStrings = {
   'premiumPurchaseError': 'Er is een fout opgetreden tijdens de aankoop.',
   'premiumStoreUnavailable': 'Winkel is momenteel niet beschikbaar.',
   'premiumProductNotFound': 'Product niet gevonden. Probeer het later opnieuw.',
+  'selectReason': 'Reden selecteren',
 };

@@ -5,8 +5,26 @@ import '../services/premium_service.dart';
 import 'error_log_page.dart';
 import 'premium_page.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool _isPremium = PremiumService().isPremium;
+
+  Future<void> _setPremium(bool value) async {
+    if (value) {
+      await PremiumService().activatePremium();
+    } else {
+      await PremiumService().deactivatePremium();
+    }
+    setState(() {
+      _isPremium = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +75,23 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 24),
+          // --- Premium Test Butonu (Sadece debug/release modda) ---
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: ListTile(
+              leading: Icon(Icons.workspace_premium, color: Colors.blue),
+              title: Text('Premium Test'),
+              subtitle: Text(_isPremium ? 'Premium aktif' : 'Premium pasif'),
+              trailing: Switch(
+                value: _isPremium,
+                onChanged: (val) => _setPremium(val),
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
 
           // Premium plan kartı

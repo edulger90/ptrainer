@@ -1,4 +1,11 @@
 const Map<String, String> esStrings = {
+  'completedLessonCount': 'Clases Completadas: {count}',
+  // Lesson Reason
+  'reasonResmiTatil': 'Fiesta Oficial',
+  'reasonSporcuHasta': 'Deportista Enfermo',
+  'reasonTrainerHasta': 'Entrenador Enfermo',
+  'reasonSporcuKisisel': 'Deportista Personal',
+  'reasonTrainerKisisel': 'Entrenador Personal',
   // General
   'appTitle': 'P-Trainer',
   'cancel': 'Cancelar',
@@ -243,4 +250,5 @@ const Map<String, String> esStrings = {
   'premiumPurchaseError': 'Ocurrió un error durante la compra.',
   'premiumStoreUnavailable': 'La tienda no está disponible actualmente.',
   'premiumProductNotFound': 'Producto no encontrado. Inténtalo más tarde.',
+  'selectReason': 'Seleccionar motivo',
 };

@@ -1,4 +1,17 @@
 const Map<String, String> enStrings = {
+  'completedLessonCount': 'Completed Lessons: {count}',
+  // Lesson Reason
+  'reasonResmiTatil': 'Official Holiday',
+  'reasonSporcuHasta': 'Athlete Sick',
+  'reasonTrainerHasta': 'Trainer Sick',
+  'reasonSporcuKisisel': 'Athlete Personal',
+  'reasonTrainerKisisel': 'Trainer Personal',
+  // Add lesson to period end dialog
+  'addLessonToPeriodEndTitle': 'Add Lesson to End of Period?',
+  'addLessonToPeriodEndBody':
+      'You cancelled this lesson. Would you like to add a new lesson to the end of the period?',
+  'yes': 'Yes',
+  'no': 'No',
   // General
   'appTitle': 'P-Trainer',
   'cancel': 'Cancel',
@@ -240,4 +253,5 @@ const Map<String, String> enStrings = {
   'premiumPurchaseError': 'An error occurred during purchase.',
   'premiumStoreUnavailable': 'Store is currently unavailable.',
   'premiumProductNotFound': 'Product not found. Please try again later.',
+  'selectReason': 'Select Reason',
 };

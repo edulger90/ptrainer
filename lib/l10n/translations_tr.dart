@@ -1,4 +1,17 @@
 const Map<String, String> trStrings = {
+  'completedLessonCount': 'Tamamlanan Ders: {count}',
+  // Lesson Reason
+  'reasonResmiTatil': 'Resmi Tatil',
+  'reasonSporcuHasta': 'Sporcu Hasta',
+  'reasonTrainerHasta': 'Trainer Hasta',
+  'reasonSporcuKisisel': 'Sporcu Kişisel',
+  'reasonTrainerKisisel': 'Trainer Kişisel',
+  // Period sonuna ders ekleme dialogu
+  'addLessonToPeriodEndTitle': 'Period Sonuna Ders Eklensin mi?',
+  'addLessonToPeriodEndBody':
+      'Bu dersi iptal ettiniz. Period sonuna yeni bir ders eklemek ister misiniz?',
+  'yes': 'Evet',
+  'no': 'Hayır',
   // Genel
   'appTitle': 'P-Trainer',
   'cancel': 'İptal',
@@ -239,4 +252,5 @@ const Map<String, String> trStrings = {
   'premiumStoreUnavailable': 'Mağaza şu anda kullanılamıyor.',
   'premiumProductNotFound':
       'Ürün bulunamadı. Lütfen daha sonra tekrar deneyin.',
+  'selectReason': 'Sebep Seçin',
 };

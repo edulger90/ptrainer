@@ -1,12 +1,46 @@
-import 'package:flutter/material.dart';
+// ...existing code...
+
+// Completed lesson count
+
 import 'translations_tr.dart';
 import 'translations_en.dart';
 import 'translations_es.dart';
 import 'translations_nl.dart';
+import '../models/lesson_reason.dart';
+import 'package:flutter/material.dart';
 
-/// Uygulama genelinde kullanılan çeviri metinleri.
-/// Desteklenen diller: Türkçe (tr), İngilizce (en), İspanyolca (es), Flemenkçe (nl).
 class AppLocalizations {
+  String get selectReason => get('selectReason');
+  // Lesson Reason
+  String get reasonResmiTatil => get('reasonResmiTatil');
+  String get reasonSporcuHasta => get('reasonSporcuHasta');
+  String get reasonTrainerHasta => get('reasonTrainerHasta');
+  String get reasonSporcuKisisel => get('reasonSporcuKisisel');
+  String get reasonTrainerKisisel => get('reasonTrainerKisisel');
+  String completedLessonCount(int count) =>
+      get('completedLessonCount').replaceAll('{count}', count.toString());
+
+  String lessonReasonLabel(LessonReason reason) {
+    switch (reason) {
+      case LessonReason.resmiTatil:
+        return reasonResmiTatil;
+      case LessonReason.sporcuHasta:
+        return reasonSporcuHasta;
+      case LessonReason.trainerHasta:
+        return reasonTrainerHasta;
+      case LessonReason.sporcuKisisel:
+        return reasonSporcuKisisel;
+      case LessonReason.trainerKisisel:
+        return reasonTrainerKisisel;
+    }
+    // This should never be reached
+  }
+
+  // Period sonuna ders ekleme dialogu
+  String get addLessonToPeriodEndTitle => get('addLessonToPeriodEndTitle');
+  String get addLessonToPeriodEndBody => get('addLessonToPeriodEndBody');
+  String get yes => get('yes');
+  String get no => get('no');
   final Locale locale;
   AppLocalizations(this.locale);
 

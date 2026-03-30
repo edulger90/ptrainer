@@ -1,13 +1,16 @@
+import '../utils/lesson_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../models/client.dart';
 import '../models/session_schedule.dart';
-import '../models/period.dart';
+
 import '../services/database.dart';
 import '../services/error_logger.dart';
 import 'client_detail_page.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/day_localization.dart';
+import '../utils/period_utils.dart';
 
 class WeeklyPlanPage extends StatefulWidget {
   final User currentUser;
@@ -35,28 +38,6 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
     'Pazar',
   ];
 
-  String _localizedDay(BuildContext context, String dayKey) {
-    final l = AppLocalizations.of(context);
-    switch (dayKey) {
-      case 'Pazartesi':
-        return l.monday;
-      case 'Salı':
-        return l.tuesday;
-      case 'Çarşamba':
-        return l.wednesday;
-      case 'Perşembe':
-        return l.thursday;
-      case 'Cuma':
-        return l.friday;
-      case 'Cumartesi':
-        return l.saturday;
-      case 'Pazar':
-        return l.sunday;
-      default:
-        return dayKey;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -82,41 +63,49 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
         final schedules = await _db.getSessionSchedulesByClient(clientId);
         final periods = await _db.getPeriodsByClient(clientId);
 
-        // En son açık periyodu bul (bitiş tarihi bugün veya sonrası)
-        Period? activePeriod;
-        int activePeriodIndex =
-            -1; // Kaçıncı periyot olduğunu bulmak için eklendi
-
-        // periods listesi varsayılan olarak tarihe göre azalan (en yeni en üstte) sıralı geliyor olabilir
-        // Kronolojik(en eski en üstte) olarak sıralayıp indeksini bulalım
-        final sortedPeriods = List<Period>.from(periods)
-          ..sort((a, b) => a.startDate.compareTo(b.startDate));
-
-        for (int i = 0; i < sortedPeriods.length; i++) {
-          final period = sortedPeriods[i];
-          final endDate = DateTime.parse(period.endDate);
-          if (endDate.isAfter(
-            DateTime.now().subtract(const Duration(days: 1)),
-          )) {
-            activePeriod = period;
-            activePeriodIndex = i + 1; // 1-based index
-            break;
-          }
-        }
-
-        // Tamamlanan ders sayısını hesapla
-        // Yeşil tik + Kırmızı çarpı = tamamlanmış, İptal/erteleme sayılmaz
+        final active = PeriodUtils.findActivePeriod(periods);
+        final last = PeriodUtils.findLastPeriod(periods);
         int completedLessons = 0;
-        if (activePeriod != null && activePeriod.id != null) {
+        bool hasActive = false;
+        // Period? displayPeriod; // No longer needed
+        int displayPeriodIndex = -1;
+
+        if (active.period != null && active.period!.id != null) {
           final attendanceRecords = await _db.getAttendanceForPeriod(
             clientId,
-            activePeriod.id!,
+            active.period!.id!,
           );
-          completedLessons = attendanceRecords.values
-              .where((r) => (r['cancelled'] as int? ?? 0) == 0)
-              .length;
+          completedLessons = LessonUtils.completedLessonCount(
+            attendanceRecords.values,
+            active.period!,
+          );
+
+          final effectiveEnd = DateTime.parse(
+            active.period!.postponedEndDate ?? active.period!.endDate,
+          );
+          final lastLessonAttendance = attendanceRecords[effectiveEnd];
+          bool periodReallyEnded = false;
+          if (lastLessonAttendance != null &&
+              (lastLessonAttendance['attended'] as int? ?? 0) == 1) {
+            periodReallyEnded = true;
+          }
+          hasActive = !periodReallyEnded;
+          // displayPeriod = active.period;
+          displayPeriodIndex = active.index;
+        } else if (last.period != null && last.period!.id != null) {
+          // displayPeriod = last.period;
+          displayPeriodIndex = last.index;
+          final attendanceRecords = await _db.getAttendanceForPeriod(
+            clientId,
+            last.period!.id!,
+          );
+          completedLessons = LessonUtils.completedLessonCount(
+            attendanceRecords.values,
+            last.period!,
+          );
         }
 
+        final showPeriodLabel = displayPeriodIndex > 0;
         for (final schedule in schedules) {
           final day = schedule.dayOfWeek;
           if (schedulesByDay.containsKey(day)) {
@@ -126,8 +115,9 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                 schedule: schedule,
                 completedLessons: completedLessons,
                 totalLessons: client.sessionPackage,
-                hasActivePeriod: activePeriod != null,
-                activePeriodIndex: activePeriodIndex,
+                hasActivePeriod: hasActive,
+                activePeriodIndex: displayPeriodIndex,
+                showPeriodLabel: showPeriodLabel,
               ),
             );
           }
@@ -226,7 +216,14 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                     fontSize: 14,
                   ),
                   tabs: _days
-                      .map((day) => Tab(text: _localizedDay(context, day)))
+                      .map(
+                        (day) => Tab(
+                          text: DayLocalizationHelper.localizedDay(
+                            context,
+                            day,
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
                 // ── İçerik ──
@@ -429,6 +426,7 @@ class _ClientScheduleInfo {
   final int totalLessons;
   final bool hasActivePeriod;
   final int activePeriodIndex;
+  final bool showPeriodLabel;
 
   _ClientScheduleInfo({
     required this.client,
@@ -437,5 +435,6 @@ class _ClientScheduleInfo {
     required this.totalLessons,
     required this.hasActivePeriod,
     required this.activePeriodIndex,
+    required this.showPeriodLabel,
   });
 }
