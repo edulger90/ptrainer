@@ -13,6 +13,7 @@ const Map<String, String> enStrings = {
   'yes': 'Yes',
   'no': 'No',
   // General
+  'showPassiveClients': 'Show Passive Clients',
   'appTitle': 'P-Trainer',
   'cancel': 'Cancel',
   'save': 'Save',

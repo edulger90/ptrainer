@@ -10,6 +10,20 @@ import '../models/session_schedule.dart';
 import '../models/period.dart';
 
 class AppDatabase {
+  /// Update a body measurement
+  Future<int> updateBodyMeasurement(BodyMeasurement measurement) async {
+    final db = await database;
+    if (measurement.id == null) {
+      throw ArgumentError('Measurement id is required for update');
+    }
+    return db.update(
+      'body_measurements',
+      measurement.toMap(),
+      where: 'id = ?',
+      whereArgs: [measurement.id],
+    );
+  }
+
   static final AppDatabase _instance = AppDatabase._internal();
   factory AppDatabase() => _instance;
   AppDatabase._internal();

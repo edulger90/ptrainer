@@ -13,6 +13,7 @@ const Map<String, String> trStrings = {
   'yes': 'Evet',
   'no': 'Hayır',
   // Genel
+  'showPassiveClients': 'Pasifleri Göster',
   'appTitle': 'P-Trainer',
   'cancel': 'İptal',
   'save': 'Kaydet',

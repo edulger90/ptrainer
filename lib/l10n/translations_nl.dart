@@ -13,6 +13,7 @@ const Map<String, String> nlStrings = {
   'yes': 'Ja',
   'no': 'Nee',
   // General
+  'showPassiveClients': 'Toon passieve klanten',
   'appTitle': 'P-Trainer',
   'cancel': 'Annuleren',
   'save': 'Opslaan',

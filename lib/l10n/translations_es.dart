@@ -7,6 +7,7 @@ const Map<String, String> esStrings = {
   'reasonSporcuKisisel': 'Deportista Personal',
   'reasonTrainerKisisel': 'Entrenador Personal',
   // General
+  'showPassiveClients': 'Mostrar clientes pasivos',
   'appTitle': 'P-Trainer',
   'cancel': 'Cancelar',
   'save': 'Guardar',

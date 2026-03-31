@@ -82,13 +82,22 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     }
   }
 
-  Future<void> _showAddMeasurementDialog(BuildContext context) async {
+  Future<void> _showAddMeasurementDialog(
+    BuildContext context, {
+    BodyMeasurement? measurement,
+  }) async {
     final clientId = widget.client.id;
     if (clientId == null) return;
-    DateTime date = DateTime.now();
-    final chestController = TextEditingController();
-    final waistController = TextEditingController();
-    final hipsController = TextEditingController();
+    DateTime date = measurement?.date ?? DateTime.now();
+    final chestController = TextEditingController(
+      text: measurement?.chest?.toString() ?? '',
+    );
+    final waistController = TextEditingController(
+      text: measurement?.waist?.toString() ?? '',
+    );
+    final hipsController = TextEditingController(
+      text: measurement?.hips?.toString() ?? '',
+    );
     await showDialog(
       context: context,
       builder: (context) {
@@ -96,7 +105,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
           builder: (context, setStateDialog) {
             final l = AppLocalizations.of(context);
             return AlertDialog(
-              title: Text(l.addMeasurement),
+              title: Text(
+                measurement == null ? l.addMeasurement : l.editMeasurement,
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -143,14 +154,19 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     final chest = double.tryParse(chestController.text);
                     final waist = double.tryParse(waistController.text);
                     final hips = double.tryParse(hipsController.text);
-                    final measurement = BodyMeasurement(
+                    final updatedMeasurement = BodyMeasurement(
+                      id: measurement?.id,
                       clientId: clientId,
                       date: date,
                       chest: chest,
                       waist: waist,
                       hips: hips,
                     );
-                    await _db.insertBodyMeasurement(measurement);
+                    if (measurement == null) {
+                      await _db.insertBodyMeasurement(updatedMeasurement);
+                    } else {
+                      await _db.updateBodyMeasurement(updatedMeasurement);
+                    }
                     await _loadAllData();
                     Navigator.pop(context);
                   },
@@ -1488,127 +1504,140 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 10),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFCE4EC),
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color: const Color(
-                                            0xFFE91E63,
-                                          ).withValues(alpha: 0.2),
-                                          width: 1.5,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
+                                    child: GestureDetector(
+                                      onTap: () => _showAddMeasurementDialog(
+                                        context,
+                                        measurement: m,
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFCE4EC),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                          border: Border.all(
                                             color: const Color(
                                               0xFFE91E63,
-                                            ).withValues(alpha: 0.08),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 3),
+                                            ).withValues(alpha: 0.2),
+                                            width: 1.5,
                                           ),
-                                        ],
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(14),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            // Tarih satırı
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 5,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(
-                                                      0xFFE91E63,
-                                                    ).withValues(alpha: 0.12),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(
+                                                0xFFE91E63,
+                                              ).withValues(alpha: 0.08),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(14),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              // Tarih satırı
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 10,
+                                                          vertical: 5,
                                                         ),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      const Icon(
-                                                        Icons.calendar_today,
-                                                        size: 14,
-                                                        color: Color(
-                                                          0xFFAD1457,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 6),
-                                                      Text(
-                                                        dateStr,
-                                                        style: const TextStyle(
-                                                          fontSize: 13,
-                                                          fontWeight:
-                                                              FontWeight.w600,
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                        0xFFE91E63,
+                                                      ).withValues(alpha: 0.12),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        const Icon(
+                                                          Icons.calendar_today,
+                                                          size: 14,
                                                           color: Color(
                                                             0xFFAD1457,
                                                           ),
                                                         ),
+                                                        const SizedBox(
+                                                          width: 6,
+                                                        ),
+                                                        Text(
+                                                          dateStr,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: Color(
+                                                                  0xFFAD1457,
+                                                                ),
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 12),
+                                              // Ölçü değerleri
+                                              Row(
+                                                children: [
+                                                  // Göğüs
+                                                  Expanded(
+                                                    child: _measurementTile(
+                                                      icon: Icons
+                                                          .accessibility_new,
+                                                      label: l.chest,
+                                                      value: m.chest != null
+                                                          ? '${m.chest}'
+                                                          : '-',
+                                                      color: const Color(
+                                                        0xFF00897B,
                                                       ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 12),
-                                            // Ölçü değerleri
-                                            Row(
-                                              children: [
-                                                // Göğüs
-                                                Expanded(
-                                                  child: _measurementTile(
-                                                    icon:
-                                                        Icons.accessibility_new,
-                                                    label: l.chest,
-                                                    value: m.chest != null
-                                                        ? '${m.chest}'
-                                                        : '-',
-                                                    color: const Color(
-                                                      0xFF00897B,
                                                     ),
                                                   ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                // Bel
-                                                Expanded(
-                                                  child: _measurementTile(
-                                                    icon: Icons.straighten,
-                                                    label: l.waist,
-                                                    value: m.waist != null
-                                                        ? '${m.waist}'
-                                                        : '-',
-                                                    color: const Color(
-                                                      0xFF1E88E5,
+                                                  const SizedBox(width: 8),
+                                                  // Bel
+                                                  Expanded(
+                                                    child: _measurementTile(
+                                                      icon: Icons.straighten,
+                                                      label: l.waist,
+                                                      value: m.waist != null
+                                                          ? '${m.waist}'
+                                                          : '-',
+                                                      color: const Color(
+                                                        0xFF1E88E5,
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                // Kalça
-                                                Expanded(
-                                                  child: _measurementTile(
-                                                    icon: Icons.circle_outlined,
-                                                    label: l.hips,
-                                                    value: m.hips != null
-                                                        ? '${m.hips}'
-                                                        : '-',
-                                                    color: const Color(
-                                                      0xFF8E24AA,
+                                                  const SizedBox(width: 8),
+                                                  // Kalça
+                                                  Expanded(
+                                                    child: _measurementTile(
+                                                      icon:
+                                                          Icons.circle_outlined,
+                                                      label: l.hips,
+                                                      value: m.hips != null
+                                                          ? '${m.hips}'
+                                                          : '-',
+                                                      color: const Color(
+                                                        0xFF8E24AA,
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),

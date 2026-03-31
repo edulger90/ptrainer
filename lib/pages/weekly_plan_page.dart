@@ -21,8 +21,31 @@ class WeeklyPlanPage extends StatefulWidget {
 }
 
 class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
+  Color _colorForClient(Client client) {
+    // Deterministic color from client id or name
+    final palette = [
+      const Color(0xFF00ACC1),
+      const Color(0xFF43A047),
+      const Color(0xFFFFB300),
+      const Color(0xFF8E24AA),
+      const Color(0xFF1E88E5),
+      const Color(0xFFE91E63),
+      const Color(0xFFFB8C00),
+      const Color(0xFF00897B),
+      const Color(0xFF3949AB),
+      const Color(0xFFD81B60),
+      const Color(0xFF6D4C41),
+      const Color(0xFF00838F),
+      const Color(0xFF7CB342),
+      const Color(0xFFF4511E),
+    ];
+    int hash = client.id ?? client.fullName.hashCode;
+    return palette[hash.abs() % palette.length];
+  }
+
   final _db = AppDatabase();
   bool _loading = true;
+  bool _showPassiveClients = false;
 
   // Gün -> List of (Client, SessionSchedule, currentLessonCount, totalLessons)
   Map<String, List<_ClientScheduleInfo>> _schedulesByDay = {};
@@ -57,6 +80,8 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
       }
 
       for (final client in clients) {
+        // Pasif client'ları filtrele (switch'e göre)
+        if (!_showPassiveClients && client.isActive == false) continue;
         final clientId = client.id;
         if (clientId == null) continue;
 
@@ -153,15 +178,6 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     // Her gün tab'ı için renk
-    final tabColors = [
-      const Color(0xFF00ACC1), // Pazartesi - cyan
-      const Color(0xFF43A047), // Salı - green
-      const Color(0xFFFFB300), // Çarşamba - amber
-      const Color(0xFF8E24AA), // Perşembe - purple
-      const Color(0xFF1E88E5), // Cuma - blue
-      const Color(0xFFE91E63), // Cumartesi - pink
-      const Color(0xFFFB8C00), // Pazar - orange
-    ];
     return DefaultTabController(
       length: _days.length,
       child: Scaffold(
@@ -203,6 +219,29 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                     ],
                   ),
                 ),
+                // Pasif client göster switch'i başlık altına taşındı
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        l.showPassiveClients,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      Switch(
+                        value: _showPassiveClients,
+                        onChanged: (val) {
+                          setState(() {
+                            _showPassiveClients = val;
+                            _loading = true;
+                          });
+                          _loadData();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 12),
                 // ── Tab Bar ──
                 TabBar(
@@ -233,7 +272,7 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                       : TabBarView(
                           children: List.generate(
                             _days.length,
-                            (i) => _buildDayView(_days[i], tabColors[i]),
+                            (i) => _buildDayView(_days[i], Colors.grey),
                           ),
                         ),
                 ),
@@ -275,7 +314,7 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
         final progress = info.totalLessons > 0
             ? info.completedLessons / info.totalLessons
             : 0.0;
-
+        final color = _colorForClient(client);
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Material(
@@ -296,12 +335,12 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: dayColor.withValues(alpha: 0.2),
+                    color: color.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: dayColor.withValues(alpha: 0.1),
+                      color: color.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -316,20 +355,20 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: dayColor.withValues(alpha: 0.12),
+                          color: color.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.access_time, size: 18, color: dayColor),
+                            Icon(Icons.access_time, size: 18, color: color),
                             const SizedBox(height: 2),
                             Text(
                               schedule.time,
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: dayColor,
+                                color: color,
                               ),
                             ),
                           ],
@@ -357,11 +396,11 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                                     borderRadius: BorderRadius.circular(4),
                                     child: LinearProgressIndicator(
                                       value: progress,
-                                      backgroundColor: dayColor.withValues(
+                                      backgroundColor: color.withValues(
                                         alpha: 0.12,
                                       ),
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        dayColor,
+                                        color,
                                       ),
                                       minHeight: 6,
                                     ),
@@ -373,7 +412,7 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: dayColor,
+                                    color: color,
                                   ),
                                 ),
                               ],

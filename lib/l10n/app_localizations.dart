@@ -10,6 +10,9 @@ import '../models/lesson_reason.dart';
 import 'package:flutter/material.dart';
 
 class AppLocalizations {
+  String get editMeasurement => get('editMeasurement');
+  // Haftalık plan: Pasif client göster switch'i
+  String get showPassiveClients => get('showPassiveClients');
   String get selectReason => get('selectReason');
   // Lesson Reason
   String get reasonResmiTatil => get('reasonResmiTatil');
