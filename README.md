@@ -1,32 +1,26 @@
 # ptrainer
 
-A cross-platform Flutter mobile application targeting iOS and Android.
+P-Trainer is the ultimate mobile solution designed specifically for personal trainers and fitness coaches who want to manage their clients, track progress, and streamline their daily workflow—all from a single, easy-to-use app.
 
+With P-Trainer, you can:
+• Effortlessly organize your weekly training schedule and view all your client sessions at a glance.
+• Add, edit, and track detailed body measurements for each client, helping you monitor their progress and keep them motivated.
+• Maintain comprehensive client profiles, including contact information, training history, and personalized notes.
+• Record attendance, completed lessons, and session reasons (such as illness or holidays) to ensure accurate tracking and reporting.
+• Assign and manage training periods, set goals, and visualize each client’s journey with clear progress indicators.
+• Enjoy a modern, intuitive interface with support for multiple languages, including English, Turkish, Dutch, and Spanish.
+• Secure your data with local storage and privacy-focused design—your client information stays safe and confidential.
+• Easily export or share client progress and reports as needed.
 
-## Getting Started
+Whether you work with a handful of clients or manage a large roster, P-Trainer adapts to your needs. The app is perfect for personal trainers, fitness coaches, and gym instructors who want to save time on admin tasks and focus more on what matters: helping clients achieve their goals.
 
-This project is a Flutter mobile application that now includes a basic
-authentication flow. When the app starts you can **register** (username,
-email, password) or **login** with username/password. Passwords are hashed
-using SHA-256 before being saved in the local SQLite database (`sqflite`).
+Key Features:
 
-To run:
-
-1. Ensure [Flutter SDK](https://flutter.dev) is installed and configured.
-2. Run `flutter pub get` to install dependencies (including `crypto`,
-   `sqflite`, etc.).
-3. Launch the app with `flutter run` on an emulator or physical device.
-
-Once running, the initial screen shows login/register controls. After a
-successful login you'll see a home page greeting you and listing all registered
-users. A logout icon in the app bar will return you to the login screen.
-and shown below the form.
-
-Additional resources:
-
-* [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-* [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Weekly and daily schedule management
+Client database with detailed profiles
+Body measurement tracking and history
+Progress visualization and lesson completion stats
+Attendance and session reason logging
+Multi-language support
+Secure, private, and easy to use
+Take your coaching business to the next level with P-Trainer. Download now and experience the smarter way to manage your clients and grow your fitness career!
