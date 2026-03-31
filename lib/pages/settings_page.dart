@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../services/error_logger.dart';
@@ -76,23 +77,25 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
 
           const SizedBox(height: 24),
-          // --- Premium Test Butonu (Sadece debug/release modda) ---
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: ListTile(
-              leading: Icon(Icons.workspace_premium, color: Colors.blue),
-              title: Text('Premium Test'),
-              subtitle: Text(_isPremium ? 'Premium aktif' : 'Premium pasif'),
-              trailing: Switch(
-                value: _isPremium,
-                onChanged: (val) => _setPremium(val),
+          // --- Premium Test Butonu (Sadece debug modda) ---
+          if (kDebugMode) ...[
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.workspace_premium, color: Colors.blue),
+                title: Text('Premium Test'),
+                subtitle: Text(_isPremium ? 'Premium aktif' : 'Premium pasif'),
+                trailing: Switch(
+                  value: _isPremium,
+                  onChanged: (val) => _setPremium(val),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
+          ],
 
           // Premium plan kartı
           _buildSectionHeader(l.premiumPlan, Icons.workspace_premium),
