@@ -1,7 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../config/app_environment.dart';
 
 /// Premium / Free tier yönetim servisi.
 /// In-App Purchase ile gerçek ödeme entegrasyonu.
@@ -130,7 +133,7 @@ class PremiumService {
   /// Premium satın alma başlat
   Future<bool> buyPremium() async {
     // Debug modda gerçek IAP yerine doğrudan aktifleştir
-    if (kDebugMode) {
+    if (AppEnvironmentConfig().isDev) {
       debugPrint('IAP: Debug mode – activating premium directly');
       await activatePremium();
       _stateController.add(PurchaseState.purchased);
@@ -171,7 +174,7 @@ class PremiumService {
   /// Önceki satın almayı geri yükle
   Future<void> restorePurchases() async {
     // Debug modda gerçek IAP yerine doğrudan aktifleştir
-    if (kDebugMode) {
+    if (AppEnvironmentConfig().isDev) {
       debugPrint('IAP: Debug mode – restoring premium directly');
       await activatePremium();
       _stateController.add(PurchaseState.restored);

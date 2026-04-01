@@ -1,4 +1,3 @@
-import '../utils/lesson_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/period.dart';
@@ -6,10 +5,11 @@ import '../models/user.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
+import '../services/screen_preload_service.dart';
+import '../pages/auth_page.dart';
 import '../pages/premium_page.dart';
 import 'add_client_page.dart';
 import 'client_detail_page.dart';
-import '../main.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
 
@@ -23,6 +23,7 @@ class ClientListPage extends StatefulWidget {
 
 class _ClientListPageState extends State<ClientListPage> {
   final _db = AppDatabase();
+  final _screenPreloadService = ScreenPreloadService();
   List<Client> _clients = [];
   bool _showActive = true;
   // clientId -> (latestPeriod, completedCount)
@@ -36,29 +37,15 @@ class _ClientListPageState extends State<ClientListPage> {
 
   Future<void> _loadClients() async {
     try {
-      final clients = await _db.getClientsByUser(widget.currentUser.id ?? 0);
-      // Load latest period + completed count for each client
+      final preloads = await _screenPreloadService.loadClientListPreloads(
+        userId: widget.currentUser.id ?? 0,
+      );
+      final clients = preloads.map((preload) => preload.client).toList();
       final periodInfo = <int, (Period?, int)>{};
-      for (final client in clients) {
-        final cid = client.id ?? 0;
+      for (final preload in preloads) {
+        final cid = preload.client.id ?? 0;
         if (cid == 0) continue;
-        try {
-          final period = await _db.getLatestPeriodForClient(cid);
-          int completed = 0;
-          if (period != null && period.id != null) {
-            final attendanceRecords = await _db.getAttendanceForPeriod(
-              cid,
-              period.id!,
-            );
-            completed = LessonUtils.completedLessonCount(
-              attendanceRecords.values,
-              period,
-            );
-          }
-          periodInfo[cid] = (period, completed);
-        } catch (_) {
-          periodInfo[cid] = (null, 0);
-        }
+        periodInfo[cid] = (preload.latestPeriod, preload.completedLessons);
       }
       if (!mounted) return;
       setState(() {

@@ -270,6 +270,8 @@ class AppLocalizations {
 
   // ── Weekly Plan ──
   String get noLessonToday => get('noLessonToday');
+  String get thisWeek => get('thisWeek');
+  String get makeup => get('makeup');
   String periodLabel(int index) =>
       get('periodLabel').replaceAll('{index}', '$index');
   String get noPeriod => get('noPeriod');

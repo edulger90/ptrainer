@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import '../config/app_environment.dart';
 import '../services/premium_service.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
@@ -78,6 +79,7 @@ class _PremiumPageState extends State<PremiumPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDevEnvironment = AppEnvironmentConfig().isDev;
     final l = AppLocalizations.of(context);
     final isPremium = _premium.isPremium;
 
@@ -245,7 +247,7 @@ class _PremiumPageState extends State<PremiumPage> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
                             _premium.productPrice ??
-                                (kDebugMode ? '\$9.99 (Test)' : ''),
+                                (isDevEnvironment ? '\$9.99 (Test)' : ''),
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -320,7 +322,7 @@ class _PremiumPageState extends State<PremiumPage> {
                       ],
 
                       // ── DEV: Test butonları (sadece debug modda) ──
-                      if (kDebugMode) ...[
+                      if (isDevEnvironment) ...[
                         const SizedBox(height: 30),
                         const Divider(),
                         Text(

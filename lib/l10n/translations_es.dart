@@ -170,6 +170,8 @@ const Map<String, String> esStrings = {
 
   // Weekly Plan
   'noLessonToday': 'No hay clases para este día.',
+  'thisWeek': 'Esta Semana',
+  'makeup': 'Recuperación',
   'periodLabel': 'Periodo {index}',
   'noPeriod': 'Sin Periodo',
 

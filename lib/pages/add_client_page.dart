@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/user.dart';
 import '../models/session_schedule.dart';
+import '../pages/auth_page.dart';
 import '../services/database.dart';
-import '../main.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
-import '../utils/day_localization.dart';
+import '../models/trainer_weekday.dart';
 
 class AddClientPage extends StatefulWidget {
   final User currentUser;
@@ -26,20 +26,16 @@ class _AddClientPageState extends State<AddClientPage> {
   String? _selectedDay; // Internal key (Turkish for DB compat)
   String? _selectedTime;
 
-  // Internal day keys for DB storage (must remain consistent)
-  static const List<String> _dayKeys = [
-    'Pazartesi',
-    'Salı',
-    'Çarşamba',
-    'Perşembe',
-    'Cuma',
-    'Cumartesi',
-    'Pazar',
-  ];
+  static const List<TrainerWeekday> _scheduleDays = TrainerWeekday.values;
 
   // ...existing code...
 
   final Map<String, List<String>> _selectedSchedules = {};
+
+  String _localizedDay(BuildContext context, String storageKey) {
+    return TrainerWeekday.fromStorageKey(storageKey)?.localized(context) ??
+        storageKey;
+  }
 
   Future<void> _saveClient() async {
     final fullName = _nameController.text.trim();
@@ -109,12 +105,11 @@ class _AddClientPageState extends State<AddClientPage> {
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: _dayKeys.map((dayKey) {
+                  children: _scheduleDays.map((day) {
+                    final dayKey = day.storageKey;
                     final isSelected = _selectedDay == dayKey;
                     return FilterChip(
-                      label: Text(
-                        DayLocalizationHelper.localizedDay(context, dayKey),
-                      ),
+                      label: Text(day.localized(context)),
                       selected: isSelected,
                       onSelected: (selected) {
                         setStateDialog(() {
@@ -316,10 +311,7 @@ class _AddClientPageState extends State<AddClientPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                DayLocalizationHelper.localizedDay(
-                                  context,
-                                  day,
-                                ),
+                                _localizedDay(context, day),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,

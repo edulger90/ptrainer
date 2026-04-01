@@ -171,6 +171,8 @@ const Map<String, String> trStrings = {
 
   // Weekly Plan
   'noLessonToday': 'Bu gün için ders yok.',
+  'thisWeek': 'Bu Hafta',
+  'makeup': 'Telafi',
   'periodLabel': 'Periyot {index}',
   'noPeriod': 'Periyot Yok',
 

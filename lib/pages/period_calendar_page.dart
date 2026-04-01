@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import '../models/attendance_record.dart';
 import '../models/period.dart';
 import '../models/session_schedule.dart';
 import '../models/client.dart';
+import '../models/trainer_weekday.dart';
+import '../services/attendance_service.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
+import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
 import '../models/lesson_reason.dart';
-import '../utils/lesson_utils.dart';
 
 class PeriodCalendarPage extends StatefulWidget {
   final Period period;
@@ -27,23 +30,17 @@ class PeriodCalendarPage extends StatefulWidget {
 }
 
 class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
+  final _attendanceService = AttendanceService();
+
   int _completedLessonCount() {
-    // Convert _Attendance objects to Map<String, dynamic> for the helper
-    Iterable<Map<String, dynamic>> attendanceMaps = _attendance.entries.map((
-      entry,
-    ) {
-      final att = entry.value;
-      final attended = !att.absent && !att.cancelled;
-      return {
-        'attended': attended ? 1 : 0,
-        'cancelled': att.cancelled ? 1 : 0,
-        'isPostponed': att.isPostponed ? 1 : 0,
-      };
-    });
-    return LessonUtils.completedLessonCount(attendanceMaps, _currentPeriod);
+    final records = _attendance.entries.map(
+      (entry) => _attendanceToRecord(entry.value, lessonDate: entry.key),
+    );
+    return _attendanceService.completedLessonCount(records);
   }
 
   final _db = AppDatabase();
+  final _screenPreloadService = ScreenPreloadService();
   late Period _currentPeriod;
   late DateTime _start;
   late DateTime _end;
@@ -62,74 +59,53 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     _lessonWeekdays = widget.schedules
         .map((s) => _weekdayNumber(s.dayOfWeek))
         .toSet();
-    _loadAttendance();
+    _reloadData();
   }
 
-  Future<void> _refreshPeriod() async {
-    try {
-      final clientId = widget.client.id;
-      if (clientId == null) return;
-      final periods = await _db.getPeriodsByClient(clientId);
-      final updated = periods
-          .where((p) => p.id == _currentPeriod.id)
-          .firstOrNull;
-      if (updated != null) {
-        if (!mounted) return;
-        setState(() {
-          _currentPeriod = updated;
-          _end = DateTime.parse(updated.postponedEndDate ?? updated.endDate);
-          _cachedLessonDays = null; // Cache'i invalidate et
-        });
-      }
-    } catch (e, stack) {
-      ErrorLogger().logError(
-        error: e.toString(),
-        stackTrace: stack.toString(),
-        extra: '_PeriodCalendarPageState._refreshPeriod',
-      );
-    }
-  }
-
-  Future<void> _loadAttendance() async {
+  Future<void> _reloadData() async {
     try {
       final clientId = widget.client.id;
       final periodId = _currentPeriod.id;
       if (clientId == null || periodId == null) {
+        if (!mounted) return;
         setState(() {
           _attendance = {};
         });
         return;
       }
-      final records = await _db.getAttendanceForPeriod(clientId, periodId);
-      debugPrint(
-        '[DEBUG] _loadAttendance: records = ${records.map((k, v) => MapEntry(k.toString(), v.toString()))}',
+
+      final preload = await _screenPreloadService.loadPeriodCalendarPreload(
+        clientId: clientId,
+        periodId: periodId,
       );
+      if (preload == null) return;
+
       if (!mounted) return;
       setState(() {
+        _currentPeriod = preload.period;
+        _start = DateTime.parse(preload.period.startDate);
+        _end = DateTime.parse(
+          preload.period.postponedEndDate ?? preload.period.endDate,
+        );
+        _cachedLessonDays = null;
         _attendance = {
-          for (final entry in records.entries)
-            entry.key: _Attendance(
-              absent: (entry.value['attended'] as int? ?? 0) == 0,
-              cancelled: (entry.value['cancelled'] as int? ?? 0) == 1,
-              isPostponed: (entry.value['isPostponed'] as int? ?? 0) == 1,
-              makeup:
-                  entry.value['makeupDate'] != null &&
-                      entry.value['makeupDate'] != ''
-                  ? DateTime.tryParse(entry.value['makeupDate'] as String)
-                  : null,
-              attendedDate:
-                  entry.value['attendedDate'] != null &&
-                      entry.value['attendedDate'] != ''
-                  ? DateTime.tryParse(entry.value['attendedDate'] as String)
-                  : null,
-            ),
+          for (final record in preload.attendanceRecords)
+            if (record.lessonDate != null)
+              record.lessonDate!: _Attendance(
+                absent: record.absent,
+                cancelled: record.cancelled,
+                isPostponed: record.isPostponed,
+                makeup: record.makeupDate,
+                attendedDate: record.attendedDate,
+                reason: record.reason,
+              ),
         };
       });
     } catch (e, stack) {
       ErrorLogger().logError(
         error: e.toString(),
         stackTrace: stack.toString(),
-        extra: '_PeriodCalendarPageState._loadAttendance',
+        extra: '_PeriodCalendarPageState._reloadData',
       );
       if (!mounted) return;
       setState(() {
@@ -139,24 +115,8 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
   }
 
   int _weekdayNumber(String turkishDay) {
-    switch (turkishDay) {
-      case 'Pazartesi':
-        return DateTime.monday;
-      case 'Salı':
-        return DateTime.tuesday;
-      case 'Çarşamba':
-        return DateTime.wednesday;
-      case 'Perşembe':
-        return DateTime.thursday;
-      case 'Cuma':
-        return DateTime.friday;
-      case 'Cumartesi':
-        return DateTime.saturday;
-      case 'Pazar':
-        return DateTime.sunday;
-      default:
-        return DateTime.monday;
-    }
+    return TrainerWeekday.fromStorageKey(turkishDay)?.weekdayNumber ??
+        DateTime.monday;
   }
 
   String _localizedWeekday(int weekday) {
@@ -184,6 +144,26 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     return days;
   }
 
+  AttendanceRecord _attendanceToRecord(
+    _Attendance att, {
+    DateTime? lessonDate,
+  }) {
+    return AttendanceRecord(
+      lessonDate: lessonDate,
+      attended: !att.absent,
+      cancelled: att.cancelled,
+      isPostponed: att.isPostponed,
+      attendedDate: att.attendedDate,
+      makeupDate: att.makeup,
+      reason: att.reason,
+    );
+  }
+
+  bool _isEffectivelyAbsent(_Attendance? att) {
+    if (att == null) return true;
+    return !_attendanceService.isEffectivelyAttended(_attendanceToRecord(att));
+  }
+
   void _toggleAttendance(DateTime day) async {
     final clientId = widget.client.id;
     final periodId = _currentPeriod.id;
@@ -208,7 +188,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       makeupDate: att?.makeup,
       reason: null,
     );
-    await _loadAttendance();
+    await _reloadData();
     widget.onAttendanceChanged?.call();
   }
 
@@ -258,15 +238,27 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final clientId = widget.client.id;
     final periodId = _currentPeriod.id;
     if (clientId == null || periodId == null) return;
-    final picked = await showDatePicker(
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: day,
       firstDate: _start,
       lastDate: _end.add(const Duration(days: 60)),
     );
-    if (picked != null) {
+    if (pickedDate != null) {
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (pickedTime == null) return;
       final reason = await _pickReasonDialog();
       if (reason == null) return;
+      final makeupDateTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
       await _db.upsertAttendance(
         clientId: clientId,
         periodId: periodId,
@@ -275,10 +267,10 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
         cancelled: false,
         isPostponed: false,
         attendedDate: null, // Yapıldı tarihi boş
-        makeupDate: picked, // Sadece telafi günü kaydedilsin
+        makeupDate: makeupDateTime, // Tarih ve saat birlikte kaydedilsin
         reason: reason.index,
       );
-      await _loadAttendance();
+      await _reloadData();
       widget.onAttendanceChanged?.call();
     }
   }
@@ -377,8 +369,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       await _db.updatePeriod(updatedPeriod);
     }
 
-    await _refreshPeriod();
-    await _loadAttendance();
+    await _reloadData();
     widget.onAttendanceChanged?.call();
   }
 
@@ -437,17 +428,10 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
         newPostponed = previousEnd.toIso8601String();
       }
 
-      final db = await _db.database;
-      await db.update(
-        'periods',
-        {'postponedEndDate': newPostponed},
-        where: 'id = ?',
-        whereArgs: [periodId],
-      );
+      await _db.updatePeriodPostponedEndDate(periodId, newPostponed);
     }
 
-    await _refreshPeriod();
-    await _loadAttendance();
+    await _reloadData();
     widget.onAttendanceChanged?.call();
   }
 
@@ -510,11 +494,12 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
                   final day = days[index];
                   final att = _attendance[day];
                   final isCancelled = att != null && att.cancelled;
+                  final isAbsent = _isEffectivelyAbsent(att);
                   final isPostponedDay = day.isAfter(originalEnd);
                   Color cardColor;
                   if (isCancelled) {
                     cardColor = const Color(0xFFC8A415).withValues(alpha: 0.35);
-                  } else if (att == null || att.absent) {
+                  } else if (isAbsent) {
                     cardColor = Colors.grey.shade300;
                   } else {
                     cardColor = Colors.green.shade200;
@@ -542,29 +527,37 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
                           color: isCancelled ? Colors.brown : null,
                         ),
                       ),
-                      subtitle: isCancelled
-                          ? Text(
-                              l.cancelled,
-                              style: const TextStyle(
-                                color: Color(0xFF8B6914),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            )
-                          : att?.makeup != null
-                          ? Text(
-                              l.makeupLabel(
-                                '${att!.makeup!.day.toString().padLeft(2, '0')}.${att.makeup!.month.toString().padLeft(2, '0')}.${att.makeup!.year}',
-                              ),
-                            )
-                          : isPostponedDay
-                          ? Text(
-                              l.postponedLesson,
-                              style: const TextStyle(
-                                color: Color(0xFF8B6914),
-                                fontStyle: FontStyle.italic,
-                              ),
-                            )
-                          : null,
+                      subtitle: () {
+                        String? subtitleText;
+                        if (isCancelled) {
+                          subtitleText = l.cancelled;
+                          if (att.reason != null) {
+                            subtitleText +=
+                                '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
+                          }
+                        } else if (att?.makeup != null) {
+                          subtitleText = l.makeupLabel(
+                            '${att!.makeup!.day.toString().padLeft(2, '0')}.${att.makeup!.month.toString().padLeft(2, '0')}.${att.makeup!.year}',
+                          );
+                          if (att.reason != null) {
+                            subtitleText +=
+                                '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
+                          }
+                        } else if (isPostponedDay) {
+                          subtitleText = l.postponedLesson;
+                        }
+                        return subtitleText != null
+                            ? Text(
+                                subtitleText,
+                                style: isCancelled
+                                    ? const TextStyle(
+                                        color: Color(0xFF8B6914),
+                                        fontWeight: FontWeight.w600,
+                                      )
+                                    : null,
+                              )
+                            : null;
+                      }(),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -572,17 +565,13 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
                             icon: Icon(
                               isCancelled
                                   ? Icons.block
-                                  : (att == null || att.absent
-                                        ? Icons.close
-                                        : Icons.check),
+                                  : (isAbsent ? Icons.close : Icons.check),
                             ),
                             color: isCancelled
                                 ? const Color(0xFFC8A415)
                                 : (att == null
                                       ? Colors.grey
-                                      : (att.absent
-                                            ? Colors.red
-                                            : Colors.green)),
+                                      : (isAbsent ? Colors.red : Colors.green)),
                             onPressed: isCancelled
                                 ? null
                                 : () => _toggleAttendance(day),
@@ -627,11 +616,13 @@ class _Attendance {
   final bool isPostponed;
   final DateTime? makeup;
   final DateTime? attendedDate;
+  final int? reason;
   _Attendance({
     required this.absent,
     this.cancelled = false,
     this.isPostponed = false,
     this.makeup,
     this.attendedDate,
+    this.reason,
   });
 }

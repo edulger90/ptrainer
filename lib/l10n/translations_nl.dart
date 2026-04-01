@@ -172,6 +172,8 @@ const Map<String, String> nlStrings = {
 
   // Weekly Plan
   'noLessonToday': 'Geen lessen voor deze dag.',
+  'thisWeek': 'Deze Week',
+  'makeup': 'Inhaalles',
   'periodLabel': 'Periode {index}',
   'noPeriod': 'Geen Periode',
 

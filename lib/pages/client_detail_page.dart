@@ -1,4 +1,3 @@
-import '../utils/lesson_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/period.dart';
@@ -7,11 +6,12 @@ import '../models/body_measurement.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
+import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
 import '../widgets/period_list_section.dart';
 import '../l10n/app_localizations.dart';
 import 'premium_page.dart';
-import '../utils/day_localization.dart';
+import '../models/trainer_weekday.dart';
 
 class ClientDetailPage extends StatefulWidget {
   final Client client;
@@ -22,7 +22,10 @@ class ClientDetailPage extends StatefulWidget {
 }
 
 class _ClientDetailPageState extends State<ClientDetailPage> {
+  static const List<TrainerWeekday> _scheduleDays = TrainerWeekday.values;
+
   final _db = AppDatabase();
+  final _screenPreloadService = ScreenPreloadService();
   late Client _client;
   List<Period> _periods = [];
   List<SessionSchedule> _schedules = [];
@@ -37,36 +40,32 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     _loadAllData();
   }
 
+  String _localizedDay(BuildContext context, String storageKey) {
+    return TrainerWeekday.fromStorageKey(storageKey)?.localized(context) ??
+        storageKey;
+  }
+
+  Set<int> _scheduledWeekdays() {
+    return _schedules
+        .map((schedule) => TrainerWeekday.fromStorageKey(schedule.dayOfWeek))
+        .whereType<TrainerWeekday>()
+        .map((day) => day.weekdayNumber)
+        .toSet();
+  }
+
   Future<void> _loadAllData() async {
     try {
       final clientId = _client.id;
       if (clientId == null) return;
-      final periods = await _db.getPeriodsByClient(clientId);
-      final schedules = await _db.getSessionSchedulesByClient(clientId);
-      final measurements = await _db.getBodyMeasurementsByClient(clientId);
-      // Load attended counts for each period
-      // Green tick (attended) + Red X (not attended, not cancelled) = completed
-      // Cancelled/postponed lessons do NOT count as completed
-      final attendedCounts = <int, int>{};
-      for (final period in periods) {
-        if (period.id != null) {
-          final attendanceRecords = await _db.getAttendanceForPeriod(
-            clientId,
-            period.id!,
-          );
-          final completed = LessonUtils.completedLessonCount(
-            attendanceRecords.values,
-            period,
-          );
-          attendedCounts[period.id!] = completed;
-        }
-      }
+      final preload = await _screenPreloadService.loadClientDetailPreload(
+        client: _client,
+      );
       if (!mounted) return;
       setState(() {
-        _periods = periods;
-        _schedules = schedules;
-        _measurements = measurements;
-        _attendedCounts = attendedCounts;
+        _periods = preload.periods;
+        _schedules = preload.schedules;
+        _measurements = preload.measurements;
+        _attendedCounts = preload.completedLessonsByPeriodId;
         _loading = false;
       });
     } catch (e, stack) {
@@ -181,16 +180,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   }
 
   Future<void> _showAddScheduleDialog(BuildContext context) async {
-    const days = [
-      'Pazartesi',
-      'Salı',
-      'Çarşamba',
-      'Perşembe',
-      'Cuma',
-      'Cumartesi',
-      'Pazar',
-    ];
-    String selectedDay = days[0];
+    String selectedDay = _scheduleDays.first.storageKey;
     TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
 
     await showDialog(
@@ -210,13 +200,11 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                   DropdownButtonFormField<String>(
                     initialValue: selectedDay,
                     decoration: InputDecoration(labelText: l.day),
-                    items: days
+                    items: _scheduleDays
                         .map(
-                          (d) => DropdownMenuItem(
-                            value: d,
-                            child: Text(
-                              DayLocalizationHelper.localizedDay(context, d),
-                            ),
+                          (day) => DropdownMenuItem(
+                            value: day.storageKey,
+                            child: Text(day.localized(context)),
                           ),
                         )
                         .toList(),
@@ -321,16 +309,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     String selectedDay = schedule.dayOfWeek;
     TimeOfDay selectedTime = _parseTime(schedule.time);
 
-    const days = [
-      'Pazartesi',
-      'Salı',
-      'Çarşamba',
-      'Perşembe',
-      'Cuma',
-      'Cumartesi',
-      'Pazar',
-    ];
-
     await showDialog(
       context: context,
       builder: (context) {
@@ -345,13 +323,11 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                   DropdownButtonFormField<String>(
                     initialValue: selectedDay,
                     decoration: InputDecoration(labelText: l.day),
-                    items: days
+                    items: _scheduleDays
                         .map(
-                          (d) => DropdownMenuItem(
-                            value: d,
-                            child: Text(
-                              DayLocalizationHelper.localizedDay(context, d),
-                            ),
+                          (day) => DropdownMenuItem(
+                            value: day.storageKey,
+                            child: Text(day.localized(context)),
                           ),
                         )
                         .toList(),
@@ -422,27 +398,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     // Paket adedi (kaç ders olacak)
     final sessionCount = widget.client.sessionPackage;
     // Gelinecek günler (schedule'dan al)
-    final scheduleDays = _schedules.map((s) => s.dayOfWeek).toSet();
-    if (scheduleDays.isEmpty || sessionCount <= 0) return null;
-
-    // Gün isimlerini weekday'e çevir (Pazartesi=1, Salı=2, ...)
-    int? dayNameToWeekday(String dayName) {
-      const dayMap = {
-        'Pazartesi': 1,
-        'Salı': 2,
-        'Çarşamba': 3,
-        'Perşembe': 4,
-        'Cuma': 5,
-        'Cumartesi': 6,
-        'Pazar': 7,
-      };
-      return dayMap[dayName];
-    }
-
-    final weekdays = scheduleDays
-        .map((d) => dayNameToWeekday(d))
-        .whereType<int>()
-        .toSet();
+    final weekdays = _scheduledWeekdays();
 
     if (weekdays.isEmpty) return null;
 
@@ -471,26 +427,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
   // Seçilen tarihten itibaren ilk ders gününü bul
   DateTime _findFirstLessonDay(DateTime selectedDate) {
-    final scheduleDays = _schedules.map((s) => s.dayOfWeek).toSet();
-    if (scheduleDays.isEmpty) return selectedDate;
-
-    int? dayNameToWeekday(String dayName) {
-      const dayMap = {
-        'Pazartesi': 1,
-        'Salı': 2,
-        'Çarşamba': 3,
-        'Perşembe': 4,
-        'Cuma': 5,
-        'Cumartesi': 6,
-        'Pazar': 7,
-      };
-      return dayMap[dayName];
-    }
-
-    final weekdays = scheduleDays
-        .map((d) => dayNameToWeekday(d))
-        .whereType<int>()
-        .toSet();
+    final weekdays = _scheduledWeekdays();
 
     if (weekdays.isEmpty) return selectedDate;
 
@@ -1318,7 +1255,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                             ),
                                             child: Center(
                                               child: Text(
-                                                DayLocalizationHelper.localizedDay(
+                                                _localizedDay(
                                                   context,
                                                   schedule.dayOfWeek,
                                                 ).substring(0, 2).toUpperCase(),
@@ -1338,7 +1275,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  DayLocalizationHelper.localizedDay(
+                                                  _localizedDay(
                                                     context,
                                                     schedule.dayOfWeek,
                                                   ),

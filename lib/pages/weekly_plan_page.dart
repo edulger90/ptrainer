@@ -1,16 +1,19 @@
-import '../utils/lesson_utils.dart';
 import 'package:flutter/material.dart';
+import '../models/attendance_record.dart';
 import '../models/user.dart';
 import '../models/client.dart';
 import '../models/session_schedule.dart';
+import '../models/trainer_weekday.dart';
+import '../models/week_range.dart';
 
-import '../services/database.dart';
+import '../services/attendance_service.dart';
+import '../services/calendar_service.dart';
 import '../services/error_logger.dart';
+import '../services/period_service.dart';
+import '../services/screen_preload_service.dart';
 import 'client_detail_page.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
-import '../utils/day_localization.dart';
-import '../utils/period_utils.dart';
 
 class WeeklyPlanPage extends StatefulWidget {
   final User currentUser;
@@ -21,6 +24,10 @@ class WeeklyPlanPage extends StatefulWidget {
 }
 
 class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
+  final _attendanceService = AttendanceService();
+  final _calendarService = CalendarService();
+  final _periodService = PeriodService();
+
   Color _colorForClient(Client client) {
     // Deterministic color from client id or name
     final palette = [
@@ -43,27 +50,19 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
     return palette[hash.abs() % palette.length];
   }
 
-  final _db = AppDatabase();
+  final _screenPreloadService = ScreenPreloadService();
   bool _loading = true;
   bool _showPassiveClients = false;
 
   // Gün -> List of (Client, SessionSchedule, currentLessonCount, totalLessons)
-  Map<String, List<_ClientScheduleInfo>> _schedulesByDay = {};
+  Map<TrainerWeekday, List<_ClientScheduleInfo>> _schedulesByDay = {};
 
-  // Internal day keys (matching DB storage)
-  static const List<String> _days = [
-    'Pazartesi',
-    'Salı',
-    'Çarşamba',
-    'Perşembe',
-    'Cuma',
-    'Cumartesi',
-    'Pazar',
-  ];
+  late final WeekRange _currentWeek;
 
   @override
   void initState() {
     super.initState();
+    _currentWeek = _calendarService.weekOf(DateTime.now());
     _loadData();
   }
 
@@ -72,46 +71,46 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
       final userId = widget.currentUser.id;
       if (userId == null) return;
 
-      final clients = await _db.getClientsByUser(userId);
-      final schedulesByDay = <String, List<_ClientScheduleInfo>>{};
+      final clientPreloads = await _screenPreloadService
+          .loadWeeklyClientPreloads(
+            userId: userId,
+            startDate: _currentWeek.start,
+            endDate: _currentWeek.end,
+          );
+      final schedulesByDay = <TrainerWeekday, List<_ClientScheduleInfo>>{};
 
-      for (final day in _days) {
+      for (final day in TrainerWeekday.values) {
         schedulesByDay[day] = [];
       }
 
-      for (final client in clients) {
+      for (final preload in clientPreloads) {
+        final client = preload.client;
         // Pasif client'ları filtrele (switch'e göre)
         if (!_showPassiveClients && client.isActive == false) continue;
-        final clientId = client.id;
-        if (clientId == null) continue;
+        final schedules = preload.schedules;
+        final periods = preload.periods;
 
-        final schedules = await _db.getSessionSchedulesByClient(clientId);
-        final periods = await _db.getPeriodsByClient(clientId);
-
-        final active = PeriodUtils.findActivePeriod(periods);
-        final last = PeriodUtils.findLastPeriod(periods);
+        final active = _periodService.findActivePeriod(periods);
+        final last = _periodService.findLastPeriod(periods);
         int completedLessons = 0;
         bool hasActive = false;
         // Period? displayPeriod; // No longer needed
         int displayPeriodIndex = -1;
+        final periodAttendanceRecords = preload.relevantPeriodAttendance;
 
         if (active.period != null && active.period!.id != null) {
-          final attendanceRecords = await _db.getAttendanceForPeriod(
-            clientId,
-            active.period!.id!,
-          );
-          completedLessons = LessonUtils.completedLessonCount(
-            attendanceRecords.values,
-            active.period!,
+          completedLessons = _attendanceService.completedLessonCount(
+            periodAttendanceRecords,
           );
 
           final effectiveEnd = DateTime.parse(
             active.period!.postponedEndDate ?? active.period!.endDate,
           );
-          final lastLessonAttendance = attendanceRecords[effectiveEnd];
+          final lastLessonAttendance = periodAttendanceRecords
+              .where((record) => record.lessonDate == effectiveEnd)
+              .firstOrNull;
           bool periodReallyEnded = false;
-          if (lastLessonAttendance != null &&
-              (lastLessonAttendance['attended'] as int? ?? 0) == 1) {
+          if (lastLessonAttendance != null && lastLessonAttendance.attended) {
             periodReallyEnded = true;
           }
           hasActive = !periodReallyEnded;
@@ -120,39 +119,84 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
         } else if (last.period != null && last.period!.id != null) {
           // displayPeriod = last.period;
           displayPeriodIndex = last.index;
-          final attendanceRecords = await _db.getAttendanceForPeriod(
-            clientId,
-            last.period!.id!,
-          );
-          completedLessons = LessonUtils.completedLessonCount(
-            attendanceRecords.values,
-            last.period!,
+          completedLessons = _attendanceService.completedLessonCount(
+            periodAttendanceRecords,
           );
         }
 
         final showPeriodLabel = displayPeriodIndex > 0;
-        for (final schedule in schedules) {
-          final day = schedule.dayOfWeek;
-          if (schedulesByDay.containsKey(day)) {
-            schedulesByDay[day]!.add(
-              _ClientScheduleInfo(
-                client: client,
-                schedule: schedule,
-                completedLessons: completedLessons,
-                totalLessons: client.sessionPackage,
-                hasActivePeriod: hasActive,
-                activePeriodIndex: displayPeriodIndex,
-                showPeriodLabel: showPeriodLabel,
-              ),
-            );
+        final handledLessonDays = <TrainerWeekday>{};
+        final attendanceRecords = preload.weeklyAttendance;
+
+        for (final attendance in attendanceRecords) {
+          final lessonDate = attendance.lessonDate;
+          if (_attendanceService.isWithinRange(
+            lessonDate,
+            start: _currentWeek.start,
+            end: _currentWeek.end,
+          )) {
+            final lessonDay = _dayFor(lessonDate!);
+            if (lessonDay != null) handledLessonDays.add(lessonDay);
           }
+
+          final resolvedEntry = _attendanceService.resolveWeeklyPlacement(
+            attendance: attendance,
+            week: _currentWeek,
+            schedules: schedules,
+          );
+          if (resolvedEntry == null) continue;
+
+          final day = _dayFor(resolvedEntry.showDate);
+          if (day == null || !schedulesByDay.containsKey(day)) continue;
+
+          final matchingSchedule = _findScheduleForDay(schedules, day);
+          if (matchingSchedule == null) continue;
+
+          schedulesByDay[day]!.add(
+            _ClientScheduleInfo(
+              client: client,
+              schedule: matchingSchedule,
+              displayTime: resolvedEntry.showTime,
+              isMakeup: resolvedEntry.isMakeup,
+              status: resolvedEntry.status,
+              completedLessons: completedLessons,
+              totalLessons: client.sessionPackage,
+              hasActivePeriod: hasActive,
+              activePeriodIndex: displayPeriodIndex,
+              showPeriodLabel: showPeriodLabel,
+            ),
+          );
+        }
+
+        for (final schedule in schedules) {
+          final lessonDate = _lessonDateForSchedule(schedule);
+          if (lessonDate == null) continue;
+
+          final lessonDay = _dayFor(lessonDate);
+          if (lessonDay == null) continue;
+          if (handledLessonDays.contains(lessonDay)) continue;
+
+          schedulesByDay[lessonDay]!.add(
+            _ClientScheduleInfo(
+              client: client,
+              schedule: schedule,
+              displayTime: schedule.time,
+              isMakeup: false,
+              status: LessonAttendanceStatus.pending,
+              completedLessons: completedLessons,
+              totalLessons: client.sessionPackage,
+              hasActivePeriod: hasActive,
+              activePeriodIndex: displayPeriodIndex,
+              showPeriodLabel: showPeriodLabel,
+            ),
+          );
         }
       }
 
       // Her gün için saate göre sırala
-      for (final day in _days) {
+      for (final day in TrainerWeekday.values) {
         schedulesByDay[day]!.sort(
-          (a, b) => a.schedule.time.compareTo(b.schedule.time),
+          (a, b) => a.displayTime.compareTo(b.displayTime),
         );
       }
 
@@ -174,12 +218,43 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
     }
   }
 
+  SessionSchedule? _findScheduleForDay(
+    List<SessionSchedule> schedules,
+    TrainerWeekday day,
+  ) {
+    for (final schedule in schedules) {
+      if (schedule.dayOfWeek == day.storageKey) return schedule;
+    }
+    return null;
+  }
+
+  DateTime? _lessonDateForSchedule(SessionSchedule schedule) {
+    return _calendarService.lessonDateForSchedule(schedule, _currentWeek);
+  }
+
+  TrainerWeekday? _dayFor(DateTime date) {
+    return TrainerWeekday.fromDate(date);
+  }
+
+  Color _statusColor(LessonAttendanceStatus status, Color fallback) {
+    switch (status) {
+      case LessonAttendanceStatus.cancelled:
+        return Colors.red[700]!;
+      case LessonAttendanceStatus.absent:
+        return Colors.red[700]!;
+      case LessonAttendanceStatus.attended:
+        return Colors.green[700]!;
+      case LessonAttendanceStatus.pending:
+        return fallback;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     // Her gün tab'ı için renk
     return DefaultTabController(
-      length: _days.length,
+      length: TrainerWeekday.values.length,
       child: Scaffold(
         body: AppBackground(
           child: SafeArea(
@@ -254,15 +329,8 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
-                  tabs: _days
-                      .map(
-                        (day) => Tab(
-                          text: DayLocalizationHelper.localizedDay(
-                            context,
-                            day,
-                          ),
-                        ),
-                      )
+                  tabs: TrainerWeekday.values
+                      .map((day) => Tab(text: day.localized(context)))
                       .toList(),
                 ),
                 // ── İçerik ──
@@ -271,8 +339,11 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                       ? const Center(child: CircularProgressIndicator())
                       : TabBarView(
                           children: List.generate(
-                            _days.length,
-                            (i) => _buildDayView(_days[i], Colors.grey),
+                            TrainerWeekday.values.length,
+                            (i) => _buildDayView(
+                              TrainerWeekday.values[i],
+                              Colors.grey,
+                            ),
                           ),
                         ),
                 ),
@@ -284,7 +355,7 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
     );
   }
 
-  Widget _buildDayView(String day, Color dayColor) {
+  Widget _buildDayView(TrainerWeekday day, Color dayColor) {
     final schedules = _schedulesByDay[day] ?? [];
     final l = AppLocalizations.of(context);
 
@@ -310,11 +381,11 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
       itemBuilder: (context, index) {
         final info = schedules[index];
         final client = info.client;
-        final schedule = info.schedule;
         final progress = info.totalLessons > 0
             ? info.completedLessons / info.totalLessons
             : 0.0;
         final color = _colorForClient(client);
+        final accentColor = _statusColor(info.status, color);
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Material(
@@ -355,20 +426,24 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
+                          color: accentColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.access_time, size: 18, color: color),
+                            Icon(
+                              Icons.access_time,
+                              size: 18,
+                              color: accentColor,
+                            ),
                             const SizedBox(height: 2),
                             Text(
-                              schedule.time,
+                              info.displayTime,
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: color,
+                                color: accentColor,
                               ),
                             ),
                           ],
@@ -382,11 +457,22 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                           children: [
                             Text(
                               client.fullName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
+                                color: accentColor,
                               ),
                             ),
+                            if (info.isMakeup) const SizedBox(height: 4),
+                            if (info.isMakeup)
+                              Text(
+                                l.makeup,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange[700],
+                                ),
+                              ),
                             const SizedBox(height: 6),
                             // İlerleme çubuğu
                             Row(
@@ -461,6 +547,9 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
 class _ClientScheduleInfo {
   final Client client;
   final SessionSchedule schedule;
+  final String displayTime;
+  final bool isMakeup;
+  final LessonAttendanceStatus status;
   final int completedLessons;
   final int totalLessons;
   final bool hasActivePeriod;
@@ -470,6 +559,9 @@ class _ClientScheduleInfo {
   _ClientScheduleInfo({
     required this.client,
     required this.schedule,
+    required this.displayTime,
+    required this.isMakeup,
+    required this.status,
     required this.completedLessons,
     required this.totalLessons,
     required this.hasActivePeriod,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/body_measurement.dart';
+import '../pages/auth_page.dart';
 import '../services/database.dart';
-import '../main.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
 

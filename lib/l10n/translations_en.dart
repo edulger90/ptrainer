@@ -173,6 +173,8 @@ const Map<String, String> enStrings = {
 
   // Weekly Plan
   'noLessonToday': 'No lessons for this day.',
+  'thisWeek': 'This Week',
+  'makeup': 'Makeup',
   'periodLabel': 'Period {index}',
   'noPeriod': 'No Period',
 

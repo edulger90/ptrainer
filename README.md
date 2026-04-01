@@ -24,3 +24,33 @@ Attendance and session reason logging
 Multi-language support
 Secure, private, and easy to use
 Take your coaching business to the next level with P-Trainer. Download now and experience the smarter way to manage your clients and grow your fitness career!
+
+## Environments
+
+The app supports two entry-point based environments:
+
+- `main`: production-like behavior, no dev-only premium toggle
+- `dev`: developer behavior, premium toggle is always visible in Settings
+
+Run commands:
+
+```bash
+flutter run -t lib/main.dart
+flutter run -t lib/main_dev.dart
+```
+
+Build commands:
+
+```bash
+flutter build apk -t lib/main.dart --release
+flutter build apk -t lib/main_dev.dart --release
+
+flutter build ios -t lib/main.dart --release
+flutter build ios -t lib/main_dev.dart --release
+```
+
+Notes:
+
+- Builds from `lib/main_dev.dart` always expose the premium developer toggle in Settings.
+- Builds from `lib/main.dart` never show that toggle.
+- If later you want separate bundle identifiers/icons for dev and main, add native Android/iOS flavors on top of these entry points.

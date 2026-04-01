@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import '../config/app_environment.dart';
 import '../l10n/app_localizations.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
 import 'error_log_page.dart';
 import 'premium_page.dart';
+import 'query_plan_debug_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -30,6 +33,8 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final isDevEnvironment = AppEnvironmentConfig().isDev;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l.settings),
@@ -78,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 24),
           // --- Premium Test Butonu (Sadece debug modda) ---
-          if (kDebugMode) ...[
+          if (isDevEnvironment) ...[
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -86,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               child: ListTile(
                 leading: Icon(Icons.workspace_premium, color: Colors.blue),
-                title: Text('Premium Test'),
+                title: const Text('Premium Dev Toggle'),
                 subtitle: Text(_isPremium ? 'Premium aktif' : 'Premium pasif'),
                 trailing: Switch(
                   value: _isPremium,
@@ -199,6 +204,35 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
                   },
                 ),
+                if (kDebugMode) ...[
+                  const Divider(height: 1, indent: 72),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey[50],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.query_stats,
+                        color: Colors.blueGrey[700],
+                      ),
+                    ),
+                    title: const Text('Query Plan Debug'),
+                    subtitle: const Text(
+                      'Check EXPLAIN QUERY PLAN output for indexed queries',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const QueryPlanDebugPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 const Divider(height: 1, indent: 72),
                 FutureBuilder<int>(
                   future: ErrorLogger().getLogCount(),
