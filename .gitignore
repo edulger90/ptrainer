@@ -32,6 +32,13 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+ios/build/
+macos/build/
+
+# Apple/Xcode generated artifacts
+*.xcarchive
+*.xcresult
+*.ipa
 
 # Symbolication related
 app.*.symbols

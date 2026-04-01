@@ -60,3 +60,8 @@ Notes:
 - Builds from `lib/main_dev.dart` always expose the premium developer toggle in Settings.
 - Builds from `lib/main.dart` never show that toggle.
 - If later you want separate bundle identifiers/icons for dev and main, add native Android/iOS flavors on top of these entry points.
+
+## Release Docs
+
+- iOS signing checklist: [docs/ios-signing-checklist.md](/Users/ecegecit/development/ptrainer/docs/ios-signing-checklist.md)
+- Full release checklist: [docs/release-checklist.md](/Users/ecegecit/development/ptrainer/docs/release-checklist.md)
