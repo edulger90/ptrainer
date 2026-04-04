@@ -276,5 +276,5 @@ const Map<String, String> esStrings = {
   'helpGuideFAQ':
       '4. Preguntas Frecuentes\n   - ¿Cómo cancelar una clase?\n   - ¿Cómo extender un periodo?\n   - ¿Cómo se calculan las clases completadas?\n   - ¿Qué hacer ante entradas incorrectas?',
   'helpGuideContact':
-      '5. Contacto y Soporte\n   - Para problemas, contacta al desarrollador: example@mail.com',
+      '5. Contacto y Soporte\n   - Para problemas, contacta al desarrollador: ecedulger90@gmail.com',
 };

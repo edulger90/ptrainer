@@ -276,5 +276,5 @@ const Map<String, String> trStrings = {
   'helpGuideFAQ':
       '4. Sıkça Sorulanlar\n   - Ders nasıl iptal edilir?\n   - Periyot nasıl uzatılır?\n   - Tamamlanan dersler nasıl hesaplanır?\n   - Hatalı girişlerde ne yapılmalı?',
   'helpGuideContact':
-      '5. İletişim ve Destek\n   - Sorunlarınız için uygulama geliştiricisine ulaşabilirsiniz: ptrainer@edhelperapp.com',
+      '5. İletişim ve Destek\n   - Sorunlarınız için uygulama geliştiricisine ulaşabilirsiniz: ecedulger90@gmail.com',
 };

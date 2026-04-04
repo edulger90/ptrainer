@@ -279,5 +279,5 @@ const Map<String, String> enStrings = {
   'helpGuideFAQ':
       '4. Frequently Asked Questions\n   - How to cancel a lesson?\n   - How to extend a period?\n   - How are completed lessons calculated?\n   - What to do in case of incorrect entries?',
   'helpGuideContact':
-      '5. Contact & Support\n   - For issues, contact the app developer: ptrainer@edhelperapp.com',
+      '5. Contact & Support\n   - For issues, contact the app developer: ecedulger90@gmail.com',
 };

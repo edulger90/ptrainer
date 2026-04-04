@@ -276,5 +276,5 @@ const Map<String, String> nlStrings = {
   'helpGuideFAQ':
       '4. Veelgestelde Vragen\n   - Hoe annuleer ik een les?\n   - Hoe verleng ik een periode?\n   - Hoe worden voltooide lessen berekend?\n   - Wat te doen bij foutieve invoer?',
   'helpGuideContact':
-      '5. Contact & Ondersteuning\n   - Voor problemen, neem contact op met de ontwikkelaar: example@mail.com',
+      '5. Contact & Ondersteuning\n   - Voor problemen, neem contact op met de ontwikkelaar: ecedulger90@gmail.com',
 };
