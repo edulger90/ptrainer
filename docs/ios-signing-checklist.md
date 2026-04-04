@@ -21,19 +21,19 @@ Use this checklist before creating an App Store IPA for P-Trainer.
 - Open `Signing & Capabilities`.
 - Set `Team` to your Apple Developer team.
 - Enable `Automatically manage signing`.
-- Verify bundle identifier is `com.edlgr.ptrainer`.
+- Verify bundle identifier is `com.edhelper.ptrainer`.
 
 ## 4. Release Configuration
 
 - Check both `Debug` and `Release` signing sections.
 - Ensure the selected team is the same in `Release`.
 - Make sure Xcode can create or download an `Apple Distribution` certificate.
-- Make sure a provisioning profile exists for `com.edlgr.ptrainer`.
+- Make sure a provisioning profile exists for `com.edhelper.ptrainer`.
 
 ## 5. App Store Connect
 
 - Create the app in App Store Connect if it does not exist yet.
-- Use the same bundle identifier: `com.edlgr.ptrainer`.
+- Use the same bundle identifier: `com.edhelper.ptrainer`.
 - Fill in app metadata, age rating, privacy details, and screenshots.
 
 ## 6. Versioning
@@ -67,4 +67,4 @@ open /Users/ecegecit/development/ptrainer/build/ios/archive/Runner.xcarchive
 
 - `No Accounts`: Apple ID is not added in Xcode.
 - `No signing certificate "iOS Distribution" found`: distribution certificate is missing.
-- `No profiles for 'com.edlgr.ptrainer' were found`: provisioning profile is missing or bundle ID does not match.
+- `No profiles for 'com.edhelper.ptrainer' were found`: provisioning profile is missing or bundle ID does not match.

@@ -17,11 +17,16 @@ class PremiumService {
 
   static const String _keyIsPremium = 'is_premium';
   static const String _keyPurchaseDate = 'premium_purchase_date';
+  static const String _keyPremiumProductId = 'premium_product_id';
 
   // ── Ürün ID'leri ──
-  // App Store Connect ve Google Play Console'da tanımlanan ID
-  static const String premiumProductId = 'ptrainer_premium';
-  static final Set<String> _productIds = {premiumProductId};
+  // App Store Connect ve Google Play Console'da tanımlanacak abonelik ID'leri.
+  static const String monthlySubscriptionProductId = 'ptrainer_premium_monthly';
+  static const String yearlySubscriptionProductId = 'ptrainer_premium_yearly';
+  static final Set<String> _productIds = {
+    monthlySubscriptionProductId,
+    yearlySubscriptionProductId,
+  };
 
   // ── Free Tier Limitleri ──
   static const int freeMaxClients = 3;
@@ -30,6 +35,8 @@ class PremiumService {
   // ── Premium Durumu ──
   bool _isPremium = false;
   bool get isPremium => _isPremium;
+  PremiumPlan? _activePlan;
+  PremiumPlan? get activePlan => _activePlan;
 
   // ── IAP State ──
   final InAppPurchase _iap = InAppPurchase.instance;
@@ -51,6 +58,7 @@ class PremiumService {
     // Önce SharedPreferences'tan oku
     final prefs = await SharedPreferences.getInstance();
     _isPremium = prefs.getBool(_keyIsPremium) ?? false;
+    _activePlan = _planFromProductId(prefs.getString(_keyPremiumProductId));
 
     // IAP başlat
     _iapAvailable = await _iap.isAvailable();
@@ -126,16 +134,20 @@ class PremiumService {
     // Not: Gerçek bir üretim uygulamasında burada sunucu taraflı
     // receipt validation yapılmalıdır. Basit uygulamalar için
     // client-side yeterlidir.
-    await activatePremium();
-    _stateController.add(PurchaseState.purchased);
+    await activatePremium(productId: purchase.productID);
+    _stateController.add(
+      purchase.status == PurchaseStatus.restored
+          ? PurchaseState.restored
+          : PurchaseState.purchased,
+    );
   }
 
   /// Premium satın alma başlat
-  Future<bool> buyPremium() async {
+  Future<bool> buyPremium(PremiumPlan plan) async {
     // Debug modda gerçek IAP yerine doğrudan aktifleştir
     if (AppEnvironmentConfig().isDev) {
       debugPrint('IAP: Debug mode – activating premium directly');
-      await activatePremium();
+      await activatePremium(productId: productIdForPlan(plan));
       _stateController.add(PurchaseState.purchased);
       return true;
     }
@@ -145,20 +157,17 @@ class PremiumService {
       return false;
     }
 
-    final product = _products.cast<ProductDetails?>().firstWhere(
-      (p) => p?.id == premiumProductId,
-      orElse: () => null,
-    );
+    final product = productForPlan(plan);
 
     if (product == null) {
-      debugPrint('IAP: Product $premiumProductId not found');
+      debugPrint('IAP: Product ${productIdForPlan(plan)} not found');
       _stateController.add(PurchaseState.productNotFound);
       return false;
     }
 
     final purchaseParam = PurchaseParam(productDetails: product);
     try {
-      // Non-consumable (bir kere satın al)
+      // Subscriptions are also initiated through buyNonConsumable in this API.
       final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
       if (!started) {
         _stateController.add(PurchaseState.error);
@@ -176,7 +185,7 @@ class PremiumService {
     // Debug modda gerçek IAP yerine doğrudan aktifleştir
     if (AppEnvironmentConfig().isDev) {
       debugPrint('IAP: Debug mode – restoring premium directly');
-      await activatePremium();
+      await activatePremium(productId: yearlySubscriptionProductId);
       _stateController.add(PurchaseState.restored);
       return;
     }
@@ -194,29 +203,52 @@ class PremiumService {
     }
   }
 
-  /// Ürün fiyatını al (mağazadan gelen lokalize fiyat)
-  String? get productPrice {
-    final product = _products.cast<ProductDetails?>().firstWhere(
-      (p) => p?.id == premiumProductId,
+  ProductDetails? productForPlan(PremiumPlan plan) {
+    return _products.cast<ProductDetails?>().firstWhere(
+      (p) => p?.id == productIdForPlan(plan),
       orElse: () => null,
     );
-    return product?.price;
+  }
+
+  String? priceForPlan(PremiumPlan plan) {
+    return productForPlan(plan)?.price;
+  }
+
+  String productIdForPlan(PremiumPlan plan) {
+    return switch (plan) {
+      PremiumPlan.monthly => monthlySubscriptionProductId,
+      PremiumPlan.yearly => yearlySubscriptionProductId,
+    };
   }
 
   /// Premium'u aktifleştir
-  Future<void> activatePremium() async {
+  Future<void> activatePremium({String? productId}) async {
     _isPremium = true;
+    _activePlan = _planFromProductId(productId);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyIsPremium, true);
     await prefs.setString(_keyPurchaseDate, DateTime.now().toIso8601String());
+    if (productId != null) {
+      await prefs.setString(_keyPremiumProductId, productId);
+    }
   }
 
   /// Premium'u deaktifleştir (test için)
   Future<void> deactivatePremium() async {
     _isPremium = false;
+    _activePlan = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyIsPremium, false);
     await prefs.remove(_keyPurchaseDate);
+    await prefs.remove(_keyPremiumProductId);
+  }
+
+  PremiumPlan? _planFromProductId(String? productId) {
+    return switch (productId) {
+      monthlySubscriptionProductId => PremiumPlan.monthly,
+      yearlySubscriptionProductId => PremiumPlan.yearly,
+      _ => null,
+    };
   }
 
   /// Satın alma tarihi
@@ -259,3 +291,5 @@ enum PurchaseState {
   storeUnavailable,
   productNotFound,
 }
+
+enum PremiumPlan { monthly, yearly }

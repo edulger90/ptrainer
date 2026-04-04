@@ -9,6 +9,7 @@ import '../models/week_range.dart';
 import '../models/user.dart';
 import '../services/attendance_service.dart';
 import '../services/calendar_service.dart';
+import '../services/period_service.dart';
 import '../services/screen_preload_service.dart';
 
 class WeekClientInfo {
@@ -42,6 +43,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
     with WidgetsBindingObserver {
   final _attendanceService = AttendanceService();
   final _calendarService = CalendarService();
+  final _periodService = PeriodService();
   final _screenPreloadService = ScreenPreloadService();
 
   late final WeekRange _currentWeek;
@@ -96,6 +98,15 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       final client = preload.client;
       if (client.isActive == false) continue;
 
+      // Hafta için açık bir period yoksa dersi gösterme
+      final hasOpenPeriod = preload.periods.any((period) {
+        final start = DateTime.parse(period.startDate);
+        final end = _periodService.effectiveEnd(period);
+        return !start.isAfter(_currentWeek.end) &&
+            !end.isBefore(_currentWeek.start);
+      });
+      if (!hasOpenPeriod) continue;
+
       final schedules = preload.schedules;
       final attendanceRecords = preload.weeklyAttendance;
       final handledLessonDays = <String>{};
@@ -134,6 +145,14 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       for (final schedule in schedules) {
         final lessonDate = _lessonDateForSchedule(schedule);
         if (lessonDate == null) continue;
+
+        // O ders günü için açık bir period yoksa listeye ekleme
+        final hasCoveringPeriod = preload.periods.any((period) {
+          final start = DateTime.parse(period.startDate);
+          final end = _periodService.effectiveEnd(period);
+          return !start.isAfter(lessonDate) && !end.isBefore(lessonDate);
+        });
+        if (!hasCoveringPeriod) continue;
 
         final lessonDayKey = _dayKeyFor(lessonDate);
         if (handledLessonDays.contains(lessonDayKey)) continue;

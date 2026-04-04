@@ -172,6 +172,14 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
           final lessonDate = _lessonDateForSchedule(schedule);
           if (lessonDate == null) continue;
 
+          // O ders günü için açık bir period yoksa listeye ekleme
+          final hasCoveringPeriod = periods.any((period) {
+            final start = DateTime.parse(period.startDate);
+            final end = _periodService.effectiveEnd(period);
+            return !start.isAfter(lessonDate) && !end.isBefore(lessonDate);
+          });
+          if (!hasCoveringPeriod) continue;
+
           final lessonDay = _dayFor(lessonDate);
           if (lessonDay == null) continue;
           if (handledLessonDays.contains(lessonDay)) continue;

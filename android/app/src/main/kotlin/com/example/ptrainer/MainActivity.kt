@@ -1,4 +1,4 @@
-package com.edlgr.ptrainer
+package com.edhelper.ptrainer
 
 import io.flutter.embedding.android.FlutterActivity
 

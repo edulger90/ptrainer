@@ -16,6 +16,7 @@ class PremiumPage extends StatefulWidget {
 class _PremiumPageState extends State<PremiumPage> {
   final _premium = PremiumService();
   StreamSubscription<PurchaseState>? _purchaseSub;
+  PremiumPlan _selectedPlan = PremiumPlan.yearly;
   bool _isLoading = false;
 
   @override
@@ -75,6 +76,28 @@ class _PremiumPageState extends State<PremiumPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
+  }
+
+  String _planTitle(AppLocalizations l, PremiumPlan plan) {
+    return switch (plan) {
+      PremiumPlan.monthly => l.premiumMonthly,
+      PremiumPlan.yearly => l.premiumYearly,
+    };
+  }
+
+  String _planSubtitle(AppLocalizations l, PremiumPlan plan) {
+    return switch (plan) {
+      PremiumPlan.monthly => l.premiumMonthlyDesc,
+      PremiumPlan.yearly => l.premiumYearlyDesc,
+    };
+  }
+
+  String _planPrice(PremiumPlan plan, bool isDevEnvironment) {
+    final fallback = switch (plan) {
+      PremiumPlan.monthly => isDevEnvironment ? r'$4.99 (Test)' : '',
+      PremiumPlan.yearly => isDevEnvironment ? r'$39.99 (Test)' : '',
+    };
+    return _premium.priceForPlan(plan) ?? fallback;
   }
 
   @override
@@ -201,6 +224,20 @@ class _PremiumPageState extends State<PremiumPage> {
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                         textAlign: TextAlign.center,
                       ),
+                      if (isPremium && _premium.activePlan != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          switch (_premium.activePlan!) {
+                            PremiumPlan.monthly => l.premiumMonthlyActive,
+                            PremiumPlan.yearly => l.premiumYearlyActive,
+                          },
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF00897B),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 24),
 
                       // ── Özellik Karşılaştırma ──
@@ -242,19 +279,44 @@ class _PremiumPageState extends State<PremiumPage> {
 
                       // ── Satın Al veya Geri Yükle ──
                       if (!isPremium) ...[
-                        // Fiyat bilgisi
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                        Align(
+                          alignment: Alignment.centerLeft,
                           child: Text(
-                            _premium.productPrice ??
-                                (isDevEnvironment ? '\$9.99 (Test)' : ''),
+                            l.premiumChoosePlan,
                             style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFFB300),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        _PlanCard(
+                          title: _planTitle(l, PremiumPlan.monthly),
+                          subtitle: _planSubtitle(l, PremiumPlan.monthly),
+                          price: _planPrice(
+                            PremiumPlan.monthly,
+                            isDevEnvironment,
+                          ),
+                          selected: _selectedPlan == PremiumPlan.monthly,
+                          onTap: () {
+                            setState(() => _selectedPlan = PremiumPlan.monthly);
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _PlanCard(
+                          title: _planTitle(l, PremiumPlan.yearly),
+                          subtitle: _planSubtitle(l, PremiumPlan.yearly),
+                          price: _planPrice(
+                            PremiumPlan.yearly,
+                            isDevEnvironment,
+                          ),
+                          selected: _selectedPlan == PremiumPlan.yearly,
+                          badgeText: l.premiumBestValue,
+                          onTap: () {
+                            setState(() => _selectedPlan = PremiumPlan.yearly);
+                          },
+                        ),
+                        const SizedBox(height: 16),
                         // Satın Al butonu
                         SizedBox(
                           width: double.infinity,
@@ -272,7 +334,7 @@ class _PremiumPageState extends State<PremiumPage> {
                                 ? null
                                 : () async {
                                     setState(() => _isLoading = true);
-                                    await _premium.buyPremium();
+                                    await _premium.buyPremium(_selectedPlan);
                                     // Sonuç _onPurchaseState'ten gelecek
                                   },
                             child: _isLoading
@@ -293,7 +355,7 @@ class _PremiumPageState extends State<PremiumPage> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        l.premiumBuy,
+                                        '${l.premiumBuy} • ${_planPrice(_selectedPlan, isDevEnvironment)}',
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -338,7 +400,11 @@ class _PremiumPageState extends State<PremiumPage> {
                             if (isPremium) {
                               await _premium.deactivatePremium();
                             } else {
-                              await _premium.activatePremium();
+                              await _premium.activatePremium(
+                                productId: _premium.productIdForPlan(
+                                  _selectedPlan,
+                                ),
+                              );
                             }
                             setState(() {});
                           },
@@ -353,6 +419,128 @@ class _PremiumPageState extends State<PremiumPage> {
                     ],
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String price;
+  final bool selected;
+  final VoidCallback onTap;
+  final String? badgeText;
+
+  const _PlanCard({
+    required this.title,
+    required this.subtitle,
+    required this.price,
+    required this.selected,
+    required this.onTap,
+    this.badgeText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF00897B)
+                  : Colors.grey.withValues(alpha: 0.18),
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF00897B).withValues(alpha: 0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (badgeText != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3CD),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              badgeText!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF8D6E00),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    price,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFFFB300),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Icon(
+                    selected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                    color: selected
+                        ? const Color(0xFF00897B)
+                        : Colors.grey[400],
+                  ),
+                ],
               ),
             ],
           ),

@@ -282,6 +282,7 @@ class AppLocalizations {
   String get versionLabel => get('versionLabel');
   String get buildNumber => get('buildNumber');
   String get appVersionLabel => get('appVersionLabel');
+  String get copyrightLabel => get('copyrightLabel');
   String get developerTools => get('developerTools');
   String get versionHistory => get('versionHistory');
 
@@ -338,6 +339,14 @@ class AppLocalizations {
   String get premiumUnlimited => get('premiumUnlimited');
   String get premiumFree => get('premiumFree');
   String get premiumLabel => get('premiumLabel');
+  String get premiumChoosePlan => get('premiumChoosePlan');
+  String get premiumMonthly => get('premiumMonthly');
+  String get premiumYearly => get('premiumYearly');
+  String get premiumMonthlyDesc => get('premiumMonthlyDesc');
+  String get premiumYearlyDesc => get('premiumYearlyDesc');
+  String get premiumBestValue => get('premiumBestValue');
+  String get premiumMonthlyActive => get('premiumMonthlyActive');
+  String get premiumYearlyActive => get('premiumYearlyActive');
   String get premiumBuy => get('premiumBuy');
   String get premiumRestore => get('premiumRestore');
   String get premiumComingSoon => get('premiumComingSoon');

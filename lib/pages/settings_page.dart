@@ -76,6 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 8),
                   _infoRow(l.buildNumber, AppVersionInfo.buildNumber),
                   _infoRow(l.appVersionLabel, AppVersionInfo.version),
+                  _infoRow(l.copyrightLabel, AppVersionInfo.copyrightNotice),
                 ],
               ),
             ),

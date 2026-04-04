@@ -24,7 +24,7 @@ https://edulger90.github.io/ptrainer/privacy-policy.html
 https://github.com/edulger90/ptrainer
 
 ## Bundle ID
-com.edlgr.ptrainer
+com.edhelper.ptrainer
 
 ## Screenshots Required
 

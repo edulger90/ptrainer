@@ -245,6 +245,8 @@ class AppVersionInfo {
   static const String version = '1.0.0';
   static const String buildNumber = '1';
   static const String fullVersion = '$version+$buildNumber';
+  static const String copyrightNotice =
+      'Copyright © 2026 Ece Dülger. All rights reserved.';
 
   // Versiyon geçmişi (her release'de güncelle)
   static const List<Map<String, String>> changelog = [
