@@ -116,6 +116,18 @@ class AppLocalizations {
   String tooManyAttempts(int seconds) =>
       get('tooManyAttempts').replaceAll('{seconds}', '$seconds');
   String welcome(String name) => get('welcome').replaceAll('{name}', name);
+  String get forgotPassword => get('forgotPassword');
+  String get securityQuestion => get('securityQuestion');
+  String get securityAnswer => get('securityAnswer');
+  String get securityQuestionEmpty => get('securityQuestionEmpty');
+  String get securityAnswerEmpty => get('securityAnswerEmpty');
+  String get securityAnswerWrong => get('securityAnswerWrong');
+  String get userNotFound => get('userNotFound');
+  String get newPassword => get('newPassword');
+  String get resetPassword => get('resetPassword');
+  String get passwordResetSuccess => get('passwordResetSuccess');
+  String get backToLogin => get('backToLogin');
+  String get continueText => get('continueText');
 
   // ── Home ──
   String get myAthletes => get('myAthletes');

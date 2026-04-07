@@ -283,15 +283,19 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${TrainerWeekday.fromDate(day)?.localized(context) ?? ''}\n${day.day.toString().padLeft(2, '0')}.${day.month.toString().padLeft(2, '0')}',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: isToday ? const Color(0xFF00897B) : Colors.grey[700],
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${TrainerWeekday.fromDate(day)?.localized(context) ?? ''} ${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isToday ? const Color(0xFF00897B) : Colors.grey[700],
+              ),
             ),
           ),
-          const SizedBox(height: 8),
+          const Divider(height: 12, thickness: 0.5),
           if (clients.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -314,7 +318,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
   }
 
   double _cardWidthFor(List<WeekClientInfo> clients) {
-    if (clients.isEmpty) return 118;
+    if (clients.isEmpty) return 140;
 
     final longestLabelLength = clients
         .map((info) => '${info.time} ${info.client.firstName}'.length)
@@ -324,26 +328,41 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
         );
 
     if (clients.length >= 5 || longestLabelLength >= 18) {
-      return 150;
+      return 174;
     }
     if (clients.length >= 3 || longestLabelLength >= 14) {
-      return 136;
+      return 160;
     }
-    return 118;
+    return 140;
   }
 
   Widget _buildClientText(WeekClientInfo info) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        '${info.time} ${info.client.firstName}',
-        style: TextStyle(
-          fontSize: 11,
-          color: _textColorFor(info),
-          fontWeight: _fontWeightFor(info),
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+      child: Row(
+        children: [
+          Text(
+            info.time,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              info.client.firstName,
+              style: TextStyle(
+                fontSize: 13,
+                color: _textColorFor(info),
+                fontWeight: _fontWeightFor(info),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -363,7 +382,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
 
   FontWeight _fontWeightFor(WeekClientInfo info) {
     if (info.status == LessonAttendanceStatus.pending) {
-      return info.isMakeup ? FontWeight.w600 : FontWeight.normal;
+      return info.isMakeup ? FontWeight.w600 : FontWeight.w500;
     }
     return FontWeight.w700;
   }

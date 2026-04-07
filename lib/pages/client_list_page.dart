@@ -188,11 +188,15 @@ class _ClientListPageState extends State<ClientListPage> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        l.myAthletes,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l.myAthletes,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),

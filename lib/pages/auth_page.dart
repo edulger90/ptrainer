@@ -15,9 +15,15 @@ class _AuthPageState extends State<AuthPage> {
   bool _isLogin = true;
   bool _userExists = false;
   bool _isSuccessMessage = false;
+  bool _isForgotPassword = false;
+  int _forgotStep = 0; // 0: enter username, 1: answer question, 2: new password
+  String? _forgotSecurityQuestion;
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _securityQuestionController = TextEditingController();
+  final _securityAnswerController = TextEditingController();
+  final _newPasswordController = TextEditingController();
   final _authController = AuthController();
 
   String? _error;
@@ -33,6 +39,9 @@ class _AuthPageState extends State<AuthPage> {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _securityQuestionController.dispose();
+    _securityAnswerController.dispose();
+    _newPasswordController.dispose();
     super.dispose();
   }
 
@@ -53,6 +62,31 @@ class _AuthPageState extends State<AuthPage> {
       _isLogin = !_isLogin;
       _error = null;
       _isSuccessMessage = false;
+      _isForgotPassword = false;
+      _forgotStep = 0;
+      _forgotSecurityQuestion = null;
+    });
+  }
+
+  void _startForgotPassword() {
+    setState(() {
+      _isForgotPassword = true;
+      _forgotStep = 0;
+      _error = null;
+      _isSuccessMessage = false;
+      _securityAnswerController.clear();
+      _newPasswordController.clear();
+      _forgotSecurityQuestion = null;
+    });
+  }
+
+  void _cancelForgotPassword() {
+    setState(() {
+      _isForgotPassword = false;
+      _forgotStep = 0;
+      _error = null;
+      _isSuccessMessage = false;
+      _forgotSecurityQuestion = null;
     });
   }
 
@@ -92,16 +126,34 @@ class _AuthPageState extends State<AuthPage> {
         return l.onlyOneUser;
       case AuthMessageCode.tooManyAttempts:
         return l.tooManyAttempts(message.remainingSeconds ?? 0);
+      case AuthMessageCode.passwordResetSuccess:
+        return l.passwordResetSuccess;
+      case AuthMessageCode.securityQuestionEmpty:
+        return l.securityQuestionEmpty;
+      case AuthMessageCode.securityAnswerEmpty:
+        return l.securityAnswerEmpty;
+      case AuthMessageCode.securityAnswerWrong:
+        return l.securityAnswerWrong;
+      case AuthMessageCode.userNotFound:
+        return l.userNotFound;
     }
   }
 
   Future<void> _submit() async {
     final l = AppLocalizations.of(context);
+
+    if (_isForgotPassword) {
+      await _submitForgotPassword(l);
+      return;
+    }
+
     final result = await _authController.submit(
       isLogin: _isLogin,
       username: _usernameController.text,
       email: _emailController.text,
       password: _passwordController.text,
+      securityQuestion: _securityQuestionController.text,
+      securityAnswer: _securityAnswerController.text,
     );
 
     if (result.shouldClearPassword) {
@@ -123,6 +175,8 @@ class _AuthPageState extends State<AuthPage> {
       }
       if (result.shouldSwitchToLogin) {
         _isLogin = true;
+        _isForgotPassword = false;
+        _forgotStep = 0;
       }
       if (result.message != null) {
         _error = _messageText(result.message!, l);
@@ -132,6 +186,108 @@ class _AuthPageState extends State<AuthPage> {
         _isSuccessMessage = false;
       }
     });
+  }
+
+  Future<void> _submitForgotPassword(AppLocalizations l) async {
+    if (_forgotStep == 0) {
+      // Step 0: look up user and get security question
+      final result = await _authController.submitForgotPassword(
+        username: _usernameController.text,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (result.securityQuestion != null) {
+          _forgotSecurityQuestion = result.securityQuestion;
+          _forgotStep = 1;
+          _error = null;
+          _isSuccessMessage = false;
+        } else if (result.message != null) {
+          _error = _messageText(result.message!, l);
+          _isSuccessMessage = false;
+        }
+      });
+    } else if (_forgotStep == 1) {
+      // Step 1: verify answer → show new password field
+      if (_securityAnswerController.text.trim().isEmpty) {
+        setState(() {
+          _error = l.securityAnswerEmpty;
+          _isSuccessMessage = false;
+        });
+        return;
+      }
+      setState(() {
+        _forgotStep = 2;
+        _error = null;
+      });
+    } else {
+      // Step 2: reset password
+      final result = await _authController.submitResetPassword(
+        username: _usernameController.text,
+        securityAnswer: _securityAnswerController.text,
+        newPassword: _newPasswordController.text,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (result.message != null) {
+          _error = _messageText(result.message!, l);
+          _isSuccessMessage = result.message!.isSuccess;
+        }
+        if (result.shouldSwitchToLogin) {
+          _isForgotPassword = false;
+          _forgotStep = 0;
+          _isLogin = true;
+          _passwordController.clear();
+          _securityAnswerController.clear();
+          _newPasswordController.clear();
+        }
+      });
+    }
+  }
+
+  List<Widget> _buildForgotPasswordFields(AppLocalizations l) {
+    return [
+      // Step 0: username
+      TextField(
+        controller: _usernameController,
+        enabled: _forgotStep == 0,
+        decoration: InputDecoration(
+          labelText: l.username,
+          prefixIcon: const Icon(Icons.person),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      // Step 1: show question and answer field
+      if (_forgotStep >= 1) ...[
+        const SizedBox(height: 16),
+        Text(
+          _forgotSecurityQuestion ?? '',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _securityAnswerController,
+          enabled: _forgotStep == 1,
+          decoration: InputDecoration(
+            labelText: l.securityAnswer,
+            prefixIcon: const Icon(Icons.question_answer),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+      // Step 2: new password
+      if (_forgotStep >= 2) ...[
+        const SizedBox(height: 16),
+        TextField(
+          controller: _newPasswordController,
+          decoration: InputDecoration(
+            labelText: l.newPassword,
+            prefixIcon: const Icon(Icons.lock_reset),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          obscureText: true,
+        ),
+      ],
+    ];
   }
 
   @override
@@ -173,63 +329,96 @@ class _AuthPageState extends State<AuthPage> {
                           color: Color(0xFF00BCD4),
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          _isLogin ? l.login : l.register,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _isForgotPassword
+                                ? l.forgotPassword
+                                : (_isLogin ? l.login : l.register),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
-                        TextField(
-                          controller: _usernameController,
-                          decoration: InputDecoration(
-                            labelText: l.username,
-                            prefixIcon: const Icon(Icons.person),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onChanged: (value) {
-                            final lower = value.toLowerCase();
-                            if (_usernameController.text != lower) {
-                              _usernameController.value = _usernameController
-                                  .value
-                                  .copyWith(
-                                    text: lower,
-                                    selection: TextSelection.collapsed(
-                                      offset: lower.length,
-                                    ),
-                                  );
-                            }
-                          },
-                        ),
-                        if (!_isLogin) ...[
-                          const SizedBox(height: 16),
+                        if (_isForgotPassword)
+                          ..._buildForgotPasswordFields(l)
+                        else ...[
                           TextField(
-                            controller: _emailController,
+                            controller: _usernameController,
                             decoration: InputDecoration(
-                              labelText: l.email,
-                              prefixIcon: const Icon(Icons.email),
+                              labelText: l.username,
+                              prefixIcon: const Icon(Icons.person),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
+                            onChanged: (value) {
+                              final lower = value.toLowerCase();
+                              if (_usernameController.text != lower) {
+                                _usernameController.value = _usernameController
+                                    .value
+                                    .copyWith(
+                                      text: lower,
+                                      selection: TextSelection.collapsed(
+                                        offset: lower.length,
+                                      ),
+                                    );
+                              }
+                            },
                           ),
-                        ],
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _passwordController,
-                          decoration: InputDecoration(
-                            labelText: l.password,
-                            prefixIcon: const Icon(Icons.lock),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          if (!_isLogin) ...[
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _emailController,
+                              decoration: InputDecoration(
+                                labelText: l.email,
+                                prefixIcon: const Icon(Icons.email),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
                             ),
+                          ],
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              labelText: l.password,
+                              prefixIcon: const Icon(Icons.lock),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            obscureText: true,
                           ),
-                          obscureText: true,
-                        ),
+                          if (!_isLogin) ...[
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _securityQuestionController,
+                              decoration: InputDecoration(
+                                labelText: l.securityQuestion,
+                                prefixIcon: const Icon(Icons.help_outline),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _securityAnswerController,
+                              decoration: InputDecoration(
+                                labelText: l.securityAnswer,
+                                prefixIcon: const Icon(Icons.question_answer),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                         const SizedBox(height: 24),
                         if (_error != null)
                           Padding(
@@ -253,11 +442,25 @@ class _AuthPageState extends State<AuthPage> {
                             ),
                           ),
                           child: Text(
-                            _isLogin ? l.login : l.register,
+                            _isForgotPassword
+                                ? (_forgotStep == 2
+                                      ? l.resetPassword
+                                      : l.continueText)
+                                : (_isLogin ? l.login : l.register),
                             style: const TextStyle(fontSize: 16),
                           ),
                         ),
-                        if (!_userExists)
+                        if (_isLogin && _userExists && !_isForgotPassword)
+                          TextButton(
+                            onPressed: _startForgotPassword,
+                            child: Text(l.forgotPassword),
+                          ),
+                        if (_isForgotPassword)
+                          TextButton(
+                            onPressed: _cancelForgotPassword,
+                            child: Text(l.backToLogin),
+                          ),
+                        if (!_userExists && !_isForgotPassword)
                           TextButton(
                             onPressed: _toggleMode,
                             child: Text(

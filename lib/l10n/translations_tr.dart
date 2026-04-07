@@ -51,6 +51,18 @@ const Map<String, String> trStrings = {
   'registrationSuccess': 'Kayıt başarılı. Lütfen giriş yapın.',
   'tooManyAttempts': 'Çok fazla hatalı deneme. {seconds} saniye bekleyin.',
   'welcome': 'Hoşgeldin, {name}!',
+  'forgotPassword': 'Şifremi Unuttum',
+  'securityQuestion': 'Güvenlik Sorusu',
+  'securityAnswer': 'Güvenlik Cevabı',
+  'securityQuestionEmpty': 'Güvenlik sorusu boş olamaz',
+  'securityAnswerEmpty': 'Güvenlik cevabı boş olamaz',
+  'securityAnswerWrong': 'Güvenlik cevabı yanlış',
+  'userNotFound': 'Kullanıcı bulunamadı',
+  'newPassword': 'Yeni Şifre',
+  'resetPassword': 'Şifreyi Sıfırla',
+  'passwordResetSuccess': 'Şifre sıfırlama başarılı. Lütfen giriş yapın.',
+  'backToLogin': 'Girişe Dön',
+  'continueText': 'Devam',
 
   // Home
   'myAthletes': 'Sporcularım',

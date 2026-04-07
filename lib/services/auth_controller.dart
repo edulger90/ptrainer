@@ -6,6 +6,7 @@ import 'error_logger.dart';
 
 enum AuthMessageCode {
   registrationSuccess,
+  passwordResetSuccess,
   unexpectedError,
   usernameEmpty,
   usernameMinLength,
@@ -22,6 +23,10 @@ enum AuthMessageCode {
   invalidCredentials,
   onlyOneUser,
   tooManyAttempts,
+  securityQuestionEmpty,
+  securityAnswerEmpty,
+  securityAnswerWrong,
+  userNotFound,
 }
 
 class AuthMessage {
@@ -52,6 +57,7 @@ class AuthSubmissionResult {
     this.shouldSwitchToLogin = false,
     this.shouldClearPassword = false,
     this.userExists,
+    this.securityQuestion,
   });
 
   final User? user;
@@ -59,6 +65,7 @@ class AuthSubmissionResult {
   final bool shouldSwitchToLogin;
   final bool shouldClearPassword;
   final bool? userExists;
+  final String? securityQuestion;
 }
 
 class AuthController {
@@ -108,13 +115,98 @@ class AuthController {
     required String username,
     required String email,
     required String password,
+    String securityQuestion = '',
+    String securityAnswer = '',
   }) {
     final normalizedUsername = username.trim().toLowerCase();
     final normalizedEmail = email.trim();
 
     return isLogin
         ? _submitLogin(normalizedUsername, password)
-        : _submitRegistration(normalizedUsername, normalizedEmail, password);
+        : _submitRegistration(
+            normalizedUsername,
+            normalizedEmail,
+            password,
+            securityQuestion.trim(),
+            securityAnswer.trim(),
+          );
+  }
+
+  Future<AuthSubmissionResult> submitForgotPassword({
+    required String username,
+  }) async {
+    final normalizedUsername = username.trim().toLowerCase();
+    if (normalizedUsername.isEmpty) {
+      return const AuthSubmissionResult(
+        message: AuthMessage(AuthMessageCode.usernameEmpty),
+      );
+    }
+    try {
+      final user = await _authService.getUserByUsername(normalizedUsername);
+      if (user == null || user.securityQuestion == null) {
+        return const AuthSubmissionResult(
+          message: AuthMessage(AuthMessageCode.userNotFound),
+        );
+      }
+      return AuthSubmissionResult(securityQuestion: user.securityQuestion);
+    } catch (e, stack) {
+      ErrorLogger().logError(
+        error: e.toString(),
+        stackTrace: stack.toString(),
+        extra: 'AuthController.submitForgotPassword',
+      );
+      return const AuthSubmissionResult(
+        message: AuthMessage(AuthMessageCode.unexpectedError),
+      );
+    }
+  }
+
+  Future<AuthSubmissionResult> submitResetPassword({
+    required String username,
+    required String securityAnswer,
+    required String newPassword,
+  }) async {
+    final normalizedUsername = username.trim().toLowerCase();
+
+    final passwordValidation = _validatePassword(newPassword);
+    if (passwordValidation != null) {
+      return AuthSubmissionResult(message: passwordValidation);
+    }
+
+    try {
+      final user = await _authService.getUserByUsername(normalizedUsername);
+      if (user == null) {
+        return const AuthSubmissionResult(
+          message: AuthMessage(AuthMessageCode.userNotFound),
+        );
+      }
+
+      if (!_authService.verifySecurityAnswer(user, securityAnswer)) {
+        return const AuthSubmissionResult(
+          message: AuthMessage(AuthMessageCode.securityAnswerWrong),
+        );
+      }
+
+      await _authService.resetPassword(
+        userId: user.id!,
+        newPassword: newPassword,
+      );
+
+      return const AuthSubmissionResult(
+        message: AuthMessage(AuthMessageCode.passwordResetSuccess),
+        shouldSwitchToLogin: true,
+        shouldClearPassword: true,
+      );
+    } catch (e, stack) {
+      ErrorLogger().logError(
+        error: e.toString(),
+        stackTrace: stack.toString(),
+        extra: 'AuthController.submitResetPassword',
+      );
+      return const AuthSubmissionResult(
+        message: AuthMessage(AuthMessageCode.unexpectedError),
+      );
+    }
   }
 
   Future<AuthSubmissionResult> _submitLogin(
@@ -170,6 +262,8 @@ class AuthController {
     String username,
     String email,
     String password,
+    String securityQuestion,
+    String securityAnswer,
   ) async {
     final validationMessage =
         _validateUsername(username) ??
@@ -177,6 +271,16 @@ class AuthController {
         _validatePassword(password);
     if (validationMessage != null) {
       return AuthSubmissionResult(message: validationMessage);
+    }
+    if (securityQuestion.isEmpty) {
+      return const AuthSubmissionResult(
+        message: AuthMessage(AuthMessageCode.securityQuestionEmpty),
+      );
+    }
+    if (securityAnswer.isEmpty) {
+      return const AuthSubmissionResult(
+        message: AuthMessage(AuthMessageCode.securityAnswerEmpty),
+      );
     }
 
     try {
@@ -191,6 +295,8 @@ class AuthController {
         username: username,
         email: email,
         password: password,
+        securityQuestion: securityQuestion,
+        securityAnswer: securityAnswer,
       );
 
       return const AuthSubmissionResult(

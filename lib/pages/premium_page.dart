@@ -132,11 +132,15 @@ class _PremiumPageState extends State<PremiumPage> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        l.premiumTitle,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l.premiumTitle,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -590,6 +594,8 @@ class _FeatureRow extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             // Free
