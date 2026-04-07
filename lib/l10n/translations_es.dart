@@ -50,6 +50,19 @@ const Map<String, String> esStrings = {
   'registrationSuccess': 'Registro exitoso. Por favor, inicia sesión.',
   'tooManyAttempts': 'Demasiados intentos fallidos. Espera {seconds} segundos.',
   'welcome': '¡Bienvenido/a, {name}!',
+  'forgotPassword': 'Olvidé mi Contraseña',
+  'securityQuestion': 'Pregunta de Seguridad',
+  'securityAnswer': 'Respuesta de Seguridad',
+  'securityQuestionEmpty': 'La pregunta de seguridad no puede estar vacía',
+  'securityAnswerEmpty': 'La respuesta de seguridad no puede estar vacía',
+  'securityAnswerWrong': 'La respuesta de seguridad es incorrecta',
+  'userNotFound': 'Usuario no encontrado',
+  'newPassword': 'Nueva Contraseña',
+  'resetPassword': 'Restablecer Contraseña',
+  'passwordResetSuccess':
+      'Contraseña restablecida exitosamente. Por favor, inicia sesión.',
+  'backToLogin': 'Volver al Inicio de Sesión',
+  'continueText': 'Continuar',
 
   // Home
   'myAthletes': 'Mis Deportistas',

@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDatabaseMigrations {
-  static const int currentVersion = 16;
+  static const int currentVersion = 17;
 
   Future<void> create(Database db) async {
     await _createUsersTable(db);
@@ -116,6 +116,14 @@ class AppDatabaseMigrations {
     if (oldVersion < 16) {
       await createIndexes(db);
     }
+    if (oldVersion < 17) {
+      try {
+        await db.execute('ALTER TABLE users ADD COLUMN securityQuestion TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE users ADD COLUMN securityAnswer TEXT');
+      } catch (_) {}
+    }
   }
 
   Future<void> createIndexes(DatabaseExecutor db) async {
@@ -162,7 +170,9 @@ class AppDatabaseMigrations {
         username TEXT NOT NULL,
         email TEXT NOT NULL,
         password TEXT NOT NULL,
-        salt TEXT
+        salt TEXT,
+        securityQuestion TEXT,
+        securityAnswer TEXT
       )
     ''');
   }

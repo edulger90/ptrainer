@@ -7,6 +7,8 @@ class User {
   final String email;
   final String password;
   final String? salt;
+  final String? securityQuestion;
+  final String? securityAnswer;
 
   User({
     this.id,
@@ -14,6 +16,8 @@ class User {
     required this.email,
     required this.password,
     this.salt,
+    this.securityQuestion,
+    this.securityAnswer,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,8 @@ class User {
       'email': email,
       'password': password,
       'salt': salt,
+      'securityQuestion': securityQuestion,
+      'securityAnswer': securityAnswer,
     };
   }
 
@@ -33,6 +39,8 @@ class User {
       email: map['email'] as String,
       password: map['password'] as String,
       salt: map['salt'] as String?,
+      securityQuestion: map['securityQuestion'] as String?,
+      securityAnswer: map['securityAnswer'] as String?,
     );
   }
 }

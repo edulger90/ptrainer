@@ -915,18 +915,27 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         children: [
           Icon(icon, size: 20, color: color),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.7)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: color.withValues(alpha: 0.7),
+              ),
+            ),
           ),
         ],
       ),
@@ -987,12 +996,16 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                   ),
                                   const SizedBox(width: 14),
                                   Expanded(
-                                    child: Text(
-                                      client.fullName,
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        client.fullName,
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -1036,11 +1049,14 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                               color: Colors.white,
                                             ),
                                           ),
-                                          Text(
-                                            l.lessonPackage,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.white70,
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              l.lessonPackage,
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.white70,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -1061,21 +1077,27 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                             size: 22,
                                           ),
                                           const SizedBox(height: 4),
-                                          Text(
-                                            _formatRegistrationDate(
-                                              client.registrationDate,
-                                            ),
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              _formatRegistrationDate(
+                                                client.registrationDate,
+                                              ),
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
                                             ),
                                           ),
-                                          Text(
-                                            l.firstRegistration,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.white70,
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              l.firstRegistration,
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.white70,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -1108,11 +1130,14 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                               color: Colors.white,
                                             ),
                                           ),
-                                          Text(
-                                            l.period,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.white70,
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              l.period,
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.white70,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -1397,6 +1422,8 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             FilledButton.icon(

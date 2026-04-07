@@ -16,7 +16,15 @@ class FakeAuthService implements AuthService {
   bool userExistsValue;
   bool throwOnUserExists;
 
-  final List<({String username, String email, String password})>
+  final List<
+    ({
+      String username,
+      String email,
+      String password,
+      String securityQuestion,
+      String securityAnswer,
+    })
+  >
   registeredUsers = [];
   final List<String> persistedUsernames = [];
 
@@ -36,8 +44,16 @@ class FakeAuthService implements AuthService {
     required String username,
     required String email,
     required String password,
+    required String securityQuestion,
+    required String securityAnswer,
   }) async {
-    registeredUsers.add((username: username, email: email, password: password));
+    registeredUsers.add((
+      username: username,
+      email: email,
+      password: password,
+      securityQuestion: securityQuestion,
+      securityAnswer: securityAnswer,
+    ));
     userExistsValue = true;
   }
 
@@ -53,6 +69,18 @@ class FakeAuthService implements AuthService {
     }
     return userExistsValue;
   }
+
+  @override
+  Future<User?> getUserByUsername(String username) async => null;
+
+  @override
+  bool verifySecurityAnswer(User user, String answer) => false;
+
+  @override
+  Future<void> resetPassword({
+    required int userId,
+    required String newPassword,
+  }) async {}
 }
 
 void main() {
@@ -137,6 +165,8 @@ void main() {
           username: 'coach',
           email: 'coach@example.com',
           password: 'Password1',
+          securityQuestion: 'Favorite color?',
+          securityAnswer: 'Blue',
         );
 
         expect(result.message?.code, AuthMessageCode.registrationSuccess);

@@ -151,11 +151,15 @@ class _WeeklyPlanPageState extends State<WeeklyPlanPage> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          l.weeklyPlan,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            l.weeklyPlan,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),

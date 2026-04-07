@@ -32,8 +32,8 @@ class UserRepository extends BaseRepository {
     final user = User.fromMap(maps.first);
     final salt = user.salt;
     final expectedHash = salt != null && salt.isNotEmpty
-        ? _hashWithSalt(_hashUnsalted(password), salt)
-        : _hashUnsalted(password);
+        ? hashWithSalt(hashUnsalted(password), salt)
+        : hashUnsalted(password);
 
     return user.password == expectedHash ? user : null;
   }
@@ -44,10 +44,36 @@ class UserRepository extends BaseRepository {
     return users.isNotEmpty;
   }
 
+  Future<User?> getUserByUsername(String username) async {
+    final db = await database;
+    final maps = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return User.fromMap(maps.first);
+  }
+
+  Future<void> updateUserPassword(
+    int userId,
+    String hashedPassword,
+    String salt,
+  ) async {
+    final db = await database;
+    await db.update(
+      'users',
+      {'password': hashedPassword, 'salt': salt},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
+
   static (String hash, String salt) hashPassword(String password) {
-    final unsalted = _hashUnsalted(password);
+    final unsalted = hashUnsalted(password);
     final salt = _generateSalt();
-    final salted = _hashWithSalt(unsalted, salt);
+    final salted = hashWithSalt(unsalted, salt);
     return (salted, salt);
   }
 
@@ -57,12 +83,12 @@ class UserRepository extends BaseRepository {
     return sha256.convert(bytes).toString().substring(0, 32);
   }
 
-  static String _hashWithSalt(String input, String salt) {
+  static String hashWithSalt(String input, String salt) {
     final bytes = utf8.encode(input + salt);
     return sha256.convert(bytes).toString();
   }
 
-  static String _hashUnsalted(String input) {
+  static String hashUnsalted(String input) {
     final bytes = utf8.encode(input);
     return sha256.convert(bytes).toString();
   }

@@ -53,6 +53,18 @@ const Map<String, String> enStrings = {
   'registrationSuccess': 'Registration successful. Please log in.',
   'tooManyAttempts': 'Too many failed attempts. Wait {seconds} seconds.',
   'welcome': 'Welcome, {name}!',
+  'forgotPassword': 'Forgot Password',
+  'securityQuestion': 'Security Question',
+  'securityAnswer': 'Security Answer',
+  'securityQuestionEmpty': 'Security question cannot be empty',
+  'securityAnswerEmpty': 'Security answer cannot be empty',
+  'securityAnswerWrong': 'Security answer is incorrect',
+  'userNotFound': 'User not found',
+  'newPassword': 'New Password',
+  'resetPassword': 'Reset Password',
+  'passwordResetSuccess': 'Password reset successful. Please log in.',
+  'backToLogin': 'Back to Login',
+  'continueText': 'Continue',
 
   // Home
   'myAthletes': 'My Athletes',

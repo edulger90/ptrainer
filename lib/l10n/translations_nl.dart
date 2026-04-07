@@ -52,6 +52,18 @@ const Map<String, String> nlStrings = {
   'registrationSuccess': 'Registratie succesvol. Log alsjeblieft in.',
   'tooManyAttempts': 'Te veel mislukte pogingen. Wacht {seconds} seconden.',
   'welcome': 'Welkom, {name}!',
+  'forgotPassword': 'Wachtwoord Vergeten',
+  'securityQuestion': 'Beveiligingsvraag',
+  'securityAnswer': 'Beveiligingsantwoord',
+  'securityQuestionEmpty': 'Beveiligingsvraag mag niet leeg zijn',
+  'securityAnswerEmpty': 'Beveiligingsantwoord mag niet leeg zijn',
+  'securityAnswerWrong': 'Beveiligingsantwoord is onjuist',
+  'userNotFound': 'Gebruiker niet gevonden',
+  'newPassword': 'Nieuw Wachtwoord',
+  'resetPassword': 'Wachtwoord Herstellen',
+  'passwordResetSuccess': 'Wachtwoord succesvol hersteld. Log alsjeblieft in.',
+  'backToLogin': 'Terug naar Inloggen',
+  'continueText': 'Doorgaan',
 
   // Home
   'myAthletes': 'Mijn Sporters',
