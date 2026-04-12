@@ -149,6 +149,10 @@ class AppLocalizations {
   String get atLeastOneSchedule => get('atLeastOneSchedule');
   String get packageSize => get('packageSize');
   String get packageCountValidation => get('packageCountValidation');
+  String get programTypeLabel => get('programTypeLabel');
+  String get programTypeSport => get('programTypeSport');
+  String get programTypeCourse => get('programTypeCourse');
+  String get programTypePersonal => get('programTypePersonal');
   String get packageTypeLabel => get('packageTypeLabel');
   String get packageTypeDaily => get('packageTypeDaily');
   String get packageTypeMonthly => get('packageTypeMonthly');

@@ -1,4 +1,5 @@
 import 'package_type.dart';
+import 'program_type.dart';
 
 /// Represents a client (sporcu) managed by a user/trainer.
 class Client {
@@ -9,6 +10,7 @@ class Client {
   /// Number of sessions in a package (only relevant for [PackageType.daily]).
   final int? sessionPackage;
   final PackageType packageType;
+  final ProgramType programType;
   final String? createdAt;
   final String? registrationDate;
   final bool isActive;
@@ -19,6 +21,7 @@ class Client {
     required this.fullName,
     this.sessionPackage,
     this.packageType = PackageType.daily,
+    this.programType = ProgramType.sport,
     this.createdAt,
     this.registrationDate,
     this.isActive = true,
@@ -43,6 +46,7 @@ class Client {
       'lastName': lastName,
       'sessionPackage': sessionPackage ?? 0,
       'packageType': packageType.toStorageString(),
+      'programType': programType.toStorageString(),
       'createdAt': createdAt,
       'registrationDate': registrationDate,
       'isActive': isActive ? 1 : 0,
@@ -54,6 +58,7 @@ class Client {
     final last = map['lastName'] as String? ?? '';
     final combined = last.isEmpty ? first : '$first $last';
     final pkgType = PackageType.fromString(map['packageType'] as String?);
+    final programType = ProgramType.fromString(map['programType'] as String?);
     final rawPackage = map['sessionPackage'] as int?;
     return Client(
       id: map['id'] as int?,
@@ -61,6 +66,7 @@ class Client {
       fullName: combined,
       sessionPackage: pkgType == PackageType.monthly ? null : rawPackage,
       packageType: pkgType,
+      programType: programType,
       createdAt: map['createdAt'] as String?,
       registrationDate: map['registrationDate'] as String?,
       isActive: (map['isActive'] as int? ?? 1) == 1,
@@ -73,6 +79,7 @@ class Client {
     String? fullName,
     int? sessionPackage,
     PackageType? packageType,
+    ProgramType? programType,
     String? createdAt,
     String? registrationDate,
     bool? isActive,
@@ -83,6 +90,7 @@ class Client {
       fullName: fullName ?? this.fullName,
       sessionPackage: sessionPackage ?? this.sessionPackage,
       packageType: packageType ?? this.packageType,
+      programType: programType ?? this.programType,
       createdAt: createdAt ?? this.createdAt,
       registrationDate: registrationDate ?? this.registrationDate,
       isActive: isActive ?? this.isActive,

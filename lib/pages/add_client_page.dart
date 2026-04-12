@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/client.dart';
+import '../models/program_type.dart';
 import '../models/user.dart';
 import '../models/session_schedule.dart';
 import '../models/package_type.dart';
@@ -24,6 +25,7 @@ class _AddClientPageState extends State<AddClientPage> {
   final _db = AppDatabase();
 
   int _selectedPackage = 8;
+  ProgramType _selectedProgramType = ProgramType.sport;
   PackageType _selectedPackageType = PackageType.daily;
   DateTime _registrationDate = DateTime.now();
   String? _error;
@@ -91,6 +93,7 @@ class _AddClientPageState extends State<AddClientPage> {
           ? _selectedPackage
           : null,
       packageType: _selectedPackageType,
+      programType: _selectedProgramType,
       createdAt: DateTime.now().toIso8601String(),
       registrationDate: _registrationDate.toIso8601String(),
     );
@@ -289,6 +292,33 @@ class _AddClientPageState extends State<AddClientPage> {
                     child: Text(
                       '${_registrationDate.day.toString().padLeft(2, '0')}.${_registrationDate.month.toString().padLeft(2, '0')}.${_registrationDate.year}',
                     ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l.programTypeLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: ProgramType.values.map((type) {
+                      final label = switch (type) {
+                        ProgramType.sport => l.programTypeSport,
+                        ProgramType.course => l.programTypeCourse,
+                        ProgramType.personal => l.programTypePersonal,
+                      };
+                      return ChoiceChip(
+                        label: Text(label),
+                        selected: _selectedProgramType == type,
+                        onSelected: (_) {
+                          setState(() {
+                            _selectedProgramType = type;
+                          });
+                        },
+                      );
+                    }).toList(),
                   ),
                 ),
                 const SizedBox(height: 12),

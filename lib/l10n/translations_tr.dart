@@ -1,5 +1,5 @@
 const Map<String, String> trStrings = {
-  'completedLessonCount': 'Tamamlanan Ders: {count}',
+  'completedLessonCount': 'Tamamlanan Katılım: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Resmi Tatil',
   'reasonSporcuHasta': 'Program Hasta',
@@ -7,9 +7,9 @@ const Map<String, String> trStrings = {
   'reasonSporcuKisisel': 'Program Kişisel',
   'reasonTrainerKisisel': 'Trainer Kişisel',
   // Period sonuna ders ekleme dialogu
-  'addLessonToPeriodEndTitle': 'Period Sonuna Ders Eklensin mi?',
+  'addLessonToPeriodEndTitle': 'Period Sonuna Katılım Eklensin mi?',
   'addLessonToPeriodEndBody':
-      'Bu dersi iptal ettiniz. Period sonuna yeni bir ders eklemek ister misiniz?',
+      'Bu katılımı iptal ettiniz. Period sonuna yeni bir katılım eklemek ister misiniz?',
   'yes': 'Evet',
   'no': 'Hayır',
   // Genel
@@ -23,7 +23,7 @@ const Map<String, String> trStrings = {
   'logout': 'Çıkış Yap',
   'edit': 'Düzenle',
   'manageAthletesDesc': 'Programlarını görüntüle ve yönet',
-  'weeklyPlanDesc': 'Haftalık ders programını incele',
+  'weeklyPlanDesc': 'Haftalık katılım programını incele',
 
   // Auth
   'login': 'Giriş Yap',
@@ -66,38 +66,42 @@ const Map<String, String> trStrings = {
 
   // Home
   'myAthletes': 'Programlarım',
-  'weeklyPlan': 'Haftalık Ders Planı',
+  'weeklyPlan': 'Haftalık Katılım Planı',
   'analysis': 'Analiz',
   'analysisComingSoon': 'Analiz sayfası yakında eklenecek',
 
   // Client List
   'noAthletesYet': 'Henüz program bulunmamaktadır.',
   'addAthlete': 'Program Ekle',
-  'packageLabel': 'Paket: {count} Derslik',
+  'packageLabel': 'Paket: {count} Katılım',
 
   // Add Client
   'addNewAthlete': 'Yeni Program Ekle',
   'fullName': 'Ad Soyad',
   'registrationDate': 'İlk Kayıt Tarihi',
   'nameEmpty': 'Ad Soyad boş bırakamazsınız',
-  'atLeastOneSchedule': 'En az bir ders saati tanımlamanız gerekir',
-  'packageSize': 'Paket (Ders Sayısı)',
-  'packageCountValidation': 'Paket ders sayısı 1 ile 100 arasında olmalıdır',
+  'atLeastOneSchedule': 'En az bir katılım saati tanımlamanız gerekir',
+  'packageSize': 'Paket (Katılım Sayısı)',
+  'packageCountValidation': 'Paket katılım sayısı 1 ile 100 arasında olmalıdır',
+  'programTypeLabel': 'Program Tipi',
+  'programTypeSport': 'Spor',
+  'programTypeCourse': 'Kurs',
+  'programTypePersonal': 'Kişisel',
   'packageTypeLabel': 'Paket Tipi',
   'packageTypeDaily': 'Günlük',
   'packageTypeMonthly': 'Aylık',
-  'packageOption': '{count} Derslik Paket',
-  'lessonSchedules': 'Ders Saatleri',
-  'addLessonTime': 'Ders Saati Ekle',
-  'noScheduleYet': 'Henüz ders saati eklenmemiştir',
+  'packageOption': '{count} Katılımlık Paket',
+  'lessonSchedules': 'Katılım Saatleri',
+  'addLessonTime': 'Katılım Saati Ekle',
+  'noScheduleYet': 'Henüz katılım saati eklenmemiştir',
   'saveAthlete': 'Program Kaydet',
 
   // Schedule Dialog
-  'addLessonTimeTitle': 'Ders Saati Ekle',
+  'addLessonTimeTitle': 'Katılım Saati Ekle',
   'selectDay': 'Gün Seçiniz:',
   'selectTime': 'Saat Seçiniz:',
   'selectDayFirst': 'Önce bir gün seçiniz',
-  'scheduleDayAlreadyExists': 'Bu gün için zaten bir ders saati tanımlı',
+  'scheduleDayAlreadyExists': 'Bu gün için zaten bir katılım saati tanımlı',
 
   // Days of Week
   'monday': 'Pazartesi',
@@ -112,7 +116,7 @@ const Map<String, String> trStrings = {
   'athleteDetail': 'Program Detayı',
   'editInfo': 'Bilgileri Düzenle',
   'editAthleteInfo': 'Program Bilgilerini Düzenle',
-  'lessonPackage': 'Derslik Paket',
+  'lessonPackage': 'Katılım Paketi',
   'firstRegistration': 'İlk Kayıt',
   'period': 'Periyot',
 
@@ -121,7 +125,7 @@ const Map<String, String> trStrings = {
   'newPeriod': 'Yeni Periyot',
   'noPeriodYet': 'Henüz periyot eklenmemiş',
   'periodNumber': 'Periyot {n}',
-  'lessonsProgress': '{attended} / {total} ders',
+  'lessonsProgress': '{attended} / {total} katılım',
   'postponed': 'Ötelenmiş',
   'noPaymentInfo': 'Ödeme bilgisi yok',
   'paymentPaid': '{amount} ₺ – Ödendi',
@@ -148,9 +152,9 @@ const Map<String, String> trStrings = {
   'paymentAwaiting': 'Ödeme bekleniyor',
 
   // Schedules
-  'lessonTimes': 'Ders Saatleri',
-  'noScheduleAdded': 'Henüz ders saati eklenmemiş.',
-  'editLessonTime': 'Ders Saati Düzenle',
+  'lessonTimes': 'Katılım Saatleri',
+  'noScheduleAdded': 'Henüz katılım saati eklenmemiş.',
+  'editLessonTime': 'Katılım Saati Düzenle',
   'day': 'Gün',
   'timeLabel': 'Saat: {time}',
 
@@ -170,29 +174,29 @@ const Map<String, String> trStrings = {
   // Period Calendar
   'periodCalendar': 'Periyot Takvimi',
   'postponedBadge': 'Ötelendi',
-  'cancelLesson': 'Ders İptali',
+  'cancelLesson': 'Katılım İptali',
   'cancelLessonBody':
-      '{date} tarihli ders iptal edilecek.\n\nPeriyot sonuna yeni bir ders günü eklenecek ve bitiş tarihi ötelenecek.\n\nDevam etmek istiyor musunuz?',
+      '{date} tarihli katılım iptal edilecek.\n\nPeriyot sonuna yeni bir katılım günü eklenecek ve bitiş tarihi ötelenecek.\n\nDevam etmek istiyor musunuz?',
   'giveUp': 'Vazgeç',
   'confirmCancel': 'İptal Et',
   'undoCancel': 'İptal Geri Al',
   'undoCancelBody':
-      '{date} tarihli ders iptalini geri almak istiyor musunuz?\n\nPeriyot bitiş tarihi bir ders günü geri çekilecek.',
+      '{date} tarihli katılım iptalini geri almak istiyor musunuz?\n\nPeriyot bitiş tarihi bir katılım günü geri çekilecek.',
   'confirmUndo': 'Geri Al',
-  'cancelled': 'İptal Edildi',
+  'cancelled': 'Katılım İptal Edildi',
   'makeupLabel': 'Telafi: {date}',
-  'postponedLesson': 'Ötelenen ders',
-  'selectMakeupDate': 'Telafi tarihi seç',
+  'postponedLesson': 'Ötelenen katılım',
+  'selectMakeupDate': 'Telafi katılım tarihi seç',
   'undoCancelTooltip': 'İptali geri al',
-  'cancelAndPostpone': 'Dersi iptal et ve ötele',
+  'cancelAndPostpone': 'Katılımı iptal et ve ötele',
   'resetAction': 'İşlemi Geri Al',
   'resetActionBody':
-      '{date} tarihli ders için yapılan tüm işlemler (yoklama, telafi, vb.) geri alınacak.\n\nDevam etmek istiyor musunuz?',
+      '{date} tarihli katılım için yapılan tüm işlemler (yoklama, telafi, vb.) geri alınacak.\n\nDevam etmek istiyor musunuz?',
   'resetActionConfirm': 'Geri Al',
   'actionReset': 'İşlem geri alındı',
 
   // Weekly Plan
-  'noLessonToday': 'Bu gün için ders yok.',
+  'noLessonToday': 'Bu gün için katılım yok.',
   'thisWeek': 'Bu Hafta',
   'nextWeek': 'Gelecek Hafta',
   'makeup': 'Telafi',
@@ -266,9 +270,9 @@ const Map<String, String> trStrings = {
   'confirmDeleteTitle': 'Programı Sil',
   'confirmDeleteMessage':
       'Bu programı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
-  'confirmDeleteScheduleTitle': 'Ders Saatini Sil',
+  'confirmDeleteScheduleTitle': 'Katılım Saatini Sil',
   'confirmDeleteScheduleMessage':
-      'Bu ders saatini silmek istediğinize emin misiniz?',
+      'Bu katılım saatini silmek istediğinize emin misiniz?',
 
   // Premium
   'premiumTitle': 'Premium',

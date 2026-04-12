@@ -1,5 +1,5 @@
 const Map<String, String> enStrings = {
-  'completedLessonCount': 'Completed Lessons: {count}',
+  'completedLessonCount': 'Completed Attendance: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Official Holiday',
   'reasonSporcuHasta': 'Program Sick',
@@ -7,9 +7,9 @@ const Map<String, String> enStrings = {
   'reasonSporcuKisisel': 'Program Personal',
   'reasonTrainerKisisel': 'Trainer Personal',
   // Add lesson to period end dialog
-  'addLessonToPeriodEndTitle': 'Add Lesson to End of Period?',
+  'addLessonToPeriodEndTitle': 'Add Attendance to End of Period?',
   'addLessonToPeriodEndBody':
-      'You cancelled this lesson. Would you like to add a new lesson to the end of the period?',
+      'You cancelled this attendance. Would you like to add a new attendance entry to the end of the period?',
   'yes': 'Yes',
   'no': 'No',
   // General
@@ -23,7 +23,7 @@ const Map<String, String> enStrings = {
   'logout': 'Log Out',
   'edit': 'Edit',
   'manageAthletesDesc': 'View and manage your programs',
-  'weeklyPlanDesc': 'Review your weekly lesson schedule',
+  'weeklyPlanDesc': 'Review your weekly attendance schedule',
 
   // Auth
   'login': 'Log In',
@@ -68,38 +68,44 @@ const Map<String, String> enStrings = {
 
   // Home
   'myAthletes': 'My Programs',
-  'weeklyPlan': 'Weekly Lesson Plan',
+  'weeklyPlan': 'Weekly Attendance Plan',
   'analysis': 'Analysis',
   'analysisComingSoon': 'Analysis page coming soon',
 
   // Client List
   'noAthletesYet': 'No programs yet.',
   'addAthlete': 'Add Program',
-  'packageLabel': 'Package: {count} Lessons',
+  'packageLabel': 'Package: {count} Attendance',
 
   // Add Client
   'addNewAthlete': 'Add New Program',
   'fullName': 'Full Name',
   'registrationDate': 'Registration Date',
   'nameEmpty': 'Name cannot be empty',
-  'atLeastOneSchedule': 'You must add at least one lesson time',
-  'packageSize': 'Package (Lesson Count)',
-  'packageCountValidation': 'Package lesson count must be between 1 and 100',
+  'atLeastOneSchedule': 'You must add at least one attendance time',
+  'packageSize': 'Package (Attendance Count)',
+  'packageCountValidation':
+      'Package attendance count must be between 1 and 100',
+  'programTypeLabel': 'Program Type',
+  'programTypeSport': 'Sport',
+  'programTypeCourse': 'Course',
+  'programTypePersonal': 'Personal',
   'packageTypeLabel': 'Package Type',
   'packageTypeDaily': 'Daily',
   'packageTypeMonthly': 'Monthly',
-  'packageOption': '{count}-Lesson Package',
-  'lessonSchedules': 'Lesson Schedules',
-  'addLessonTime': 'Add Lesson Time',
-  'noScheduleYet': 'No lesson times added yet',
+  'packageOption': '{count}-Attendance Package',
+  'lessonSchedules': 'Attendance Schedules',
+  'addLessonTime': 'Add Attendance Time',
+  'noScheduleYet': 'No attendance times added yet',
   'saveAthlete': 'Save Program',
 
   // Schedule Dialog
-  'addLessonTimeTitle': 'Add Lesson Time',
+  'addLessonTimeTitle': 'Add Attendance Time',
   'selectDay': 'Select Day:',
   'selectTime': 'Select Time:',
   'selectDayFirst': 'Select a day first',
-  'scheduleDayAlreadyExists': 'A lesson time is already defined for this day',
+  'scheduleDayAlreadyExists':
+      'An attendance time is already defined for this day',
 
   // Days of Week
   'monday': 'Monday',
@@ -114,7 +120,7 @@ const Map<String, String> enStrings = {
   'athleteDetail': 'Program Detail',
   'editInfo': 'Edit Info',
   'editAthleteInfo': 'Edit Program Info',
-  'lessonPackage': 'Lesson Package',
+  'lessonPackage': 'Attendance Package',
   'firstRegistration': 'Registered',
   'period': 'Period',
 
@@ -123,7 +129,7 @@ const Map<String, String> enStrings = {
   'newPeriod': 'New Period',
   'noPeriodYet': 'No periods added yet',
   'periodNumber': 'Period {n}',
-  'lessonsProgress': '{attended} / {total} lessons',
+  'lessonsProgress': '{attended} / {total} attendance',
   'postponed': 'Postponed',
   'noPaymentInfo': 'No payment info',
   'paymentPaid': '{amount} ₺ – Paid',
@@ -150,9 +156,9 @@ const Map<String, String> enStrings = {
   'paymentAwaiting': 'Payment pending',
 
   // Schedules
-  'lessonTimes': 'Lesson Times',
-  'noScheduleAdded': 'No lesson times added.',
-  'editLessonTime': 'Edit Lesson Time',
+  'lessonTimes': 'Attendance Times',
+  'noScheduleAdded': 'No attendance times added.',
+  'editLessonTime': 'Edit Attendance Time',
   'day': 'Day',
   'timeLabel': 'Time: {time}',
 
@@ -172,29 +178,29 @@ const Map<String, String> enStrings = {
   // Period Calendar
   'periodCalendar': 'Period Calendar',
   'postponedBadge': 'Postponed',
-  'cancelLesson': 'Cancel Lesson',
+  'cancelLesson': 'Cancel Attendance',
   'cancelLessonBody':
-      'The lesson on {date} will be cancelled.\n\nA new lesson day will be added at the end of the period and the end date will be postponed.\n\nDo you want to continue?',
+      'The attendance on {date} will be cancelled.\n\nA new attendance day will be added at the end of the period and the end date will be postponed.\n\nDo you want to continue?',
   'giveUp': 'Go Back',
-  'confirmCancel': 'Cancel Lesson',
+  'confirmCancel': 'Cancel Attendance',
   'undoCancel': 'Undo Cancellation',
   'undoCancelBody':
-      'Do you want to undo the cancellation for the lesson on {date}?\n\nThe period end date will be moved back by one lesson day.',
+      'Do you want to undo the cancellation for the attendance on {date}?\n\nThe period end date will be moved back by one attendance day.',
   'confirmUndo': 'Undo',
   'cancelled': 'Cancelled',
   'makeupLabel': 'Makeup: {date}',
-  'postponedLesson': 'Postponed lesson',
+  'postponedLesson': 'Postponed attendance',
   'selectMakeupDate': 'Select makeup date',
   'undoCancelTooltip': 'Undo cancellation',
   'cancelAndPostpone': 'Cancel and postpone',
   'resetAction': 'Undo Action',
   'resetActionBody':
-      'All actions (attendance, makeup, etc.) for the lesson on {date} will be reset.\n\nDo you want to continue?',
+      'All actions (attendance, makeup, etc.) for the attendance on {date} will be reset.\n\nDo you want to continue?',
   'resetActionConfirm': 'Undo',
   'actionReset': 'Action undone',
 
   // Weekly Plan
-  'noLessonToday': 'No lessons for this day.',
+  'noLessonToday': 'No attendance for this day.',
   'thisWeek': 'This Week',
   'nextWeek': 'Next Week',
   'makeup': 'Makeup',
@@ -267,9 +273,9 @@ const Map<String, String> enStrings = {
   'confirmDeleteTitle': 'Delete Program',
   'confirmDeleteMessage':
       'Are you sure you want to delete this program? This action cannot be undone.',
-  'confirmDeleteScheduleTitle': 'Delete Lesson Time',
+  'confirmDeleteScheduleTitle': 'Delete Attendance Time',
   'confirmDeleteScheduleMessage':
-      'Are you sure you want to delete this lesson time?',
+      'Are you sure you want to delete this attendance time?',
 
   // Premium
   'premiumTitle': 'Premium',

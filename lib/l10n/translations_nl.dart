@@ -1,5 +1,5 @@
 const Map<String, String> nlStrings = {
-  'completedLessonCount': 'Voltooide Lessen: {count}',
+  'completedLessonCount': 'Voltooide Aanwezigheid: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Officiële Feestdag',
   'reasonSporcuHasta': 'Programma Ziek',
@@ -23,7 +23,7 @@ const Map<String, String> nlStrings = {
   'logout': 'Uitloggen',
   'edit': 'Bewerken',
   'manageAthletesDesc': 'Bekijk en beheer je programma\'s',
-  'weeklyPlanDesc': 'Bekijk je wekelijkse lesrooster',
+  'weeklyPlanDesc': 'Bekijk je wekelijkse aanwezigheidsrooster',
 
   // Auth
   'login': 'Inloggen',
@@ -67,38 +67,44 @@ const Map<String, String> nlStrings = {
 
   // Home
   'myAthletes': 'Mijn Programma\'s',
-  'weeklyPlan': 'Wekelijks Lesrooster',
+  'weeklyPlan': 'Wekelijks Aanwezigheidsrooster',
   'analysis': 'Analyse',
   'analysisComingSoon': 'Analysepagina komt binnenkort',
 
   // Client List
   'noAthletesYet': 'Nog geen programma\'s.',
   'addAthlete': 'Programma Toevoegen',
-  'packageLabel': 'Pakket: {count} Lessen',
+  'packageLabel': 'Pakket: {count} Aanwezigheden',
 
   // Add Client
   'addNewAthlete': 'Nieuw Programma Toevoegen',
   'fullName': 'Volledige Naam',
   'registrationDate': 'Registratiedatum',
   'nameEmpty': 'Naam mag niet leeg zijn',
-  'atLeastOneSchedule': 'U moet minimaal één lestijd toevoegen',
-  'packageSize': 'Pakket (Aantal Lessen)',
-  'packageCountValidation': 'Het aantal lessen moet tussen 1 en 100 liggen',
+  'atLeastOneSchedule': 'U moet minimaal één aanwezigheidstijd toevoegen',
+  'packageSize': 'Pakket (Aantal Aanwezigheden)',
+  'packageCountValidation':
+      'Het aantal aanwezigheden moet tussen 1 en 100 liggen',
+  'programTypeLabel': 'Programmatype',
+  'programTypeSport': 'Sport',
+  'programTypeCourse': 'Cursus',
+  'programTypePersonal': 'Persoonlijk',
   'packageTypeLabel': 'Pakkettype',
   'packageTypeDaily': 'Dagelijks',
   'packageTypeMonthly': 'Maandelijks',
-  'packageOption': '{count}-Lessen Pakket',
-  'lessonSchedules': 'Lesroosters',
-  'addLessonTime': 'Lestijd Toevoegen',
-  'noScheduleYet': 'Nog geen lestijden toegevoegd',
+  'packageOption': '{count}-Aanwezigheden Pakket',
+  'lessonSchedules': 'Aanwezigheidsroosters',
+  'addLessonTime': 'Aanwezigheidstijd Toevoegen',
+  'noScheduleYet': 'Nog geen aanwezigheidstijden toegevoegd',
   'saveAthlete': 'Programma Opslaan',
 
   // Schedule Dialog
-  'addLessonTimeTitle': 'Lestijd Toevoegen',
+  'addLessonTimeTitle': 'Aanwezigheidstijd Toevoegen',
   'selectDay': 'Selecteer Dag:',
   'selectTime': 'Selecteer Tijd:',
   'selectDayFirst': 'Selecteer eerst een dag',
-  'scheduleDayAlreadyExists': 'Er is al een lestijd ingesteld voor deze dag',
+  'scheduleDayAlreadyExists':
+      'Er is al een aanwezigheidstijd ingesteld voor deze dag',
 
   // Days of Week
   'monday': 'Maandag',
@@ -113,7 +119,7 @@ const Map<String, String> nlStrings = {
   'athleteDetail': 'Programma Detail',
   'editInfo': 'Info Bewerken',
   'editAthleteInfo': 'Programma-info Bewerken',
-  'lessonPackage': 'Lespakket',
+  'lessonPackage': 'Aanwezigheidspakket',
   'firstRegistration': 'Geregistreerd',
   'period': 'Periode',
 
@@ -122,7 +128,7 @@ const Map<String, String> nlStrings = {
   'newPeriod': 'Nieuwe Periode',
   'noPeriodYet': 'Nog geen perioden toegevoegd',
   'periodNumber': 'Periode {n}',
-  'lessonsProgress': '{attended} / {total} lessen',
+  'lessonsProgress': '{attended} / {total} aanwezigheden',
   'postponed': 'Uitgesteld',
   'noPaymentInfo': 'Geen betalingsinformatie',
   'paymentPaid': '{amount} ₺ – Betaald',
@@ -149,9 +155,9 @@ const Map<String, String> nlStrings = {
   'paymentAwaiting': 'Betaling in afwachting',
 
   // Schedules
-  'lessonTimes': 'Lestijden',
-  'noScheduleAdded': 'Geen lestijden toegevoegd.',
-  'editLessonTime': 'Lestijd Bewerken',
+  'lessonTimes': 'Aanwezigheidstijden',
+  'noScheduleAdded': 'Geen aanwezigheidstijden toegevoegd.',
+  'editLessonTime': 'Aanwezigheidstijd Bewerken',
   'day': 'Dag',
   'timeLabel': 'Tijd: {time}',
 
@@ -171,19 +177,19 @@ const Map<String, String> nlStrings = {
   // Period Calendar
   'periodCalendar': 'Periode Kalender',
   'postponedBadge': 'Uitgesteld',
-  'cancelLesson': 'Les Annuleren',
+  'cancelLesson': 'Aanwezigheid Annuleren',
   'cancelLessonBody':
-      'De les op {date} wordt geannuleerd.\n\nEr wordt een nieuwe lesdag toegevoegd aan het einde van de periode en de einddatum wordt uitgesteld.\n\nWilt u doorgaan?',
+      'De aanwezigheid op {date} wordt geannuleerd.\n\nEr wordt een nieuwe aanwezigheidsdag toegevoegd aan het einde van de periode en de einddatum wordt uitgesteld.\n\nWilt u doorgaan?',
   'giveUp': 'Terug',
-  'confirmCancel': 'Les Annuleren',
+  'confirmCancel': 'Aanwezigheid Annuleren',
   'undoCancel': 'Annulering Ongedaan Maken',
   'undoCancelBody':
-      'Wilt u de annulering van de les op {date} ongedaan maken?\n\nDe einddatum van de periode wordt met één lesdag teruggeschoven.',
+      'Wilt u de annulering van de aanwezigheid op {date} ongedaan maken?\n\nDe einddatum van de periode wordt met één aanwezigheidsdag teruggeschoven.',
   'confirmUndo': 'Ongedaan Maken',
   'cancelled': 'Geannuleerd',
   'makeupLabel': 'Inhaalles: {date}',
-  'postponedLesson': 'Uitgestelde les',
-  'selectMakeupDate': 'Selecteer inhaaldatum',
+  'postponedLesson': 'Uitgestelde aanwezigheid',
+  'selectMakeupDate': 'Selecteer inhaal-aanwezigheidsdatum',
   'undoCancelTooltip': 'Annulering ongedaan maken',
   'cancelAndPostpone': 'Annuleren en uitstellen',
   'resetAction': 'Actie Ongedaan Maken',
@@ -193,7 +199,7 @@ const Map<String, String> nlStrings = {
   'actionReset': 'Actie ongedaan gemaakt',
 
   // Weekly Plan
-  'noLessonToday': 'Geen lessen voor deze dag.',
+  'noLessonToday': 'Geen aanwezigheid voor deze dag.',
   'thisWeek': 'Deze Week',
   'nextWeek': 'Volgende Week',
   'makeup': 'Inhaalles',
@@ -269,9 +275,9 @@ const Map<String, String> nlStrings = {
   'confirmDeleteTitle': 'Programma Verwijderen',
   'confirmDeleteMessage':
       'Weet je zeker dat je dit programma wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
-  'confirmDeleteScheduleTitle': 'Lestijd Verwijderen',
+  'confirmDeleteScheduleTitle': 'Aanwezigheidstijd Verwijderen',
   'confirmDeleteScheduleMessage':
-      'Weet je zeker dat je deze lestijd wilt verwijderen?',
+      'Weet je zeker dat je deze aanwezigheidstijd wilt verwijderen?',
 
   // Premium
   'premiumTitle': 'Premium',
