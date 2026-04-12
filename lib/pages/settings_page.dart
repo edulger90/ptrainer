@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../config/app_environment.dart';
 import '../l10n/app_localizations.dart';
+import '../services/app_language_service.dart';
+import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
+import 'auth_page.dart';
 import 'error_log_page.dart';
 import 'premium_page.dart';
 import 'query_plan_debug_page.dart';
@@ -17,7 +21,87 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  final _db = AppDatabase();
+  final _premiumService = PremiumService();
+  final _appLanguageService = AppLanguageService();
   bool _isPremium = PremiumService().isPremium;
+  bool _isDeletingAccount = false;
+
+  String _languageNativeLabel(String languageCode) {
+    switch (languageCode) {
+      case 'tr':
+        return 'Turkce';
+      case 'en':
+        return 'English';
+      case 'es':
+        return 'Espanol';
+      case 'nl':
+        return 'Nederlands';
+      default:
+        return languageCode;
+    }
+  }
+
+  String _selectedLanguageLabel(AppLocalizations l) {
+    final selectedLocale = _appLanguageService.selectedLocale;
+    if (selectedLocale == null) {
+      return l.systemDefaultLanguage;
+    }
+
+    return _languageNativeLabel(selectedLocale.languageCode);
+  }
+
+  Future<void> _showLanguagePicker() async {
+    final selectedLocale = await showModalBottomSheet<Locale?>(
+      context: context,
+      builder: (sheetContext) {
+        final l = AppLocalizations.of(sheetContext);
+        final currentSelected = _appLanguageService.selectedLocale;
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(
+                  l.selectAppLanguage,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                title: Text(l.systemDefaultLanguage),
+                trailing: currentSelected == null
+                    ? const Icon(Icons.check, color: Color(0xFF00897B))
+                    : null,
+                onTap: () => Navigator.of(sheetContext).pop(null),
+              ),
+              const Divider(height: 1),
+              ...AppLocalizations.supportedLocales.map((locale) {
+                final isSelected = currentSelected == locale;
+                return ListTile(
+                  title: Text(_languageNativeLabel(locale.languageCode)),
+                  trailing: isSelected
+                      ? const Icon(Icons.check, color: Color(0xFF00897B))
+                      : null,
+                  onTap: () => Navigator.of(sheetContext).pop(locale),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+
+    final shouldUpdate = selectedLocale != _appLanguageService.selectedLocale;
+
+    if (!shouldUpdate) return;
+
+    await _appLanguageService.setSelectedLocale(selectedLocale);
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   Future<void> _setPremium(bool value) async {
     if (value) {
@@ -30,10 +114,60 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  Future<void> _deleteAccount() async {
+    final l = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l.deleteAccountConfirmTitle),
+        content: Text(l.deleteAccountConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l.cancel),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[400],
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l.deleteAccount),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _isDeletingAccount = true;
+    });
+
+    try {
+      await _premiumService.clearLocalState();
+      await _db.deleteAllData();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthPage()),
+        (route) => false,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.deleteAccountError)));
+      setState(() {
+        _isDeletingAccount = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final isDevEnvironment = AppEnvironmentConfig().isDev;
+    final isIosDevice = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,6 +178,72 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // --- Legal Links ---
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.privacy_tip,
+                    color: Color(0xFF00897B),
+                  ),
+                  title: const Text('Privacy Policy'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final url = Uri.parse(
+                      'https://edulger90.github.io/ptrainer/privacy-policy.html',
+                    );
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  },
+                ),
+                if (isIosDevice) ...[
+                  const Divider(height: 1, indent: 72),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.description,
+                      color: Color(0xFF00897B),
+                    ),
+                    title: const Text('Terms of Use'),
+                    subtitle: const Text('Apple Standard EULA'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final url = Uri.parse(
+                        'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                      );
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(l.languageSettings, Icons.language),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.translate, color: Color(0xFF00897B)),
+              title: Text(l.appLanguage),
+              subtitle: Text(_selectedLanguageLabel(l)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _showLanguagePicker,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // Uygulama bilgileri kartı
           _buildSectionHeader(l.appInfo, Icons.info_outline),
           const SizedBox(height: 8),
@@ -171,6 +371,128 @@ class _SettingsPageState extends State<SettingsPage> {
                   MaterialPageRoute(builder: (_) => const PremiumPage()),
                 );
               },
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(l.dangerZone, Icons.warning_amber_rounded),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF5F5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFF2B8B5)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFE3E0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.warning_rounded,
+                          color: Color(0xFFC62828),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l.dangerZone,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFB71C1C),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l.dangerZoneDesc,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF7F1D1D),
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: _isDeletingAccount ? null : _deleteAccount,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFF2B8B5)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFEBEE),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.delete_forever,
+                                color: Color(0xFFC62828),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l.deleteAccount,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFB71C1C),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l.deleteAccountDesc,
+                                    style: const TextStyle(
+                                      color: Color(0xFF7F1D1D),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _isDeletingAccount
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.chevron_right,
+                                    color: Color(0xFFC62828),
+                                  ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 

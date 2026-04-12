@@ -30,3 +30,9 @@ class SessionSchedule {
     );
   }
 }
+
+class DuplicateSessionScheduleDayException implements Exception {
+  final String dayOfWeek;
+
+  const DuplicateSessionScheduleDayException(this.dayOfWeek);
+}

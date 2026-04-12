@@ -32,6 +32,10 @@ class PeriodCalendarPage extends StatefulWidget {
 class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
   final _attendanceService = AttendanceService();
 
+  DateTime _normalizeDay(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
   int _completedLessonCount() {
     final records = _attendance.entries.map(
       (entry) => _attendanceToRecord(entry.value, lessonDate: entry.key),
@@ -52,9 +56,9 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
   void initState() {
     super.initState();
     _currentPeriod = widget.period;
-    _start = DateTime.parse(_currentPeriod.startDate);
-    _end = DateTime.parse(
-      _currentPeriod.postponedEndDate ?? _currentPeriod.endDate,
+    _start = _normalizeDay(DateTime.parse(_currentPeriod.startDate));
+    _end = _normalizeDay(
+      DateTime.parse(_currentPeriod.postponedEndDate ?? _currentPeriod.endDate),
     );
     _lessonWeekdays = widget.schedules
         .map((s) => _weekdayNumber(s.dayOfWeek))
@@ -83,15 +87,17 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       if (!mounted) return;
       setState(() {
         _currentPeriod = preload.period;
-        _start = DateTime.parse(preload.period.startDate);
-        _end = DateTime.parse(
-          preload.period.postponedEndDate ?? preload.period.endDate,
+        _start = _normalizeDay(DateTime.parse(preload.period.startDate));
+        _end = _normalizeDay(
+          DateTime.parse(
+            preload.period.postponedEndDate ?? preload.period.endDate,
+          ),
         );
         _cachedLessonDays = null;
         _attendance = {
           for (final record in preload.attendanceRecords)
             if (record.lessonDate != null)
-              record.lessonDate!: _Attendance(
+              _normalizeDay(record.lessonDate!): _Attendance(
                 absent: record.absent,
                 cancelled: record.cancelled,
                 isPostponed: record.isPostponed,
@@ -245,11 +251,13 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       lastDate: _end.add(const Duration(days: 60)),
     );
     if (pickedDate != null) {
+      if (!mounted) return;
       final pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
       );
       if (pickedTime == null) return;
+      if (!mounted) return;
       final reason = await _pickReasonDialog();
       if (reason == null) return;
       final makeupDateTime = DateTime(
@@ -289,6 +297,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final reason = await _pickReasonDialog();
     if (reason == null) return;
 
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -321,6 +330,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     if (confirmed != true) return;
 
     // Kullanıcıya period sonuna yeni ders eklemek ister misiniz diye sor
+    if (!mounted) return;
     final addToEnd = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -451,6 +461,82 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     return day;
   }
 
+  Future<void> _resetAttendance(DateTime day) async {
+    final clientId = widget.client.id;
+    final periodId = _currentPeriod.id;
+    if (clientId == null || periodId == null) return;
+
+    final att = _attendance[day];
+    // Henüz bir işlem yapılmamışsa geri alınacak bir şey yok
+    if (att == null) return;
+
+    final l = AppLocalizations.of(context);
+    final dateStr =
+        '${day.day.toString().padLeft(2, '0')}.${day.month.toString().padLeft(2, '0')}.${day.year}';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.resetAction),
+          content: Text(l.resetActionBody(dateStr)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.giveUp),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                l.resetActionConfirm,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    // İptal edilmiş ve period uzatılmışsa, period'u geri çek
+    if (att.cancelled && att.isPostponed) {
+      final currentPostponed = _currentPeriod.postponedEndDate;
+      if (currentPostponed != null) {
+        final currentEnd = DateTime.parse(currentPostponed);
+        final originalEnd = DateTime.parse(_currentPeriod.endDate);
+        final previousEnd = _findPreviousLessonDay(currentEnd);
+
+        String? newPostponed;
+        if (!previousEnd.isAfter(originalEnd)) {
+          newPostponed = null;
+        } else {
+          newPostponed = previousEnd.toIso8601String();
+        }
+        await _db.updatePeriodPostponedEndDate(periodId, newPostponed);
+      }
+    }
+
+    // Attendance kaydını tamamen sil
+    await _db.deleteAttendance(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: day,
+    );
+
+    await _reloadData();
+    widget.onAttendanceChanged?.call();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l.actionReset),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -504,99 +590,140 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
                   } else {
                     cardColor = Colors.green.shade200;
                   }
-                  return Card(
-                    color: cardColor,
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 12,
-                    ),
-                    child: ListTile(
-                      leading: isPostponedDay
-                          ? const Icon(
-                              Icons.add_circle,
-                              color: Color(0xFFC8A415),
-                              size: 20,
-                            )
-                          : null,
-                      title: Text(
-                        '${day.day.toString().padLeft(2, '0')}.${day.month.toString().padLeft(2, '0')}.${day.year} (${_localizedWeekday(day.weekday)})',
-                        style: TextStyle(
-                          decoration: isCancelled
-                              ? TextDecoration.lineThrough
-                              : null,
-                          color: isCancelled ? Colors.brown : null,
-                        ),
+                  final hasAction =
+                      att != null &&
+                      (!att.absent || att.cancelled || att.makeup != null);
+                  return Dismissible(
+                    key: ValueKey('lesson_${day.toIso8601String()}'),
+                    direction: hasAction
+                        ? DismissDirection.endToStart
+                        : DismissDirection.none,
+                    confirmDismiss: (_) async {
+                      await _resetAttendance(day);
+                      return false; // Card'ı listeden kaldırma
+                    },
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 24),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 12,
                       ),
-                      subtitle: () {
-                        String? subtitleText;
-                        if (isCancelled) {
-                          subtitleText = l.cancelled;
-                          if (att.reason != null) {
-                            subtitleText +=
-                                '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
-                          }
-                        } else if (att?.makeup != null) {
-                          subtitleText = l.makeupLabel(
-                            '${att!.makeup!.day.toString().padLeft(2, '0')}.${att.makeup!.month.toString().padLeft(2, '0')}.${att.makeup!.year}',
-                          );
-                          if (att.reason != null) {
-                            subtitleText +=
-                                '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
-                          }
-                        } else if (isPostponedDay) {
-                          subtitleText = l.postponedLesson;
-                        }
-                        return subtitleText != null
-                            ? Text(
-                                subtitleText,
-                                style: isCancelled
-                                    ? const TextStyle(
-                                        color: Color(0xFF8B6914),
-                                        fontWeight: FontWeight.w600,
-                                      )
-                                    : null,
-                              )
-                            : null;
-                      }(),
-                      trailing: Row(
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade400,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: Icon(
-                              isCancelled
-                                  ? Icons.block
-                                  : (isAbsent ? Icons.close : Icons.check),
+                          const Icon(Icons.undo, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            l.resetAction,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-                            color: isCancelled
-                                ? const Color(0xFFC8A415)
-                                : (att == null
-                                      ? Colors.grey
-                                      : (isAbsent ? Colors.red : Colors.green)),
-                            onPressed: isCancelled
-                                ? null
-                                : () => _toggleAttendance(day),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.event_available),
-                            tooltip: l.selectMakeupDate,
-                            onPressed: isCancelled
-                                ? null
-                                : () => _setMakeup(day),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              isCancelled ? Icons.undo : Icons.event_busy,
-                              size: 22,
-                            ),
-                            color: isCancelled
-                                ? Colors.blue
-                                : const Color(0xFFC8A415),
-                            tooltip: isCancelled
-                                ? l.undoCancelTooltip
-                                : l.cancelAndPostpone,
-                            onPressed: () => _cancelLesson(day),
                           ),
                         ],
+                      ),
+                    ),
+                    child: Card(
+                      color: cardColor,
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 12,
+                      ),
+                      child: ListTile(
+                        leading: isPostponedDay
+                            ? const Icon(
+                                Icons.add_circle,
+                                color: Color(0xFFC8A415),
+                                size: 20,
+                              )
+                            : null,
+                        title: Text(
+                          '${day.day.toString().padLeft(2, '0')}.${day.month.toString().padLeft(2, '0')}.${day.year} (${_localizedWeekday(day.weekday)})',
+                          style: TextStyle(
+                            decoration: isCancelled
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: isCancelled ? Colors.brown : null,
+                          ),
+                        ),
+                        subtitle: () {
+                          String? subtitleText;
+                          if (isCancelled) {
+                            subtitleText = l.cancelled;
+                            if (att.reason != null) {
+                              subtitleText +=
+                                  '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
+                            }
+                          } else if (att?.makeup != null) {
+                            subtitleText = l.makeupLabel(
+                              '${att!.makeup!.day.toString().padLeft(2, '0')}.${att.makeup!.month.toString().padLeft(2, '0')}.${att.makeup!.year}',
+                            );
+                            if (att.reason != null) {
+                              subtitleText +=
+                                  '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
+                            }
+                          } else if (isPostponedDay) {
+                            subtitleText = l.postponedLesson;
+                          }
+                          return subtitleText != null
+                              ? Text(
+                                  subtitleText,
+                                  style: isCancelled
+                                      ? const TextStyle(
+                                          color: Color(0xFF8B6914),
+                                          fontWeight: FontWeight.w600,
+                                        )
+                                      : null,
+                                )
+                              : null;
+                        }(),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                isCancelled
+                                    ? Icons.block
+                                    : (isAbsent ? Icons.close : Icons.check),
+                              ),
+                              color: isCancelled
+                                  ? const Color(0xFFC8A415)
+                                  : (att == null
+                                        ? Colors.grey
+                                        : (isAbsent
+                                              ? Colors.red
+                                              : Colors.green)),
+                              onPressed: isCancelled
+                                  ? null
+                                  : () => _toggleAttendance(day),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.event_available),
+                              tooltip: l.selectMakeupDate,
+                              onPressed: isCancelled
+                                  ? null
+                                  : () => _setMakeup(day),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                isCancelled ? Icons.undo : Icons.event_busy,
+                                size: 22,
+                              ),
+                              color: isCancelled
+                                  ? Colors.blue
+                                  : const Color(0xFFC8A415),
+                              tooltip: isCancelled
+                                  ? l.undoCancelTooltip
+                                  : l.cancelAndPostpone,
+                              onPressed: () => _cancelLesson(day),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );

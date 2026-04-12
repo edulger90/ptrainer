@@ -148,6 +148,14 @@ class AppLocalizations {
   String get nameEmpty => get('nameEmpty');
   String get atLeastOneSchedule => get('atLeastOneSchedule');
   String get packageSize => get('packageSize');
+  String get packageCountValidation => get('packageCountValidation');
+  String get programTypeLabel => get('programTypeLabel');
+  String get programTypeSport => get('programTypeSport');
+  String get programTypeCourse => get('programTypeCourse');
+  String get programTypePersonal => get('programTypePersonal');
+  String get packageTypeLabel => get('packageTypeLabel');
+  String get packageTypeDaily => get('packageTypeDaily');
+  String get packageTypeMonthly => get('packageTypeMonthly');
   String packageOption(int count) =>
       get('packageOption').replaceAll('{count}', '$count');
   String get lessonSchedules => get('lessonSchedules');
@@ -160,6 +168,7 @@ class AppLocalizations {
   String get selectDay => get('selectDay');
   String get selectTime => get('selectTime');
   String get selectDayFirst => get('selectDayFirst');
+  String get scheduleDayAlreadyExists => get('scheduleDayAlreadyExists');
 
   // ── Days of Week ──
   String get monday => get('monday');
@@ -279,10 +288,16 @@ class AppLocalizations {
   String get selectMakeupDate => get('selectMakeupDate');
   String get undoCancelTooltip => get('undoCancelTooltip');
   String get cancelAndPostpone => get('cancelAndPostpone');
+  String get resetAction => get('resetAction');
+  String resetActionBody(String date) =>
+      get('resetActionBody').replaceAll('{date}', date);
+  String get resetActionConfirm => get('resetActionConfirm');
+  String get actionReset => get('actionReset');
 
   // ── Weekly Plan ──
   String get noLessonToday => get('noLessonToday');
   String get thisWeek => get('thisWeek');
+  String get nextWeek => get('nextWeek');
   String get makeup => get('makeup');
   String periodLabel(int index) =>
       get('periodLabel').replaceAll('{index}', '$index');
@@ -290,11 +305,30 @@ class AppLocalizations {
 
   // ── Settings & About ──
   String get settings => get('settings');
+  String get languageSettings => get('languageSettings');
+  String get appLanguage => get('appLanguage');
+  String get selectAppLanguage => get('selectAppLanguage');
+  String get systemDefaultLanguage => get('systemDefaultLanguage');
   String get appInfo => get('appInfo');
   String get versionLabel => get('versionLabel');
   String get buildNumber => get('buildNumber');
   String get appVersionLabel => get('appVersionLabel');
   String get copyrightLabel => get('copyrightLabel');
+  String get legalLinks => get('legalLinks');
+  String get subscriptionLegalNotice => get('subscriptionLegalNotice');
+  String get subscriptionAutoRenewNotice => get('subscriptionAutoRenewNotice');
+  String get subscriptionCancelNotice => get('subscriptionCancelNotice');
+  String get privacyPolicy => get('privacyPolicy');
+  String get termsOfUse => get('termsOfUse');
+  String get appleStandardEula => get('appleStandardEula');
+  String get linkOpenError => get('linkOpenError');
+  String get deleteAccount => get('deleteAccount');
+  String get deleteAccountDesc => get('deleteAccountDesc');
+  String get deleteAccountConfirmTitle => get('deleteAccountConfirmTitle');
+  String get deleteAccountConfirmMessage => get('deleteAccountConfirmMessage');
+  String get deleteAccountError => get('deleteAccountError');
+  String get dangerZone => get('dangerZone');
+  String get dangerZoneDesc => get('dangerZoneDesc');
   String get developerTools => get('developerTools');
   String get versionHistory => get('versionHistory');
 

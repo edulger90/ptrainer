@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/period.dart';
 import '../models/client.dart';
+import '../models/package_type.dart';
 import '../models/session_schedule.dart';
+import '../models/trainer_weekday.dart';
 import '../pages/period_calendar_page.dart';
 import '../l10n/app_localizations.dart';
 
@@ -33,7 +35,7 @@ class PeriodListSection extends StatelessWidget {
       return (const Color(0xFFE65100), const Color(0xFFFF9800));
     }
     // Tüm dersler tamamlanmış → soft hardal sarısı
-    if (attended >= total) {
+    if (total > 0 && attended >= total) {
       return (const Color(0xFFC9A227), const Color(0xFFE2C275));
     }
     // Ötelenmiş bitiş var → soft amber
@@ -51,6 +53,34 @@ class PeriodListSection extends StatelessWidget {
     } catch (_) {
       return isoDate.substring(0, 10);
     }
+  }
+
+  int _totalLessonsForPeriod(Period period) {
+    if (client.packageType == PackageType.daily) {
+      return client.sessionPackage ?? 0;
+    }
+
+    final weekdays = schedules
+        .map((s) => TrainerWeekday.fromStorageKey(s.dayOfWeek)?.weekdayNumber)
+        .whereType<int>()
+        .toSet();
+    if (weekdays.isEmpty) return 0;
+
+    final start = DateTime.tryParse(period.startDate);
+    final end = DateTime.tryParse(period.endDate);
+    if (start == null || end == null) return 0;
+
+    final startDate = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day);
+    if (endDate.isBefore(startDate)) return 0;
+
+    int count = 0;
+    DateTime current = startDate;
+    while (!current.isAfter(endDate)) {
+      if (weekdays.contains(current.weekday)) count++;
+      current = current.add(const Duration(days: 1));
+    }
+    return count;
   }
 
   @override
@@ -124,7 +154,7 @@ class PeriodListSection extends StatelessWidget {
               final attendedCount = period.id != null
                   ? (attendedCounts[period.id!] ?? 0)
                   : 0;
-              final totalCount = client.sessionPackage;
+              final totalCount = _totalLessonsForPeriod(period);
               final (colorStart, colorEnd) = _periodColors(
                 period,
                 attendedCount,

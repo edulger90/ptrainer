@@ -149,6 +149,18 @@ class AppDatabase {
     );
   }
 
+  Future<int> deleteAttendance({
+    required int clientId,
+    required int periodId,
+    required DateTime lessonDate,
+  }) {
+    return _attendances.deleteAttendance(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: lessonDate,
+    );
+  }
+
   @Deprecated(
     'Use getAttendanceRecordsForPeriod instead. Map-based attendance access is legacy.',
   )
@@ -225,5 +237,9 @@ class AppDatabase {
       ...await _periods.getQueryPlanDiagnostics(),
       ...await _attendances.getQueryPlanDiagnostics(),
     ];
+  }
+
+  Future<void> deleteAllData() {
+    return _connection.deleteAllData();
   }
 }

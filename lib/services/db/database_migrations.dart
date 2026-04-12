@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDatabaseMigrations {
-  static const int currentVersion = 17;
+  static const int currentVersion = 19;
 
   Future<void> create(Database db) async {
     await _createUsersTable(db);
@@ -124,6 +124,20 @@ class AppDatabaseMigrations {
         await db.execute('ALTER TABLE users ADD COLUMN securityAnswer TEXT');
       } catch (_) {}
     }
+    if (oldVersion < 18) {
+      try {
+        await db.execute(
+          "ALTER TABLE clients ADD COLUMN packageType TEXT NOT NULL DEFAULT 'daily'",
+        );
+      } catch (_) {}
+    }
+    if (oldVersion < 19) {
+      try {
+        await db.execute(
+          "ALTER TABLE clients ADD COLUMN programType TEXT NOT NULL DEFAULT 'sport'",
+        );
+      } catch (_) {}
+    }
   }
 
   Future<void> createIndexes(DatabaseExecutor db) async {
@@ -188,6 +202,8 @@ class AppDatabaseMigrations {
         createdAt TEXT NOT NULL,
         registrationDate TEXT,
         isActive INTEGER NOT NULL DEFAULT 1,
+        packageType TEXT NOT NULL DEFAULT 'daily',
+        programType TEXT NOT NULL DEFAULT 'sport',
         FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
       )
     ''');
