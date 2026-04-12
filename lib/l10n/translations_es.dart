@@ -2,9 +2,9 @@ const Map<String, String> esStrings = {
   'completedLessonCount': 'Clases Completadas: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Fiesta Oficial',
-  'reasonSporcuHasta': 'Deportista Enfermo',
+  'reasonSporcuHasta': 'Programa Enfermo',
   'reasonTrainerHasta': 'Entrenador Enfermo',
-  'reasonSporcuKisisel': 'Deportista Personal',
+  'reasonSporcuKisisel': 'Programa Personal',
   'reasonTrainerKisisel': 'Entrenador Personal',
   // General
   'showPassiveClients': 'Mostrar clientes pasivos',
@@ -16,7 +16,7 @@ const Map<String, String> esStrings = {
   'delete': 'Eliminar',
   'logout': 'Cerrar sesión',
   'edit': 'Editar',
-  'manageAthletesDesc': 'Ver y gestionar tus atletas',
+  'manageAthletesDesc': 'Ver y gestionar tus programas',
   'weeklyPlanDesc': 'Revisar tu horario semanal de clases',
 
   // Auth
@@ -65,34 +65,41 @@ const Map<String, String> esStrings = {
   'continueText': 'Continuar',
 
   // Home
-  'myAthletes': 'Mis Deportistas',
+  'myAthletes': 'Mis Programas',
   'weeklyPlan': 'Plan Semanal de Clases',
   'analysis': 'Análisis',
   'analysisComingSoon': 'La página de análisis estará disponible pronto',
 
   // Client List
-  'noAthletesYet': 'Aún no hay deportistas.',
-  'addAthlete': 'Agregar Deportista',
+  'noAthletesYet': 'Aún no hay programas.',
+  'addAthlete': 'Agregar Programa',
   'packageLabel': 'Paquete: {count} Clases',
 
   // Add Client
-  'addNewAthlete': 'Agregar Nuevo Deportista',
+  'addNewAthlete': 'Agregar Nuevo Programa',
   'fullName': 'Nombre Completo',
   'registrationDate': 'Fecha de Registro',
   'nameEmpty': 'El nombre no puede estar vacío',
   'atLeastOneSchedule': 'Debe agregar al menos un horario de clase',
   'packageSize': 'Paquete (Número de Clases)',
+  'packageCountValidation':
+      'El número de clases del paquete debe estar entre 1 y 100',
+  'packageTypeLabel': 'Tipo de Paquete',
+  'packageTypeDaily': 'Diario',
+  'packageTypeMonthly': 'Mensual',
   'packageOption': 'Paquete de {count} Clases',
   'lessonSchedules': 'Horarios de Clases',
   'addLessonTime': 'Agregar Horario de Clase',
   'noScheduleYet': 'Aún no se han agregado horarios de clase',
-  'saveAthlete': 'Guardar Deportista',
+  'saveAthlete': 'Guardar Programa',
 
   // Schedule Dialog
   'addLessonTimeTitle': 'Agregar Horario de Clase',
   'selectDay': 'Seleccionar Día:',
   'selectTime': 'Seleccionar Hora:',
   'selectDayFirst': 'Selecciona un día primero',
+  'scheduleDayAlreadyExists':
+      'Ya hay un horario de clase definido para este día',
 
   // Days of Week
   'monday': 'Lunes',
@@ -104,9 +111,9 @@ const Map<String, String> esStrings = {
   'sunday': 'Domingo',
 
   // Client Detail
-  'athleteDetail': 'Detalle del Deportista',
+  'athleteDetail': 'Detalle del Programa',
   'editInfo': 'Editar Info',
-  'editAthleteInfo': 'Editar Información del Deportista',
+  'editAthleteInfo': 'Editar Información del Programa',
   'lessonPackage': 'Paquete de Clases',
   'firstRegistration': 'Registrado',
   'period': 'Periodo',
@@ -180,21 +187,50 @@ const Map<String, String> esStrings = {
   'selectMakeupDate': 'Seleccionar fecha de recuperación',
   'undoCancelTooltip': 'Deshacer cancelación',
   'cancelAndPostpone': 'Cancelar y posponer',
+  'resetAction': 'Deshacer Acción',
+  'resetActionBody':
+      'Todas las acciones (asistencia, recuperación, etc.) de la clase del {date} se restablecerán.\n\n¿Desea continuar?',
+  'resetActionConfirm': 'Deshacer',
+  'actionReset': 'Acción deshecha',
 
   // Weekly Plan
   'noLessonToday': 'No hay clases para este día.',
   'thisWeek': 'Esta Semana',
+  'nextWeek': 'Próxima Semana',
   'makeup': 'Recuperación',
   'periodLabel': 'Periodo {index}',
   'noPeriod': 'Sin Periodo',
 
   // Settings & About
   'settings': 'Configuración',
+  'languageSettings': 'Configuracion de idioma',
+  'appLanguage': 'Idioma de la aplicacion',
+  'selectAppLanguage': 'Selecciona el idioma de la aplicacion',
+  'systemDefaultLanguage': 'Predeterminado del sistema',
   'appInfo': 'Información de la App',
   'versionLabel': 'Versión',
   'buildNumber': 'Número de Build',
   'appVersionLabel': 'Versión de la App',
   'copyrightLabel': 'Copyright',
+  'legalLinks': 'Enlaces legales',
+  'subscriptionLegalNotice':
+      'Al suscribirte, aceptas nuestros Términos de uso y nuestra Política de privacidad.',
+  'subscriptionAutoRenewNotice':
+      'La suscripción se renueva automáticamente a menos que se cancele.',
+  'subscriptionCancelNotice':
+      'Puedes cancelarla en cualquier momento desde la configuración de App Store.',
+  'privacyPolicy': 'Política de privacidad',
+  'termsOfUse': 'Términos de uso',
+  'appleStandardEula': 'Apple Standard EULA',
+  'linkOpenError': 'No se pudo abrir el enlace.',
+  'deleteAccount': 'Eliminar cuenta',
+  'deleteAccountDesc': 'Elimina tu cuenta y todos los datos locales',
+  'deleteAccountConfirmTitle': '¿Seguro que quieres eliminar tu cuenta?',
+  'deleteAccountConfirmMessage': 'Esta acción no se puede deshacer.',
+  'deleteAccountError': 'Ocurrió un error al eliminar la cuenta.',
+  'dangerZone': 'Zona de peligro',
+  'dangerZoneDesc':
+      'Las acciones de esta sección son permanentes. Revísalas cuidadosamente antes de continuar.',
   'developerTools': 'Herramientas de Desarrollo',
   'versionHistory': 'Historial de Versiones',
 
@@ -222,16 +258,16 @@ const Map<String, String> esStrings = {
   'errorReported': 'Error registrado',
 
   // Active/Passive
-  'activeAthletes': 'Atletas Activos',
-  'passiveAthletes': 'Atletas Pasivos',
+  'activeAthletes': 'Programas Activos',
+  'passiveAthletes': 'Programas Pasivos',
   'setPassive': 'Desactivar',
   'setActive': 'Activar',
-  'noPassiveAthletes': 'No hay atletas pasivos',
-  'athleteSetPassive': 'Atleta desactivado',
-  'athleteSetActive': 'Atleta activado',
-  'confirmDeleteTitle': 'Eliminar Atleta',
+  'noPassiveAthletes': 'No hay programas pasivos',
+  'athleteSetPassive': 'Programa desactivado',
+  'athleteSetActive': 'Programa activado',
+  'confirmDeleteTitle': 'Eliminar Programa',
   'confirmDeleteMessage':
-      '¿Estás seguro de que quieres eliminar este atleta? Esta acción no se puede deshacer.',
+      '¿Estás seguro de que quieres eliminar este programa? Esta acción no se puede deshacer.',
   'confirmDeleteScheduleTitle': 'Eliminar Horario',
   'confirmDeleteScheduleMessage':
       '¿Estás seguro de que quieres eliminar este horario de clase?',

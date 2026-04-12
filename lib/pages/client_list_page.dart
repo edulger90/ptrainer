@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/client.dart';
+import '../models/package_type.dart';
 import '../models/period.dart';
+import '../models/session_schedule.dart';
+import '../models/trainer_weekday.dart';
 import '../models/user.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
@@ -28,6 +31,7 @@ class _ClientListPageState extends State<ClientListPage> {
   bool _showActive = true;
   // clientId -> (latestPeriod, completedCount)
   Map<int, (Period?, int)> _clientPeriodInfo = {};
+  Map<int, Set<int>> _scheduledWeekdaysByClientId = {};
 
   @override
   void initState() {
@@ -41,6 +45,21 @@ class _ClientListPageState extends State<ClientListPage> {
         userId: widget.currentUser.id ?? 0,
       );
       final clients = preloads.map((preload) => preload.client).toList();
+      final clientIds = clients.map((c) => c.id).whereType<int>().toList();
+      final schedules = clientIds.isEmpty
+          ? const <SessionSchedule>[]
+          : await _db.getSessionSchedulesByClientIds(clientIds);
+
+      final scheduleWeekdays = <int, Set<int>>{};
+      for (final schedule in schedules) {
+        final clientId = schedule.clientId;
+        final weekday = TrainerWeekday.fromStorageKey(
+          schedule.dayOfWeek,
+        )?.weekdayNumber;
+        if (clientId == null || weekday == null) continue;
+        scheduleWeekdays.putIfAbsent(clientId, () => <int>{}).add(weekday);
+      }
+
       final periodInfo = <int, (Period?, int)>{};
       for (final preload in preloads) {
         final cid = preload.client.id ?? 0;
@@ -51,6 +70,7 @@ class _ClientListPageState extends State<ClientListPage> {
       setState(() {
         _clients = clients;
         _clientPeriodInfo = periodInfo;
+        _scheduledWeekdaysByClientId = scheduleWeekdays;
       });
     } catch (e, stack) {
       ErrorLogger().logError(
@@ -61,8 +81,46 @@ class _ClientListPageState extends State<ClientListPage> {
       if (!mounted) return;
       setState(() {
         _clients = [];
+        _scheduledWeekdaysByClientId = {};
       });
     }
+  }
+
+  int _countLessonsInRange({
+    required DateTime startDate,
+    required DateTime endDate,
+    required Set<int> weekdays,
+  }) {
+    if (weekdays.isEmpty) return 0;
+    if (endDate.isBefore(startDate)) return 0;
+
+    int count = 0;
+    DateTime current = DateTime(startDate.year, startDate.month, startDate.day);
+    final normalizedEnd = DateTime(endDate.year, endDate.month, endDate.day);
+    while (!current.isAfter(normalizedEnd)) {
+      if (weekdays.contains(current.weekday)) count++;
+      current = current.add(const Duration(days: 1));
+    }
+    return count;
+  }
+
+  int _resolveTotalCount(Client client, Period latestPeriod) {
+    if (client.packageType == PackageType.daily) {
+      return client.sessionPackage ?? 0;
+    }
+
+    final clientId = client.id;
+    if (clientId == null) return 0;
+    final weekdays = _scheduledWeekdaysByClientId[clientId] ?? const <int>{};
+    final start = DateTime.tryParse(latestPeriod.startDate);
+    final end = DateTime.tryParse(latestPeriod.endDate);
+    if (start == null || end == null) return 0;
+
+    return _countLessonsInRange(
+      startDate: start,
+      endDate: end,
+      weekdays: weekdays,
+    );
   }
 
   List<Client> get _filteredClients =>
@@ -322,7 +380,11 @@ class _ClientListPageState extends State<ClientListPage> {
                           final periodData = _clientPeriodInfo[cid];
                           final latestPeriod = periodData?.$1;
                           final completedCount = periodData?.$2 ?? 0;
-                          final totalCount = client.sessionPackage;
+                          final totalCount = latestPeriod == null
+                              ? 0
+                              : _resolveTotalCount(client, latestPeriod);
+                          final isCompleted =
+                              totalCount > 0 && completedCount >= totalCount;
 
                           return Dismissible(
                             key: Key(client.id.toString()),
@@ -487,8 +549,7 @@ class _ClientListPageState extends State<ClientListPage> {
                                                     vertical: 4,
                                                   ),
                                               decoration: BoxDecoration(
-                                                color:
-                                                    completedCount >= totalCount
+                                                color: isCompleted
                                                     ? const Color(
                                                         0xFFC9A227,
                                                       ).withValues(alpha: 0.15)
@@ -498,9 +559,7 @@ class _ClientListPageState extends State<ClientListPage> {
                                                 borderRadius:
                                                     BorderRadius.circular(8),
                                                 border: Border.all(
-                                                  color:
-                                                      completedCount >=
-                                                          totalCount
+                                                  color: isCompleted
                                                       ? const Color(
                                                           0xFFC9A227,
                                                         ).withValues(alpha: 0.4)
@@ -516,9 +575,7 @@ class _ClientListPageState extends State<ClientListPage> {
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
-                                                  color:
-                                                      completedCount >=
-                                                          totalCount
+                                                  color: isCompleted
                                                       ? const Color(0xFFC9A227)
                                                       : const Color(0xFF388E3C),
                                                 ),

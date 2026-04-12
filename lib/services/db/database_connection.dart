@@ -5,6 +5,8 @@ import '../repositories/base_repository.dart';
 import 'database_migrations.dart';
 
 class AppDatabaseConnection {
+  static const String _databaseFileName = 'app.db';
+
   AppDatabaseConnection._internal();
 
   static final AppDatabaseConnection _instance =
@@ -22,8 +24,7 @@ class AppDatabaseConnection {
   }
 
   Future<Database> _init() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'app.db');
+    final path = await _databasePath();
 
     return openDatabase(
       path,
@@ -38,6 +39,21 @@ class AppDatabaseConnection {
         await _migrations.upgrade(db, oldVersion, newVersion);
       },
     );
+  }
+
+  Future<void> deleteAllData() async {
+    if (_db != null) {
+      await _db!.close();
+      _db = null;
+    }
+
+    final path = await _databasePath();
+    await deleteDatabase(path);
+  }
+
+  Future<String> _databasePath() async {
+    final dbPath = await getDatabasesPath();
+    return join(dbPath, _databaseFileName);
   }
 }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/client.dart';
 import '../models/user.dart';
 import '../models/session_schedule.dart';
+import '../models/package_type.dart';
 import '../pages/auth_page.dart';
 import '../services/database.dart';
 import '../widgets/app_background.dart';
@@ -18,9 +20,11 @@ class AddClientPage extends StatefulWidget {
 
 class _AddClientPageState extends State<AddClientPage> {
   final _nameController = TextEditingController();
+  final _packageCountController = TextEditingController(text: '8');
   final _db = AppDatabase();
 
   int _selectedPackage = 8;
+  PackageType _selectedPackageType = PackageType.daily;
   DateTime _registrationDate = DateTime.now();
   String? _error;
   String? _selectedDay; // Internal key (Turkish for DB compat)
@@ -32,9 +36,23 @@ class _AddClientPageState extends State<AddClientPage> {
 
   final Map<String, List<String>> _selectedSchedules = {};
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _packageCountController.dispose();
+    super.dispose();
+  }
+
   String _localizedDay(BuildContext context, String storageKey) {
     return TrainerWeekday.fromStorageKey(storageKey)?.localized(context) ??
         storageKey;
+  }
+
+  void _showScheduleDayExistsMessage() {
+    final l = AppLocalizations.of(context);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.scheduleDayAlreadyExists)));
   }
 
   Future<void> _saveClient() async {
@@ -55,10 +73,24 @@ class _AddClientPageState extends State<AddClientPage> {
       return;
     }
 
+    if (_selectedPackageType == PackageType.daily) {
+      final packageCount = int.tryParse(_packageCountController.text);
+      if (packageCount == null || packageCount < 1 || packageCount > 100) {
+        setState(() {
+          _error = l.packageCountValidation;
+        });
+        return;
+      }
+      _selectedPackage = packageCount;
+    }
+
     final client = Client(
       userId: widget.currentUser.id,
       fullName: fullName,
-      sessionPackage: _selectedPackage,
+      sessionPackage: _selectedPackageType == PackageType.daily
+          ? _selectedPackage
+          : null,
+      packageType: _selectedPackageType,
       createdAt: DateTime.now().toIso8601String(),
       registrationDate: _registrationDate.toIso8601String(),
     );
@@ -108,14 +140,18 @@ class _AddClientPageState extends State<AddClientPage> {
                   children: _scheduleDays.map((day) {
                     final dayKey = day.storageKey;
                     final isSelected = _selectedDay == dayKey;
+                    final isUsed =
+                        _selectedSchedules.containsKey(dayKey) && !isSelected;
                     return FilterChip(
                       label: Text(day.localized(context)),
                       selected: isSelected,
-                      onSelected: (selected) {
-                        setStateDialog(() {
-                          _selectedDay = selected ? dayKey : null;
-                        });
-                      },
+                      onSelected: isUsed
+                          ? null
+                          : (selected) {
+                              setStateDialog(() {
+                                _selectedDay = selected ? dayKey : null;
+                              });
+                            },
                     );
                   }).toList(),
                 ),
@@ -156,6 +192,11 @@ class _AddClientPageState extends State<AddClientPage> {
               ElevatedButton(
                 onPressed: (_selectedDay != null && _selectedTime != null)
                     ? () {
+                        if (_selectedSchedules.containsKey(_selectedDay)) {
+                          Navigator.pop(context);
+                          _showScheduleDayExistsMessage();
+                          return;
+                        }
                         setState(() {
                           if (!_selectedSchedules.containsKey(_selectedDay)) {
                             _selectedSchedules[_selectedDay!] = [];
@@ -251,25 +292,53 @@ class _AddClientPageState extends State<AddClientPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<int>(
-                  initialValue: _selectedPackage,
+                // Package type selector
+                InputDecorator(
                   decoration: InputDecoration(
-                    labelText: l.packageSize,
+                    labelText: l.packageTypeLabel,
                     border: const OutlineInputBorder(),
                   ),
-                  items: [8, 10, 12, 16].map((value) {
-                    return DropdownMenuItem<int>(
-                      value: value,
-                      child: Text(l.packageOption(value)),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedPackage = value;
-                      });
-                    }
-                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: PackageType.values.map((type) {
+                          final label = type == PackageType.daily
+                              ? l.packageTypeDaily
+                              : l.packageTypeMonthly;
+                          final selected = _selectedPackageType == type;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(label),
+                              selected: selected,
+                              onSelected: (_) {
+                                setState(() {
+                                  _selectedPackageType = type;
+                                });
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      if (_selectedPackageType == PackageType.daily) ...[
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _packageCountController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(3),
+                          ],
+                          decoration: InputDecoration(
+                            labelText: l.packageSize,
+                            border: const OutlineInputBorder(),
+                            helperText: '1-100',
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Text(

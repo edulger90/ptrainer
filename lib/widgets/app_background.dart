@@ -18,6 +18,7 @@ class AppBackground extends StatelessWidget {
         .toInt();
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         // Arka plan görseli - Pilates/Fitness
         Positioned.fill(

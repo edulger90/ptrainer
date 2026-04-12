@@ -2,9 +2,9 @@ const Map<String, String> trStrings = {
   'completedLessonCount': 'Tamamlanan Ders: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Resmi Tatil',
-  'reasonSporcuHasta': 'Sporcu Hasta',
+  'reasonSporcuHasta': 'Program Hasta',
   'reasonTrainerHasta': 'Trainer Hasta',
-  'reasonSporcuKisisel': 'Sporcu Kişisel',
+  'reasonSporcuKisisel': 'Program Kişisel',
   'reasonTrainerKisisel': 'Trainer Kişisel',
   // Period sonuna ders ekleme dialogu
   'addLessonToPeriodEndTitle': 'Period Sonuna Ders Eklensin mi?',
@@ -22,7 +22,7 @@ const Map<String, String> trStrings = {
   'delete': 'Sil',
   'logout': 'Çıkış Yap',
   'edit': 'Düzenle',
-  'manageAthletesDesc': 'Sporcularını görüntüle ve yönet',
+  'manageAthletesDesc': 'Programlarını görüntüle ve yönet',
   'weeklyPlanDesc': 'Haftalık ders programını incele',
 
   // Auth
@@ -65,34 +65,39 @@ const Map<String, String> trStrings = {
   'continueText': 'Devam',
 
   // Home
-  'myAthletes': 'Sporcularım',
+  'myAthletes': 'Programlarım',
   'weeklyPlan': 'Haftalık Ders Planı',
   'analysis': 'Analiz',
   'analysisComingSoon': 'Analiz sayfası yakında eklenecek',
 
   // Client List
-  'noAthletesYet': 'Henüz sporcu bulunmamaktadır.',
-  'addAthlete': 'Sporcu Ekle',
+  'noAthletesYet': 'Henüz program bulunmamaktadır.',
+  'addAthlete': 'Program Ekle',
   'packageLabel': 'Paket: {count} Derslik',
 
   // Add Client
-  'addNewAthlete': 'Yeni Sporcu Ekle',
+  'addNewAthlete': 'Yeni Program Ekle',
   'fullName': 'Ad Soyad',
   'registrationDate': 'İlk Kayıt Tarihi',
   'nameEmpty': 'Ad Soyad boş bırakamazsınız',
   'atLeastOneSchedule': 'En az bir ders saati tanımlamanız gerekir',
   'packageSize': 'Paket (Ders Sayısı)',
+  'packageCountValidation': 'Paket ders sayısı 1 ile 100 arasında olmalıdır',
+  'packageTypeLabel': 'Paket Tipi',
+  'packageTypeDaily': 'Günlük',
+  'packageTypeMonthly': 'Aylık',
   'packageOption': '{count} Derslik Paket',
   'lessonSchedules': 'Ders Saatleri',
   'addLessonTime': 'Ders Saati Ekle',
   'noScheduleYet': 'Henüz ders saati eklenmemiştir',
-  'saveAthlete': 'Sporcu Kaydet',
+  'saveAthlete': 'Program Kaydet',
 
   // Schedule Dialog
   'addLessonTimeTitle': 'Ders Saati Ekle',
   'selectDay': 'Gün Seçiniz:',
   'selectTime': 'Saat Seçiniz:',
   'selectDayFirst': 'Önce bir gün seçiniz',
+  'scheduleDayAlreadyExists': 'Bu gün için zaten bir ders saati tanımlı',
 
   // Days of Week
   'monday': 'Pazartesi',
@@ -104,9 +109,9 @@ const Map<String, String> trStrings = {
   'sunday': 'Pazar',
 
   // Client Detail
-  'athleteDetail': 'Sporcu Detayı',
+  'athleteDetail': 'Program Detayı',
   'editInfo': 'Bilgileri Düzenle',
-  'editAthleteInfo': 'Sporcu Bilgilerini Düzenle',
+  'editAthleteInfo': 'Program Bilgilerini Düzenle',
   'lessonPackage': 'Derslik Paket',
   'firstRegistration': 'İlk Kayıt',
   'period': 'Periyot',
@@ -180,21 +185,50 @@ const Map<String, String> trStrings = {
   'selectMakeupDate': 'Telafi tarihi seç',
   'undoCancelTooltip': 'İptali geri al',
   'cancelAndPostpone': 'Dersi iptal et ve ötele',
+  'resetAction': 'İşlemi Geri Al',
+  'resetActionBody':
+      '{date} tarihli ders için yapılan tüm işlemler (yoklama, telafi, vb.) geri alınacak.\n\nDevam etmek istiyor musunuz?',
+  'resetActionConfirm': 'Geri Al',
+  'actionReset': 'İşlem geri alındı',
 
   // Weekly Plan
   'noLessonToday': 'Bu gün için ders yok.',
   'thisWeek': 'Bu Hafta',
+  'nextWeek': 'Gelecek Hafta',
   'makeup': 'Telafi',
   'periodLabel': 'Periyot {index}',
   'noPeriod': 'Periyot Yok',
 
   // Settings & About
   'settings': 'Ayarlar',
+  'languageSettings': 'Dil Ayarlari',
+  'appLanguage': 'Uygulama Dili',
+  'selectAppLanguage': 'Uygulama dilini sec',
+  'systemDefaultLanguage': 'Sistem Varsayilani',
   'appInfo': 'Uygulama Bilgileri',
   'versionLabel': 'Versiyon',
   'buildNumber': 'Build Numarası',
   'appVersionLabel': 'Uygulama Versiyonu',
   'copyrightLabel': 'Telif Hakkı',
+  'legalLinks': 'Yasal Bağlantılar',
+  'subscriptionLegalNotice':
+      'Abone olarak, Kullanım Koşullarımızı ve Gizlilik Politikamızı kabul etmiş olursunuz.',
+  'subscriptionAutoRenewNotice':
+      'Abonelik iptal edilmediği sürece otomatik olarak yenilenir.',
+  'subscriptionCancelNotice':
+      'İstediğiniz zaman App Store ayarlarından iptal edebilirsiniz.',
+  'privacyPolicy': 'Gizlilik Politikası',
+  'termsOfUse': 'Kullanım Koşulları',
+  'appleStandardEula': 'Apple Standard EULA',
+  'linkOpenError': 'Bağlantı açılamadı.',
+  'deleteAccount': 'Hesabı Sil',
+  'deleteAccountDesc': 'Hesabınızı ve tüm yerel verileri silin',
+  'deleteAccountConfirmTitle': 'Hesabınızı silmek istediğinize emin misiniz?',
+  'deleteAccountConfirmMessage': 'Bu işlem geri alınamaz.',
+  'deleteAccountError': 'Hesap silinirken bir hata oluştu.',
+  'dangerZone': 'Tehlikeli İşlemler',
+  'dangerZoneDesc':
+      'Bu bölümdeki işlemler kalıcıdır. Devam etmeden önce dikkatlice kontrol edin.',
   'developerTools': 'Geliştirici Araçları',
   'versionHistory': 'Versiyon Geçmişi',
 
@@ -222,16 +256,16 @@ const Map<String, String> trStrings = {
   'errorReported': 'Hata kaydedildi',
 
   // Active/Passive
-  'activeAthletes': 'Aktif Sporcular',
-  'passiveAthletes': 'Pasif Sporcular',
+  'activeAthletes': 'Aktif Programlar',
+  'passiveAthletes': 'Pasif Programlar',
   'setPassive': 'Pasife Al',
   'setActive': 'Aktife Al',
-  'noPassiveAthletes': 'Pasif sporcu yok',
-  'athleteSetPassive': 'Sporcu pasife alındı',
-  'athleteSetActive': 'Sporcu aktife alındı',
-  'confirmDeleteTitle': 'Sporcuyu Sil',
+  'noPassiveAthletes': 'Pasif program yok',
+  'athleteSetPassive': 'Program pasife alındı',
+  'athleteSetActive': 'Program aktife alındı',
+  'confirmDeleteTitle': 'Programı Sil',
   'confirmDeleteMessage':
-      'Bu sporcuyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      'Bu programı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
   'confirmDeleteScheduleTitle': 'Ders Saatini Sil',
   'confirmDeleteScheduleMessage':
       'Bu ders saatini silmek istediğinize emin misiniz?',

@@ -17,19 +17,22 @@ class AttendanceRepository extends BaseRepository {
     int? reason,
   }) async {
     final db = await database;
-    final lessonDateStr = lessonDate.toIso8601String();
+    final normalizedLessonDate = _normalizeLessonDay(lessonDate);
+    final lessonDateStr = normalizedLessonDate.toIso8601String();
     final attendedDateStr = attendedDate?.toIso8601String();
     final makeupDateStr = makeupDate?.toIso8601String();
 
-    final existing = await db.query(
-      'attendances',
-      where: 'clientId = ? AND periodId = ? AND lessonDate = ?',
-      whereArgs: [clientId, periodId, lessonDateStr],
+    final existing = await _findAttendanceRowsForLessonDay(
+      db,
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: normalizedLessonDate,
     );
     if (existing.isNotEmpty) {
       await db.update(
         'attendances',
         {
+          'lessonDate': lessonDateStr,
           'attended': attended ? 1 : 0,
           'cancelled': cancelled ? 1 : 0,
           'isPostponed': isPostponed ? 1 : 0,
@@ -40,6 +43,9 @@ class AttendanceRepository extends BaseRepository {
         where: 'id = ?',
         whereArgs: [existing.first['id']],
       );
+      if (existing.length > 1) {
+        await _deleteDuplicateAttendanceRows(db, existing.skip(1));
+      }
       return;
     }
 
@@ -56,6 +62,26 @@ class AttendanceRepository extends BaseRepository {
     });
   }
 
+  Future<int> deleteAttendance({
+    required int clientId,
+    required int periodId,
+    required DateTime lessonDate,
+  }) async {
+    final db = await database;
+    final bounds = _lessonDayBounds(lessonDate);
+    return db.delete(
+      'attendances',
+      where:
+          'clientId = ? AND periodId = ? AND lessonDate >= ? AND lessonDate <= ?',
+      whereArgs: [
+        clientId,
+        periodId,
+        bounds.start.toIso8601String(),
+        bounds.end.toIso8601String(),
+      ],
+    );
+  }
+
   Future<List<AttendanceRecord>> getAttendanceRecordsForPeriod(
     int clientId,
     int periodId,
@@ -65,9 +91,9 @@ class AttendanceRepository extends BaseRepository {
       'attendances',
       where: 'clientId = ? AND periodId = ?',
       whereArgs: [clientId, periodId],
-      orderBy: 'lessonDate ASC, makeupDate ASC',
+      orderBy: 'lessonDate ASC, makeupDate ASC, id ASC',
     );
-    return records.map(AttendanceRecord.fromMap).toList();
+    return _dedupeAttendanceRecords(records.map(AttendanceRecord.fromMap));
   }
 
   Future<List<AttendanceRecord>> getAttendanceRecordsForPeriodIds(
@@ -79,9 +105,9 @@ class AttendanceRepository extends BaseRepository {
       'attendances',
       where: 'periodId IN (${placeholders(periodIds.length)})',
       whereArgs: periodIds,
-      orderBy: 'periodId ASC, lessonDate ASC, makeupDate ASC',
+      orderBy: 'periodId ASC, lessonDate ASC, makeupDate ASC, id ASC',
     );
-    return records.map(AttendanceRecord.fromMap).toList();
+    return _dedupeAttendanceRecords(records.map(AttendanceRecord.fromMap));
   }
 
   Future<List<AttendanceRecord>> getAttendanceRecordsForClientInRange({
@@ -118,9 +144,9 @@ class AttendanceRepository extends BaseRepository {
         normalizedStart,
         normalizedEnd,
       ],
-      orderBy: 'lessonDate ASC, makeupDate ASC',
+      orderBy: 'lessonDate ASC, makeupDate ASC, id ASC',
     );
-    return records.map(AttendanceRecord.fromMap).toList();
+    return _dedupeAttendanceRecords(records.map(AttendanceRecord.fromMap));
   }
 
   Future<List<AttendanceRecord>> getAttendanceRecordsForClientIdsInRange({
@@ -158,9 +184,9 @@ class AttendanceRepository extends BaseRepository {
         normalizedStart,
         normalizedEnd,
       ],
-      orderBy: 'clientId ASC, lessonDate ASC, makeupDate ASC',
+      orderBy: 'clientId ASC, lessonDate ASC, makeupDate ASC, id ASC',
     );
-    return records.map(AttendanceRecord.fromMap).toList();
+    return _dedupeAttendanceRecords(records.map(AttendanceRecord.fromMap));
   }
 
   Future<List<QueryPlanDebugEntry>> getQueryPlanDiagnostics() async {
@@ -244,5 +270,65 @@ class AttendanceRepository extends BaseRepository {
       values.add(values.isEmpty ? 1 : values.last);
     }
     return values.take(3).toList();
+  }
+
+  DateTime _normalizeLessonDay(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  ({DateTime start, DateTime end}) _lessonDayBounds(DateTime date) {
+    final start = _normalizeLessonDay(date);
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+    return (start: start, end: end);
+  }
+
+  Future<List<Map<String, Object?>>> _findAttendanceRowsForLessonDay(
+    dynamic db, {
+    required int clientId,
+    required int periodId,
+    required DateTime lessonDate,
+  }) async {
+    final bounds = _lessonDayBounds(lessonDate);
+    final rows = await db.query(
+      'attendances',
+      where:
+          'clientId = ? AND periodId = ? AND lessonDate >= ? AND lessonDate <= ?',
+      whereArgs: [
+        clientId,
+        periodId,
+        bounds.start.toIso8601String(),
+        bounds.end.toIso8601String(),
+      ],
+      orderBy: 'id ASC',
+    );
+    return rows.cast<Map<String, Object?>>();
+  }
+
+  Future<void> _deleteDuplicateAttendanceRows(
+    dynamic db,
+    Iterable<Map<String, Object?>> rows,
+  ) async {
+    final duplicateIds = rows.map((row) => row['id']).whereType<int>().toList();
+    if (duplicateIds.isEmpty) return;
+    await db.delete(
+      'attendances',
+      where: 'id IN (${placeholders(duplicateIds.length)})',
+      whereArgs: duplicateIds,
+    );
+  }
+
+  List<AttendanceRecord> _dedupeAttendanceRecords(
+    Iterable<AttendanceRecord> records,
+  ) {
+    final deduped = <String, AttendanceRecord>{};
+    for (final record in records) {
+      final lessonDate = record.lessonDate;
+      if (lessonDate == null) continue;
+      final normalizedLessonDate = _normalizeLessonDay(lessonDate);
+      final key =
+          '${record.clientId ?? 0}:${record.periodId ?? 0}:${normalizedLessonDate.toIso8601String()}';
+      deduped[key] = record.copyWith(lessonDate: normalizedLessonDate);
+    }
+    return deduped.values.toList();
   }
 }

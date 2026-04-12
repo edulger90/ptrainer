@@ -9,7 +9,6 @@ import 'premium_page.dart';
 import '../widgets/app_background.dart';
 import '../widgets/this_week_widget.dart';
 import '../l10n/app_localizations.dart';
-import 'help_guide_page.dart';
 import 'dart:async';
 
 class HomePage extends StatefulWidget {
@@ -72,7 +71,7 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ── Üst Bar: Logo + Çıkış + Yardım ──
+                    // ── Üst Bar: Logo + Çıkış ──
                     Row(
                       children: [
                         Container(
@@ -128,30 +127,6 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-                        // Yardım Butonu
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.blue[50],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.help_outline,
-                              color: Colors.blue[400],
-                            ),
-                            tooltip: 'Yardım',
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const HelpGuidePage(),
-                                    ),
-                                  )
-                                  .then((_) => _refreshThisWeek());
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.teal[50],

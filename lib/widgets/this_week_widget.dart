@@ -45,23 +45,32 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
   final _calendarService = CalendarService();
   final _periodService = PeriodService();
   final _screenPreloadService = ScreenPreloadService();
+  final _weekScrollController = ScrollController();
 
   late final WeekRange _currentWeek;
+  late final WeekRange _nextWeek;
 
   bool _isLoading = true;
+  bool _isNextWeekInView = false;
   Map<String, List<WeekClientInfo>> _weekData = {};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _weekScrollController.addListener(_handleWeekScroll);
     _currentWeek = _calendarService.weekOf(DateTime.now());
+    _nextWeek = _calendarService.weekOf(
+      _currentWeek.end.add(const Duration(days: 1)),
+    );
     _loadWeekData();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _weekScrollController.removeListener(_handleWeekScroll);
+    _weekScrollController.dispose();
     super.dispose();
   }
 
@@ -86,11 +95,11 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
 
     final clientPreloads = await _screenPreloadService.loadWeeklyClientPreloads(
       userId: userId,
-      startDate: _currentWeek.start,
-      endDate: _currentWeek.end,
+      startDate: _displayStart,
+      endDate: _displayEnd,
     );
     final weekData = <String, List<WeekClientInfo>>{
-      for (final day in _currentWeek.days)
+      for (final day in _displayDays)
         _calendarService.dayKeyFor(day): <WeekClientInfo>[],
     };
 
@@ -102,8 +111,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       final hasOpenPeriod = preload.periods.any((period) {
         final start = DateTime.parse(period.startDate);
         final end = _periodService.effectiveEnd(period);
-        return !start.isAfter(_currentWeek.end) &&
-            !end.isBefore(_currentWeek.start);
+        return !start.isAfter(_displayEnd) && !end.isBefore(_displayStart);
       });
       if (!hasOpenPeriod) continue;
 
@@ -115,57 +123,58 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
         final lessonDate = attendance.lessonDate;
         if (_attendanceService.isWithinRange(
           lessonDate,
-          start: _currentWeek.start,
-          end: _currentWeek.end,
+          start: _displayStart,
+          end: _displayEnd,
         )) {
           handledLessonDays.add(_dayKeyFor(lessonDate!));
         }
 
-        final resolvedEntry = _attendanceService.resolveWeeklyPlacement(
-          attendance: attendance,
-          week: _currentWeek,
-          schedules: schedules,
-        );
-        if (resolvedEntry == null) continue;
+        for (final week in [_currentWeek, _nextWeek]) {
+          final resolvedEntry = _attendanceService.resolveWeeklyPlacement(
+            attendance: attendance,
+            week: week,
+            schedules: schedules,
+          );
+          if (resolvedEntry == null) continue;
 
-        final dayKey = _dayKeyFor(resolvedEntry.showDate);
-        weekData[dayKey]?.add(
-          WeekClientInfo(
-            client: client,
-            time: resolvedEntry.showTime,
-            isMakeup: resolvedEntry.isMakeup,
-            source: resolvedEntry.isMakeup
-                ? WeekEntrySource.makeup
-                : WeekEntrySource.attendance,
-            status: resolvedEntry.status,
-          ),
-        );
+          final dayKey = _dayKeyFor(resolvedEntry.showDate);
+          weekData[dayKey]?.add(
+            WeekClientInfo(
+              client: client,
+              time: resolvedEntry.showTime,
+              isMakeup: resolvedEntry.isMakeup,
+              source: resolvedEntry.isMakeup
+                  ? WeekEntrySource.makeup
+                  : WeekEntrySource.attendance,
+              status: resolvedEntry.status,
+            ),
+          );
+        }
       }
 
       for (final schedule in schedules) {
-        final lessonDate = _lessonDateForSchedule(schedule);
-        if (lessonDate == null) continue;
+        for (final lessonDate in _lessonDatesForSchedule(schedule)) {
+          // O ders günü için açık bir period yoksa listeye ekleme
+          final hasCoveringPeriod = preload.periods.any((period) {
+            final start = DateTime.parse(period.startDate);
+            final end = _periodService.effectiveEnd(period);
+            return !start.isAfter(lessonDate) && !end.isBefore(lessonDate);
+          });
+          if (!hasCoveringPeriod) continue;
 
-        // O ders günü için açık bir period yoksa listeye ekleme
-        final hasCoveringPeriod = preload.periods.any((period) {
-          final start = DateTime.parse(period.startDate);
-          final end = _periodService.effectiveEnd(period);
-          return !start.isAfter(lessonDate) && !end.isBefore(lessonDate);
-        });
-        if (!hasCoveringPeriod) continue;
+          final lessonDayKey = _dayKeyFor(lessonDate);
+          if (handledLessonDays.contains(lessonDayKey)) continue;
 
-        final lessonDayKey = _dayKeyFor(lessonDate);
-        if (handledLessonDays.contains(lessonDayKey)) continue;
-
-        weekData[lessonDayKey]?.add(
-          WeekClientInfo(
-            client: client,
-            time: schedule.time,
-            isMakeup: false,
-            source: WeekEntrySource.schedule,
-            status: LessonAttendanceStatus.pending,
-          ),
-        );
+          weekData[lessonDayKey]?.add(
+            WeekClientInfo(
+              client: client,
+              time: schedule.time,
+              isMakeup: false,
+              source: WeekEntrySource.schedule,
+              status: LessonAttendanceStatus.pending,
+            ),
+          );
+        }
       }
     }
 
@@ -178,10 +187,88 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       _weekData = weekData;
       _isLoading = false;
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToTodayCard(animated: false);
+      _updateVisibleWeekFromScroll();
+    });
   }
 
-  DateTime? _lessonDateForSchedule(SessionSchedule schedule) {
-    return _calendarService.lessonDateForSchedule(schedule, _currentWeek);
+  void _handleWeekScroll() {
+    _updateVisibleWeekFromScroll();
+  }
+
+  void _updateVisibleWeekFromScroll() {
+    if (!_weekScrollController.hasClients) return;
+
+    double nextWeekStartOffset = 0;
+    for (int i = 0; i < _currentWeek.days.length; i++) {
+      final day = _displayDays[i];
+      final clients = _weekData[_dayKeyFor(day)] ?? const <WeekClientInfo>[];
+      nextWeekStartOffset += _cardWidthFor(clients) + 8;
+    }
+
+    final shouldShowNextWeek =
+        _weekScrollController.offset >= (nextWeekStartOffset - 40);
+    if (shouldShowNextWeek == _isNextWeekInView) return;
+    if (!mounted) return;
+    setState(() {
+      _isNextWeekInView = shouldShowNextWeek;
+    });
+  }
+
+  void _scrollToTodayCard({required bool animated}) {
+    if (!_weekScrollController.hasClients) return;
+
+    final today = DateTime.now();
+    final todayIndex = _displayDays.indexWhere(
+      (day) =>
+          day.year == today.year &&
+          day.month == today.month &&
+          day.day == today.day,
+    );
+    if (todayIndex < 0) return;
+
+    double offset = 0;
+    for (int i = 0; i < todayIndex; i++) {
+      final day = _displayDays[i];
+      final clients = _weekData[_dayKeyFor(day)] ?? const <WeekClientInfo>[];
+      offset += _cardWidthFor(clients) + 8;
+    }
+
+    final maxExtent = _weekScrollController.position.maxScrollExtent;
+    final target = offset.clamp(0.0, maxExtent).toDouble();
+
+    if (animated) {
+      _weekScrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+      return;
+    }
+    _weekScrollController.jumpTo(target);
+  }
+
+  DateTime get _displayStart => _currentWeek.start;
+
+  DateTime get _displayEnd => _nextWeek.end;
+
+  List<DateTime> get _displayDays => [..._currentWeek.days, ..._nextWeek.days];
+
+  List<DateTime> _lessonDatesForSchedule(SessionSchedule schedule) {
+    final currentWeekDate = _calendarService.lessonDateForSchedule(
+      schedule,
+      _currentWeek,
+    );
+    final nextWeekDate = _calendarService.lessonDateForSchedule(
+      schedule,
+      _nextWeek,
+    );
+    return [
+      if (currentWeekDate != null) currentWeekDate,
+      if (nextWeekDate != null) nextWeekDate,
+    ];
   }
 
   String _dayKeyFor(DateTime date) {
@@ -221,12 +308,12 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
             )
           else
             SingleChildScrollView(
+              controller: _weekScrollController,
               scrollDirection: Axis.horizontal,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final day in _currentWeek.days)
-                    _buildDayCard(context, day),
+                  for (final day in _displayDays) _buildDayCard(context, day),
                 ],
               ),
             ),
@@ -246,7 +333,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
         ),
         const SizedBox(width: 8),
         Text(
-          l.thisWeek,
+          _isNextWeekInView ? l.nextWeek : l.thisWeek,
           style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
@@ -318,22 +405,22 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
   }
 
   double _cardWidthFor(List<WeekClientInfo> clients) {
-    if (clients.isEmpty) return 140;
+    if (clients.isEmpty) return 156;
 
     final longestLabelLength = clients
-        .map((info) => '${info.time} ${info.client.firstName}'.length)
+        .map((info) => '${info.time} ${info.client.fullName}'.length)
         .fold<int>(
           0,
           (maxLength, length) => length > maxLength ? length : maxLength,
         );
 
-    if (clients.length >= 5 || longestLabelLength >= 18) {
-      return 174;
+    if (clients.length >= 5 || longestLabelLength >= 24) {
+      return 224;
     }
-    if (clients.length >= 3 || longestLabelLength >= 14) {
-      return 160;
+    if (clients.length >= 3 || longestLabelLength >= 18) {
+      return 204;
     }
-    return 140;
+    return 186;
   }
 
   Widget _buildClientText(WeekClientInfo info) {
@@ -350,9 +437,9 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
             ),
           ),
           const SizedBox(width: 4),
-          Flexible(
+          Expanded(
             child: Text(
-              info.client.firstName,
+              info.client.fullName,
               style: TextStyle(
                 fontSize: 13,
                 color: _textColorFor(info),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../config/app_environment.dart';
 import '../services/premium_service.dart';
@@ -98,6 +99,16 @@ class _PremiumPageState extends State<PremiumPage> {
       PremiumPlan.yearly => isDevEnvironment ? r'$39.99 (Test)' : '',
     };
     return _premium.priceForPlan(plan) ?? fallback;
+  }
+
+  Future<void> _openExternalPage(String url) async {
+    final opened = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened && mounted) {
+      _showSnack(AppLocalizations.of(context).linkOpenError);
+    }
   }
 
   @override
@@ -386,6 +397,128 @@ class _PremiumPageState extends State<PremiumPage> {
                           ),
                         ),
                       ],
+
+                      const SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l.legalLinks,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l.subscriptionLegalNotice,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF8E1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFFE082)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l.subscriptionAutoRenewNotice,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF8D6E00),
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              l.subscriptionCancelNotice,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF8D6E00),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.16),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF00BCD4,
+                                  ).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.privacy_tip_outlined,
+                                  color: Color(0xFF00897B),
+                                ),
+                              ),
+                              title: Text(l.privacyPolicy),
+                              trailing: const Icon(Icons.open_in_new_rounded),
+                              onTap: () => _openExternalPage(
+                                'https://edulger90.github.io/ptrainer/privacy-policy.html',
+                              ),
+                            ),
+                            Divider(
+                              height: 1,
+                              indent: 72,
+                              endIndent: 16,
+                              color: Colors.grey.withValues(alpha: 0.18),
+                            ),
+                            ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFFFFB300,
+                                  ).withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.description_outlined,
+                                  color: Color(0xFF8D6E00),
+                                ),
+                              ),
+                              title: Text(l.termsOfUse),
+                              subtitle: Text(l.appleStandardEula),
+                              trailing: const Icon(Icons.open_in_new_rounded),
+                              onTap: () => _openExternalPage(
+                                'https://edulger90.github.io/ptrainer/terms-of-use.html',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
                       // ── DEV: Test butonları (sadece debug modda) ──
                       if (isDevEnvironment) ...[

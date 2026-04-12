@@ -3,6 +3,7 @@ import '../models/client.dart';
 import '../models/period.dart';
 import '../models/session_schedule.dart';
 import '../models/body_measurement.dart';
+import '../models/package_type.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
@@ -43,6 +44,20 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   String _localizedDay(BuildContext context, String storageKey) {
     return TrainerWeekday.fromStorageKey(storageKey)?.localized(context) ??
         storageKey;
+  }
+
+  bool _hasScheduleForDay(String dayOfWeek, {int? excludingScheduleId}) {
+    return _schedules.any(
+      (schedule) =>
+          schedule.dayOfWeek == dayOfWeek && schedule.id != excludingScheduleId,
+    );
+  }
+
+  void _showScheduleDayExistsMessage() {
+    final l = AppLocalizations.of(context);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.scheduleDayAlreadyExists)));
   }
 
   Set<int> _scheduledWeekdays() {
@@ -167,6 +182,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       await _db.updateBodyMeasurement(updatedMeasurement);
                     }
                     await _loadAllData();
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                   },
                   child: Text(l.save),
@@ -240,15 +256,28 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    if (_hasScheduleForDay(selectedDay)) {
+                      Navigator.pop(context);
+                      _showScheduleDayExistsMessage();
+                      return;
+                    }
+
                     final newSchedule = SessionSchedule(
                       clientId: widget.client.id,
                       dayOfWeek: selectedDay,
                       time:
                           '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
                     );
-                    await _db.insertSessionSchedule(newSchedule);
-                    await _loadAllData();
-                    Navigator.pop(context);
+                    try {
+                      await _db.insertSessionSchedule(newSchedule);
+                      await _loadAllData();
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                    } on DuplicateSessionScheduleDayException {
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      _showScheduleDayExistsMessage();
+                    }
                   },
                   child: Text(l.save),
                 ),
@@ -363,6 +392,16 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    if (selectedDay != schedule.dayOfWeek &&
+                        _hasScheduleForDay(
+                          selectedDay,
+                          excludingScheduleId: scheduleId,
+                        )) {
+                      Navigator.pop(context);
+                      _showScheduleDayExistsMessage();
+                      return;
+                    }
+
                     final updatedSchedule = SessionSchedule(
                       id: scheduleId,
                       clientId: schedule.clientId,
@@ -370,9 +409,16 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       time:
                           '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
                     );
-                    await _db.updateSessionSchedule(updatedSchedule);
-                    await _loadAllData();
-                    Navigator.pop(context);
+                    try {
+                      await _db.updateSessionSchedule(updatedSchedule);
+                      await _loadAllData();
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                    } on DuplicateSessionScheduleDayException {
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      _showScheduleDayExistsMessage();
+                    }
                   },
                   child: Text(l.save),
                 ),
@@ -395,8 +441,11 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   }
 
   DateTime? _calculateEndDate(DateTime startDate) {
+    if (widget.client.packageType == PackageType.monthly) {
+      return _calculateMonthlyEndDate(startDate);
+    }
     // Paket adedi (kaç ders olacak)
-    final sessionCount = widget.client.sessionPackage;
+    final sessionCount = widget.client.sessionPackage ?? 8;
     // Gelinecek günler (schedule'dan al)
     final weekdays = _scheduledWeekdays();
 
@@ -423,6 +472,20 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     }
 
     return current;
+  }
+
+  DateTime _calculateMonthlyEndDate(DateTime startDate) {
+    final weekdays = _scheduledWeekdays();
+    if (weekdays.isEmpty) return startDate;
+    // Ayın son günü
+    final lastOfMonth = DateTime(startDate.year, startDate.month + 1, 0);
+    DateTime candidate = lastOfMonth;
+    while (!candidate.isBefore(startDate) &&
+        !weekdays.contains(candidate.weekday)) {
+      candidate = candidate.subtract(const Duration(days: 1));
+    }
+    if (weekdays.contains(candidate.weekday)) return candidate;
+    return startDate;
   }
 
   // Seçilen tarihten itibaren ilk ders gününü bul
@@ -515,28 +578,50 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: endDate ?? startDate ?? DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now().add(
-                            const Duration(days: 365),
-                          ),
-                        );
-                        if (picked != null) {
-                          setStateDialog(() => endDate = picked);
-                        }
-                      },
-                      child: Text(
-                        endDate == null
-                            ? l.selectEndDate
-                            : l.endDateLabel(
+                    if (widget.client.packageType != PackageType.monthly)
+                      ElevatedButton(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: endDate ?? startDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                          );
+                          if (picked != null) {
+                            setStateDialog(() => endDate = picked);
+                          }
+                        },
+                        child: Text(
+                          endDate == null
+                              ? l.selectEndDate
+                              : l.endDateLabel(
+                                  '${endDate!.day}.${endDate!.month}.${endDate!.year}',
+                                ),
+                        ),
+                      )
+                    else if (endDate != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.calendar_month,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              l.endDateLabel(
                                 '${endDate!.day}.${endDate!.month}.${endDate!.year}',
                               ),
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: paymentController,
@@ -579,6 +664,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       );
                       await _db.insertPeriod(period);
                       await _loadAllData();
+                      if (!context.mounted) return;
                       Navigator.pop(context);
                     }
                   },
@@ -793,6 +879,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     );
                     await _db.updatePeriod(updatedPeriod);
                     await _loadAllData();
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                   },
                   child: Text(l.update),
@@ -1042,7 +1129,10 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${client.sessionPackage}',
+                                            client.packageType ==
+                                                    PackageType.monthly
+                                                ? l.packageTypeMonthly
+                                                : '${client.sessionPackage ?? 8}',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
@@ -1052,7 +1142,10 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                           FittedBox(
                                             fit: BoxFit.scaleDown,
                                             child: Text(
-                                              l.lessonPackage,
+                                              client.packageType ==
+                                                      PackageType.monthly
+                                                  ? l.packageTypeLabel
+                                                  : l.lessonPackage,
                                               style: const TextStyle(
                                                 fontSize: 11,
                                                 color: Colors.white70,

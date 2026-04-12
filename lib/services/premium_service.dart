@@ -243,6 +243,13 @@ class PremiumService {
     await prefs.remove(_keyPremiumProductId);
   }
 
+  Future<void> clearLocalState() async {
+    _isPremium = false;
+    _activePlan = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
   PremiumPlan? _planFromProductId(String? productId) {
     return switch (productId) {
       monthlySubscriptionProductId => PremiumPlan.monthly,

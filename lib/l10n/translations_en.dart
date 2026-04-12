@@ -2,9 +2,9 @@ const Map<String, String> enStrings = {
   'completedLessonCount': 'Completed Lessons: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Official Holiday',
-  'reasonSporcuHasta': 'Athlete Sick',
+  'reasonSporcuHasta': 'Program Sick',
   'reasonTrainerHasta': 'Trainer Sick',
-  'reasonSporcuKisisel': 'Athlete Personal',
+  'reasonSporcuKisisel': 'Program Personal',
   'reasonTrainerKisisel': 'Trainer Personal',
   // Add lesson to period end dialog
   'addLessonToPeriodEndTitle': 'Add Lesson to End of Period?',
@@ -22,7 +22,7 @@ const Map<String, String> enStrings = {
   'delete': 'Delete',
   'logout': 'Log Out',
   'edit': 'Edit',
-  'manageAthletesDesc': 'View and manage your athletes',
+  'manageAthletesDesc': 'View and manage your programs',
   'weeklyPlanDesc': 'Review your weekly lesson schedule',
 
   // Auth
@@ -67,34 +67,39 @@ const Map<String, String> enStrings = {
   'continueText': 'Continue',
 
   // Home
-  'myAthletes': 'My Athletes',
+  'myAthletes': 'My Programs',
   'weeklyPlan': 'Weekly Lesson Plan',
   'analysis': 'Analysis',
   'analysisComingSoon': 'Analysis page coming soon',
 
   // Client List
-  'noAthletesYet': 'No athletes yet.',
-  'addAthlete': 'Add Athlete',
+  'noAthletesYet': 'No programs yet.',
+  'addAthlete': 'Add Program',
   'packageLabel': 'Package: {count} Lessons',
 
   // Add Client
-  'addNewAthlete': 'Add New Athlete',
+  'addNewAthlete': 'Add New Program',
   'fullName': 'Full Name',
   'registrationDate': 'Registration Date',
   'nameEmpty': 'Name cannot be empty',
   'atLeastOneSchedule': 'You must add at least one lesson time',
   'packageSize': 'Package (Lesson Count)',
+  'packageCountValidation': 'Package lesson count must be between 1 and 100',
+  'packageTypeLabel': 'Package Type',
+  'packageTypeDaily': 'Daily',
+  'packageTypeMonthly': 'Monthly',
   'packageOption': '{count}-Lesson Package',
   'lessonSchedules': 'Lesson Schedules',
   'addLessonTime': 'Add Lesson Time',
   'noScheduleYet': 'No lesson times added yet',
-  'saveAthlete': 'Save Athlete',
+  'saveAthlete': 'Save Program',
 
   // Schedule Dialog
   'addLessonTimeTitle': 'Add Lesson Time',
   'selectDay': 'Select Day:',
   'selectTime': 'Select Time:',
   'selectDayFirst': 'Select a day first',
+  'scheduleDayAlreadyExists': 'A lesson time is already defined for this day',
 
   // Days of Week
   'monday': 'Monday',
@@ -106,9 +111,9 @@ const Map<String, String> enStrings = {
   'sunday': 'Sunday',
 
   // Client Detail
-  'athleteDetail': 'Athlete Detail',
+  'athleteDetail': 'Program Detail',
   'editInfo': 'Edit Info',
-  'editAthleteInfo': 'Edit Athlete Info',
+  'editAthleteInfo': 'Edit Program Info',
   'lessonPackage': 'Lesson Package',
   'firstRegistration': 'Registered',
   'period': 'Period',
@@ -182,21 +187,49 @@ const Map<String, String> enStrings = {
   'selectMakeupDate': 'Select makeup date',
   'undoCancelTooltip': 'Undo cancellation',
   'cancelAndPostpone': 'Cancel and postpone',
+  'resetAction': 'Undo Action',
+  'resetActionBody':
+      'All actions (attendance, makeup, etc.) for the lesson on {date} will be reset.\n\nDo you want to continue?',
+  'resetActionConfirm': 'Undo',
+  'actionReset': 'Action undone',
 
   // Weekly Plan
   'noLessonToday': 'No lessons for this day.',
   'thisWeek': 'This Week',
+  'nextWeek': 'Next Week',
   'makeup': 'Makeup',
   'periodLabel': 'Period {index}',
   'noPeriod': 'No Period',
 
   // Settings & About
   'settings': 'Settings',
+  'languageSettings': 'Language Settings',
+  'appLanguage': 'App Language',
+  'selectAppLanguage': 'Select app language',
+  'systemDefaultLanguage': 'System Default',
   'appInfo': 'App Info',
   'versionLabel': 'Version',
   'buildNumber': 'Build Number',
   'appVersionLabel': 'App Version',
   'copyrightLabel': 'Copyright',
+  'legalLinks': 'Legal Links',
+  'subscriptionLegalNotice':
+      'By subscribing, you agree to our Terms of Use and Privacy Policy.',
+  'subscriptionAutoRenewNotice':
+      'Subscription automatically renews unless cancelled.',
+  'subscriptionCancelNotice': 'You can cancel anytime via App Store settings.',
+  'privacyPolicy': 'Privacy Policy',
+  'termsOfUse': 'Terms of Use',
+  'appleStandardEula': 'Apple Standard EULA',
+  'linkOpenError': 'Could not open the link.',
+  'deleteAccount': 'Delete Account',
+  'deleteAccountDesc': 'Delete your account and all local data',
+  'deleteAccountConfirmTitle': 'Are you sure you want to delete your account?',
+  'deleteAccountConfirmMessage': 'This action cannot be undone.',
+  'deleteAccountError': 'An error occurred while deleting the account.',
+  'dangerZone': 'Danger Zone',
+  'dangerZoneDesc':
+      'Actions in this section are permanent. Review carefully before continuing.',
   'developerTools': 'Developer Tools',
   'versionHistory': 'Version History',
 
@@ -224,16 +257,16 @@ const Map<String, String> enStrings = {
   'errorReported': 'Error has been logged',
 
   // Active/Passive
-  'activeAthletes': 'Active Athletes',
-  'passiveAthletes': 'Passive Athletes',
+  'activeAthletes': 'Active Programs',
+  'passiveAthletes': 'Passive Programs',
   'setPassive': 'Set Passive',
   'setActive': 'Set Active',
-  'noPassiveAthletes': 'No passive athletes',
-  'athleteSetPassive': 'Athlete set to passive',
-  'athleteSetActive': 'Athlete set to active',
-  'confirmDeleteTitle': 'Delete Athlete',
+  'noPassiveAthletes': 'No passive programs',
+  'athleteSetPassive': 'Program set to passive',
+  'athleteSetActive': 'Program set to active',
+  'confirmDeleteTitle': 'Delete Program',
   'confirmDeleteMessage':
-      'Are you sure you want to delete this athlete? This action cannot be undone.',
+      'Are you sure you want to delete this program? This action cannot be undone.',
   'confirmDeleteScheduleTitle': 'Delete Lesson Time',
   'confirmDeleteScheduleMessage':
       'Are you sure you want to delete this lesson time?',

@@ -78,6 +78,17 @@ class ClientRepository extends BaseRepository {
 
   Future<int> insertSessionSchedule(SessionSchedule schedule) async {
     final db = await database;
+    final clientId = schedule.clientId;
+    if (clientId != null) {
+      final dayExists = await _hasSessionScheduleForDay(
+        db,
+        clientId: clientId,
+        dayOfWeek: schedule.dayOfWeek,
+      );
+      if (dayExists) {
+        throw DuplicateSessionScheduleDayException(schedule.dayOfWeek);
+      }
+    }
     return db.insert('session_schedules', schedule.toMap());
   }
 
@@ -109,6 +120,23 @@ class ClientRepository extends BaseRepository {
 
   Future<int> updateSessionSchedule(SessionSchedule schedule) async {
     final db = await database;
+    final scheduleId = schedule.id;
+    final clientId = schedule.clientId;
+    if (scheduleId != null && clientId != null) {
+      final existingSchedule = await _getSessionScheduleById(db, scheduleId);
+      final isChangingDay = existingSchedule?.dayOfWeek != schedule.dayOfWeek;
+      if (isChangingDay) {
+        final dayExists = await _hasSessionScheduleForDay(
+          db,
+          clientId: clientId,
+          dayOfWeek: schedule.dayOfWeek,
+          excludingScheduleId: scheduleId,
+        );
+        if (dayExists) {
+          throw DuplicateSessionScheduleDayException(schedule.dayOfWeek);
+        }
+      }
+    }
     return db.update(
       'session_schedules',
       schedule.toMap(),
@@ -202,5 +230,44 @@ class ClientRepository extends BaseRepository {
       values.add(values.isEmpty ? 1 : values.last);
     }
     return values.take(3).toList();
+  }
+
+  Future<bool> _hasSessionScheduleForDay(
+    dynamic db, {
+    required int clientId,
+    required String dayOfWeek,
+    int? excludingScheduleId,
+  }) async {
+    final where = StringBuffer('clientId = ? AND dayOfWeek = ?');
+    final whereArgs = <Object?>[clientId, dayOfWeek];
+    if (excludingScheduleId != null) {
+      where.write(' AND id != ?');
+      whereArgs.add(excludingScheduleId);
+    }
+
+    final maps = await db.query(
+      'session_schedules',
+      columns: ['id'],
+      where: where.toString(),
+      whereArgs: whereArgs,
+      limit: 1,
+    );
+    return maps.isNotEmpty;
+  }
+
+  Future<SessionSchedule?> _getSessionScheduleById(
+    dynamic db,
+    int scheduleId,
+  ) async {
+    final maps = await db.query(
+      'session_schedules',
+      where: 'id = ?',
+      whereArgs: [scheduleId],
+      limit: 1,
+    );
+    if (maps.isEmpty) {
+      return null;
+    }
+    return SessionSchedule.fromMap(maps.first);
   }
 }

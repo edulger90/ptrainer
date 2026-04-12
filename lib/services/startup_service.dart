@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import 'app_language_service.dart';
 import 'error_logger.dart';
 import 'premium_service.dart';
 
@@ -16,6 +17,7 @@ class StartupService {
         _configurePlatformErrorHandling();
         _configureErrorWidget();
 
+        await AppLanguageService().load();
         PremiumService().init();
 
         await appRunner();

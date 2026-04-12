@@ -1,9 +1,14 @@
+import 'package_type.dart';
+
 /// Represents a client (sporcu) managed by a user/trainer.
 class Client {
   final int? id;
   final int? userId;
   final String fullName;
-  final int sessionPackage;
+
+  /// Number of sessions in a package (only relevant for [PackageType.daily]).
+  final int? sessionPackage;
+  final PackageType packageType;
   final String? createdAt;
   final String? registrationDate;
   final bool isActive;
@@ -12,7 +17,8 @@ class Client {
     this.id,
     this.userId,
     required this.fullName,
-    required this.sessionPackage,
+    this.sessionPackage,
+    this.packageType = PackageType.daily,
     this.createdAt,
     this.registrationDate,
     this.isActive = true,
@@ -35,7 +41,8 @@ class Client {
       'userId': userId,
       'firstName': firstName,
       'lastName': lastName,
-      'sessionPackage': sessionPackage,
+      'sessionPackage': sessionPackage ?? 0,
+      'packageType': packageType.toStorageString(),
       'createdAt': createdAt,
       'registrationDate': registrationDate,
       'isActive': isActive ? 1 : 0,
@@ -46,11 +53,14 @@ class Client {
     final first = map['firstName'] as String? ?? '';
     final last = map['lastName'] as String? ?? '';
     final combined = last.isEmpty ? first : '$first $last';
+    final pkgType = PackageType.fromString(map['packageType'] as String?);
+    final rawPackage = map['sessionPackage'] as int?;
     return Client(
       id: map['id'] as int?,
       userId: map['userId'] as int?,
       fullName: combined,
-      sessionPackage: map['sessionPackage'] as int,
+      sessionPackage: pkgType == PackageType.monthly ? null : rawPackage,
+      packageType: pkgType,
       createdAt: map['createdAt'] as String?,
       registrationDate: map['registrationDate'] as String?,
       isActive: (map['isActive'] as int? ?? 1) == 1,
@@ -62,6 +72,7 @@ class Client {
     int? userId,
     String? fullName,
     int? sessionPackage,
+    PackageType? packageType,
     String? createdAt,
     String? registrationDate,
     bool? isActive,
@@ -71,6 +82,7 @@ class Client {
       userId: userId ?? this.userId,
       fullName: fullName ?? this.fullName,
       sessionPackage: sessionPackage ?? this.sessionPackage,
+      packageType: packageType ?? this.packageType,
       createdAt: createdAt ?? this.createdAt,
       registrationDate: registrationDate ?? this.registrationDate,
       isActive: isActive ?? this.isActive,
