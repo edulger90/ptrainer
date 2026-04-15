@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/attendance_record.dart';
 import '../models/period.dart';
 import '../models/session_schedule.dart';
 import '../models/client.dart';
+import '../models/program_type.dart';
 import '../models/trainer_weekday.dart';
 import '../services/attendance_service.dart';
 import '../services/database.dart';
@@ -31,16 +33,23 @@ class PeriodCalendarPage extends StatefulWidget {
 
 class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
   final _attendanceService = AttendanceService();
+  late int _completedLessonCountCache;
 
   DateTime _normalizeDay(DateTime date) {
     return DateTime(date.year, date.month, date.day);
   }
 
-  int _completedLessonCount() {
+  void _updateCompletedLessonCount() {
     final records = _attendance.entries.map(
       (entry) => _attendanceToRecord(entry.value, lessonDate: entry.key),
     );
-    return _attendanceService.completedLessonCount(records);
+    _completedLessonCountCache = _attendanceService.completedLessonCount(
+      records,
+    );
+  }
+
+  int _completedLessonCount() {
+    return _completedLessonCountCache;
   }
 
   final _db = AppDatabase();
@@ -63,6 +72,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     _lessonWeekdays = widget.schedules
         .map((s) => _weekdayNumber(s.dayOfWeek))
         .toSet();
+    _completedLessonCountCache = 0;
     _reloadData();
   }
 
@@ -104,8 +114,10 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
                 makeup: record.makeupDate,
                 attendedDate: record.attendedDate,
                 reason: record.reason,
+                reasonNote: record.reasonNote,
               ),
         };
+        _updateCompletedLessonCount();
       });
     } catch (e, stack) {
       ErrorLogger().logError(
@@ -162,12 +174,50 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       attendedDate: att.attendedDate,
       makeupDate: att.makeup,
       reason: att.reason,
+      reasonNote: att.reasonNote,
     );
   }
 
   bool _isEffectivelyAbsent(_Attendance? att) {
     if (att == null) return true;
     return !_attendanceService.isEffectivelyAttended(_attendanceToRecord(att));
+  }
+
+  List<LessonReason> _reasonOptionsForClient() {
+    if (widget.client.programType == ProgramType.personal) {
+      return const [
+        LessonReason.resmiTatil,
+        LessonReason.hastalik,
+        LessonReason.other,
+      ];
+    }
+
+    return const [
+      LessonReason.resmiTatil,
+      LessonReason.sporcuHasta,
+      LessonReason.trainerHasta,
+      LessonReason.sporcuKisisel,
+      LessonReason.trainerKisisel,
+    ];
+  }
+
+  LessonReason? _reasonFromStoredIndex(int? index) {
+    if (index == null) return null;
+    if (index < 0 || index >= LessonReason.values.length) return null;
+    return LessonReason.values[index];
+  }
+
+  String _buildReasonSubtitle(_Attendance att, AppLocalizations l) {
+    final parts = <String>[];
+    final reason = _reasonFromStoredIndex(att.reason);
+    if (reason != null) {
+      parts.add(l.lessonReasonLabel(reason));
+    }
+    final note = att.reasonNote?.trim();
+    if (note != null && note.isNotEmpty) {
+      parts.add(note);
+    }
+    return parts.join('\n');
   }
 
   void _toggleAttendance(DateTime day) async {
@@ -180,62 +230,43 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       return;
     }
 
-    bool newAttended = att == null || att.absent;
-    DateTime? attendedDate = newAttended ? day : null;
+    // Ders yapıldı durumda ise (absent == false), kayıtı sil (işaretlenmemiş yap)
+    if (att != null && !att.absent && !att.cancelled) {
+      await _db.deleteAttendance(
+        clientId: clientId,
+        periodId: periodId,
+        lessonDate: day,
+      );
+    } else {
+      // Normal toggle: işaretlenmemiş → yapıldı
+      bool newAttended = att == null || att.absent;
+      DateTime? attendedDate = newAttended ? day : null;
 
-    await _db.upsertAttendance(
-      clientId: clientId,
-      periodId: periodId,
-      lessonDate: day,
-      attended: newAttended,
-      cancelled: false,
-      isPostponed: false,
-      attendedDate: attendedDate,
-      makeupDate: att?.makeup,
-      reason: null,
-    );
+      await _db.upsertAttendance(
+        clientId: clientId,
+        periodId: periodId,
+        lessonDate: day,
+        attended: newAttended,
+        cancelled: false,
+        isPostponed: false,
+        attendedDate: attendedDate,
+        makeupDate: att?.makeup,
+        reason: null,
+        reasonNote: null,
+      );
+    }
     await _reloadData();
     widget.onAttendanceChanged?.call();
   }
 
-  Future<LessonReason?> _pickReasonDialog() async {
+  Future<_ReasonSelection?> _pickReasonDialog() async {
     final l = AppLocalizations.of(context);
-    return showDialog<LessonReason>(
+    final reasonOptions = _reasonOptionsForClient();
+
+    return showDialog<_ReasonSelection>(
       context: context,
       builder: (context) {
-        LessonReason? selected = LessonReason.resmiTatil;
-        return AlertDialog(
-          title: Text(l.selectReason),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: LessonReason.values.map((reason) {
-                  return RadioListTile<LessonReason>(
-                    title: Text(l.lessonReasonLabel(reason)),
-                    value: reason,
-                    // ignore: deprecated_member_use
-                    groupValue: selected,
-                    // ignore: deprecated_member_use
-                    onChanged: (val) => setState(() => selected = val),
-                    visualDensity: VisualDensity.compact,
-                    selected: selected == reason,
-                  );
-                }).toList(),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, null),
-              child: Text(l.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, selected),
-              child: Text(l.save),
-            ),
-          ],
-        );
+        return _ReasonPickerDialog(l: l, reasonOptions: reasonOptions);
       },
     );
   }
@@ -258,8 +289,8 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       );
       if (pickedTime == null) return;
       if (!mounted) return;
-      final reason = await _pickReasonDialog();
-      if (reason == null) return;
+      final selection = await _pickReasonDialog();
+      if (selection == null) return;
       final makeupDateTime = DateTime(
         pickedDate.year,
         pickedDate.month,
@@ -276,7 +307,8 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
         isPostponed: false,
         attendedDate: null, // Yapıldı tarihi boş
         makeupDate: makeupDateTime, // Tarih ve saat birlikte kaydedilsin
-        reason: reason.index,
+        reason: selection.reason.index,
+        reasonNote: selection.note,
       );
       await _reloadData();
       widget.onAttendanceChanged?.call();
@@ -294,8 +326,8 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       return;
     }
 
-    final reason = await _pickReasonDialog();
-    if (reason == null) return;
+    final selection = await _pickReasonDialog();
+    if (selection == null) return;
 
     if (!mounted) return;
     final confirmed = await showDialog<bool>(
@@ -365,7 +397,8 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       isPostponed: addToEnd == true,
       attendedDate: null,
       makeupDate: null,
-      reason: reason.index,
+      reason: selection.reason.index,
+      reasonNote: selection.note,
     );
 
     if (addToEnd == true) {
@@ -423,6 +456,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       attendedDate: null,
       makeupDate: null,
       reason: null,
+      reasonNote: null,
     );
 
     final currentPostponed = _currentPeriod.postponedEndDate;
@@ -655,17 +689,17 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
                           String? subtitleText;
                           if (isCancelled) {
                             subtitleText = l.cancelled;
-                            if (att.reason != null) {
-                              subtitleText +=
-                                  '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
+                            final reasonDetail = _buildReasonSubtitle(att, l);
+                            if (reasonDetail.isNotEmpty) {
+                              subtitleText += '\n$reasonDetail';
                             }
                           } else if (att?.makeup != null) {
                             subtitleText = l.makeupLabel(
                               '${att!.makeup!.day.toString().padLeft(2, '0')}.${att.makeup!.month.toString().padLeft(2, '0')}.${att.makeup!.year}',
                             );
-                            if (att.reason != null) {
-                              subtitleText +=
-                                  '\n${l.lessonReasonLabel(LessonReason.values[att.reason!])}';
+                            final reasonDetail = _buildReasonSubtitle(att, l);
+                            if (reasonDetail.isNotEmpty) {
+                              subtitleText += '\n$reasonDetail';
                             }
                           } else if (isPostponedDay) {
                             subtitleText = l.postponedLesson;
@@ -744,6 +778,7 @@ class _Attendance {
   final DateTime? makeup;
   final DateTime? attendedDate;
   final int? reason;
+  final String? reasonNote;
   _Attendance({
     required this.absent,
     this.cancelled = false,
@@ -751,5 +786,103 @@ class _Attendance {
     this.makeup,
     this.attendedDate,
     this.reason,
+    this.reasonNote,
   });
+}
+
+class _ReasonPickerDialog extends StatefulWidget {
+  final AppLocalizations l;
+  final List<LessonReason> reasonOptions;
+
+  const _ReasonPickerDialog({required this.l, required this.reasonOptions});
+
+  @override
+  State<_ReasonPickerDialog> createState() => _ReasonPickerDialogState();
+}
+
+class _ReasonPickerDialogState extends State<_ReasonPickerDialog> {
+  late final TextEditingController reasonNoteController;
+  late LessonReason selected;
+
+  @override
+  void initState() {
+    super.initState();
+    reasonNoteController = TextEditingController();
+    selected = widget.reasonOptions.first;
+  }
+
+  @override
+  void dispose() {
+    reasonNoteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.l.selectReason),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ...widget.reasonOptions.map((reason) {
+              return RadioListTile<LessonReason>(
+                title: Text(widget.l.lessonReasonLabel(reason)),
+                value: reason,
+                // ignore: deprecated_member_use
+                groupValue: selected,
+                // ignore: deprecated_member_use
+                onChanged: (val) {
+                  if (val == null) return;
+                  setState(() => selected = val);
+                },
+                visualDensity: VisualDensity.compact,
+                selected: selected == reason,
+              );
+            }),
+            const SizedBox(height: 8),
+            TextField(
+              controller: reasonNoteController,
+              minLines: 3,
+              maxLines: 6,
+              maxLength: 4000,
+              inputFormatters: [LengthLimitingTextInputFormatter(4000)],
+              decoration: InputDecoration(
+                labelText: widget.l.reasonNoteLabel,
+                hintText: widget.l.reasonNoteHint,
+                border: const OutlineInputBorder(),
+                alignLabelWithHint: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: Text(widget.l.cancel),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final note = reasonNoteController.text.trim();
+            Navigator.pop(
+              context,
+              _ReasonSelection(
+                reason: selected,
+                note: note.isEmpty ? null : note,
+              ),
+            );
+          },
+          child: Text(widget.l.save),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReasonSelection {
+  final LessonReason reason;
+  final String? note;
+
+  const _ReasonSelection({required this.reason, this.note});
 }

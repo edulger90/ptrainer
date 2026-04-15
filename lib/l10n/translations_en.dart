@@ -2,10 +2,14 @@ const Map<String, String> enStrings = {
   'completedLessonCount': 'Completed Attendance: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Official Holiday',
-  'reasonSporcuHasta': 'Program Sick',
+  'reasonSporcuHasta': 'Athlete Sick',
   'reasonTrainerHasta': 'Trainer Sick',
-  'reasonSporcuKisisel': 'Program Personal',
+  'reasonSporcuKisisel': 'Athlete Personal',
   'reasonTrainerKisisel': 'Trainer Personal',
+  'reasonHastalik': 'Sickness',
+  'reasonOther': 'Other',
+  'reasonNoteLabel': 'Reason Details',
+  'reasonNoteHint': 'Write reason details (max 4000 characters)',
   // Add lesson to period end dialog
   'addLessonToPeriodEndTitle': 'Add Attendance to End of Period?',
   'addLessonToPeriodEndBody':

@@ -9,7 +9,7 @@ import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
 import '../services/screen_preload_service.dart';
-import '../pages/auth_page.dart';
+import '../services/session_timeout_service.dart';
 import '../pages/premium_page.dart';
 import 'add_client_page.dart';
 import 'client_detail_page.dart';
@@ -206,14 +206,23 @@ class _ClientListPageState extends State<ClientListPage> {
       );
       return;
     }
-    final result = await Navigator.of(context).push<bool>(
+    final createdClient = await Navigator.of(context).push<Client>(
       MaterialPageRoute(
         builder: (_) => AddClientPage(currentUser: widget.currentUser),
       ),
     );
-    if (result == true) {
-      _loadClients();
+
+    if (!mounted) return;
+    if (createdClient != null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ClientDetailPage(client: createdClient),
+        ),
+      );
     }
+
+    if (!mounted) return;
+    _loadClients();
   }
 
   @override
@@ -628,10 +637,7 @@ class _ClientListPageState extends State<ClientListPage> {
     }
   }
 
-  void _logout() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const AuthPage()),
-      (route) => false,
-    );
+  Future<void> _logout() async {
+    await SessionTimeoutService.instance.logoutNow();
   }
 }

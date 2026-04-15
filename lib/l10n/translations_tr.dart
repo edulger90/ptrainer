@@ -2,10 +2,14 @@ const Map<String, String> trStrings = {
   'completedLessonCount': 'Tamamlanan Katılım: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Resmi Tatil',
-  'reasonSporcuHasta': 'Program Hasta',
+  'reasonSporcuHasta': 'Sporcu Hasta',
   'reasonTrainerHasta': 'Trainer Hasta',
-  'reasonSporcuKisisel': 'Program Kişisel',
+  'reasonSporcuKisisel': 'Sporcu Kişisel',
   'reasonTrainerKisisel': 'Trainer Kişisel',
+  'reasonHastalik': 'Hastalık',
+  'reasonOther': 'Other',
+  'reasonNoteLabel': 'Sebep Detayı',
+  'reasonNoteHint': 'Sebep detayını yazın (maks. 4000 karakter)',
   // Period sonuna ders ekleme dialogu
   'addLessonToPeriodEndTitle': 'Period Sonuna Katılım Eklensin mi?',
   'addLessonToPeriodEndBody':

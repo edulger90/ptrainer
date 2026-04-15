@@ -135,6 +135,7 @@ class AppDatabase {
     DateTime? attendedDate,
     DateTime? makeupDate,
     int? reason,
+    String? reasonNote,
   }) {
     return _attendances.upsertAttendance(
       clientId: clientId,
@@ -146,6 +147,7 @@ class AppDatabase {
       attendedDate: attendedDate,
       makeupDate: makeupDate,
       reason: reason,
+      reasonNote: reasonNote,
     );
   }
 

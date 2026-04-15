@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDatabaseMigrations {
-  static const int currentVersion = 19;
+  static const int currentVersion = 20;
 
   Future<void> create(Database db) async {
     await _createUsersTable(db);
@@ -138,6 +138,11 @@ class AppDatabaseMigrations {
         );
       } catch (_) {}
     }
+    if (oldVersion < 20) {
+      try {
+        await db.execute('ALTER TABLE attendances ADD COLUMN reasonNote TEXT');
+      } catch (_) {}
+    }
   }
 
   Future<void> createIndexes(DatabaseExecutor db) async {
@@ -263,6 +268,7 @@ class AppDatabaseMigrations {
         attendedDate TEXT,
         makeupDate TEXT,
         reason INTEGER,
+        reasonNote TEXT,
         FOREIGN KEY (clientId) REFERENCES clients(id) ON DELETE CASCADE,
         FOREIGN KEY (periodId) REFERENCES periods(id) ON DELETE CASCADE
       )

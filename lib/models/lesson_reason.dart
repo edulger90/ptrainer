@@ -4,4 +4,6 @@ enum LessonReason {
   trainerHasta,
   sporcuKisisel,
   trainerKisisel,
+  hastalik,
+  other,
 }

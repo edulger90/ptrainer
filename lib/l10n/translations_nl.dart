@@ -2,10 +2,14 @@ const Map<String, String> nlStrings = {
   'completedLessonCount': 'Voltooide Aanwezigheid: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Officiële Feestdag',
-  'reasonSporcuHasta': 'Programma Ziek',
+  'reasonSporcuHasta': 'Atleet Ziek',
   'reasonTrainerHasta': 'Trainer Ziek',
-  'reasonSporcuKisisel': 'Programma Persoonlijk',
+  'reasonSporcuKisisel': 'Atleet Persoonlijk',
   'reasonTrainerKisisel': 'Trainer Persoonlijk',
+  'reasonHastalik': 'Ziekte',
+  'reasonOther': 'Other',
+  'reasonNoteLabel': 'Redendetails',
+  'reasonNoteHint': 'Schrijf redendetails (max. 4000 tekens)',
   // Les aan einde van periode toevoegen dialoog
   'addLessonToPeriodEndTitle': 'Les aan einde van periode toevoegen?',
   'addLessonToPeriodEndBody':

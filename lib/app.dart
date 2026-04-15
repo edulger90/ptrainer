@@ -5,6 +5,8 @@ import 'config/app_environment.dart';
 import 'l10n/app_localizations.dart';
 import 'pages/auth_page.dart';
 import 'services/app_language_service.dart';
+import 'services/session_timeout_service.dart';
+import 'widgets/session_activity_detector.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -22,6 +24,7 @@ class _MyAppState extends State<MyApp> {
       animation: _appLanguageService,
       builder: (context, _) {
         return MaterialApp(
+          navigatorKey: SessionTimeoutService.instance.navigatorKey,
           title: AppEnvironmentConfig().appTitle,
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
@@ -53,11 +56,13 @@ class _MyAppState extends State<MyApp> {
             const designWidth = 375.0;
             final widthScale = (screenWidth / designWidth).clamp(0.82, 1.15);
             final systemScale = data.textScaler.scale(1.0);
-            return MediaQuery(
-              data: data.copyWith(
-                textScaler: TextScaler.linear(systemScale * widthScale),
+            return SessionActivityDetector(
+              child: MediaQuery(
+                data: data.copyWith(
+                  textScaler: TextScaler.linear(systemScale * widthScale),
+                ),
+                child: child!,
               ),
-              child: child!,
             );
           },
           home: const AuthPage(),

@@ -20,6 +20,10 @@ class AppLocalizations {
   String get reasonTrainerHasta => get('reasonTrainerHasta');
   String get reasonSporcuKisisel => get('reasonSporcuKisisel');
   String get reasonTrainerKisisel => get('reasonTrainerKisisel');
+  String get reasonHastalik => get('reasonHastalik');
+  String get reasonOther => get('reasonOther');
+  String get reasonNoteLabel => get('reasonNoteLabel');
+  String get reasonNoteHint => get('reasonNoteHint');
   String completedLessonCount(int count) =>
       get('completedLessonCount').replaceAll('{count}', count.toString());
 
@@ -35,6 +39,10 @@ class AppLocalizations {
         return reasonSporcuKisisel;
       case LessonReason.trainerKisisel:
         return reasonTrainerKisisel;
+      case LessonReason.hastalik:
+        return reasonHastalik;
+      case LessonReason.other:
+        return reasonOther;
     }
     // This should never be reached
   }

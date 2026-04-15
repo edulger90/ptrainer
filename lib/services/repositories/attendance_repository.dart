@@ -15,6 +15,7 @@ class AttendanceRepository extends BaseRepository {
     DateTime? attendedDate,
     DateTime? makeupDate,
     int? reason,
+    String? reasonNote,
   }) async {
     final db = await database;
     final normalizedLessonDate = _normalizeLessonDay(lessonDate);
@@ -39,6 +40,7 @@ class AttendanceRepository extends BaseRepository {
           'attendedDate': attendedDateStr,
           'makeupDate': makeupDateStr,
           'reason': reason,
+          'reasonNote': reasonNote,
         },
         where: 'id = ?',
         whereArgs: [existing.first['id']],
@@ -59,6 +61,7 @@ class AttendanceRepository extends BaseRepository {
       'attendedDate': attendedDateStr,
       'makeupDate': makeupDateStr,
       'reason': reason,
+      'reasonNote': reasonNote,
     });
   }
 

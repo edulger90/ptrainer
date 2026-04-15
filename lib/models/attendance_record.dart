@@ -11,6 +11,7 @@ class AttendanceRecord {
   final DateTime? attendedDate;
   final DateTime? makeupDate;
   final int? reason;
+  final String? reasonNote;
 
   const AttendanceRecord({
     this.id,
@@ -23,6 +24,7 @@ class AttendanceRecord {
     this.attendedDate,
     this.makeupDate,
     this.reason,
+    this.reasonNote,
   });
 
   bool get absent => !attended;
@@ -41,6 +43,7 @@ class AttendanceRecord {
       reason: map['reason'] is int
           ? map['reason'] as int
           : int.tryParse(map['reason']?.toString() ?? ''),
+      reasonNote: map['reasonNote'] as String?,
     );
   }
 
@@ -56,6 +59,7 @@ class AttendanceRecord {
       'attendedDate': attendedDate?.toIso8601String(),
       'makeupDate': makeupDate?.toIso8601String(),
       'reason': reason,
+      'reasonNote': reasonNote,
     };
   }
 
@@ -70,6 +74,7 @@ class AttendanceRecord {
     DateTime? attendedDate,
     DateTime? makeupDate,
     int? reason,
+    String? reasonNote,
   }) {
     return AttendanceRecord(
       id: id ?? this.id,
@@ -82,6 +87,7 @@ class AttendanceRecord {
       attendedDate: attendedDate ?? this.attendedDate,
       makeupDate: makeupDate ?? this.makeupDate,
       reason: reason ?? this.reason,
+      reasonNote: reasonNote ?? this.reasonNote,
     );
   }
 

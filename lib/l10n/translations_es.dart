@@ -2,10 +2,14 @@ const Map<String, String> esStrings = {
   'completedLessonCount': 'Asistencias Completadas: {count}',
   // Lesson Reason
   'reasonResmiTatil': 'Fiesta Oficial',
-  'reasonSporcuHasta': 'Programa Enfermo',
+  'reasonSporcuHasta': 'Atleta Enfermo',
   'reasonTrainerHasta': 'Entrenador Enfermo',
-  'reasonSporcuKisisel': 'Programa Personal',
+  'reasonSporcuKisisel': 'Atleta Personal',
   'reasonTrainerKisisel': 'Entrenador Personal',
+  'reasonHastalik': 'Enfermedad',
+  'reasonOther': 'Other',
+  'reasonNoteLabel': 'Detalle del motivo',
+  'reasonNoteHint': 'Escribe el detalle del motivo (máx. 4000 caracteres)',
   // General
   'showPassiveClients': 'Mostrar clientes pasivos',
   'appTitle': 'P-Trainer',

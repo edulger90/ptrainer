@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/auth_controller.dart';
+import '../services/session_timeout_service.dart';
 import 'home_page.dart';
 
 class AuthPage extends StatefulWidget {
@@ -32,6 +35,7 @@ class _AuthPageState extends State<AuthPage> {
   void initState() {
     super.initState();
     _loadInitialState();
+    unawaited(SessionTimeoutService.instance.endSession());
   }
 
   @override
@@ -161,6 +165,7 @@ class _AuthPageState extends State<AuthPage> {
     }
 
     if (result.user != null) {
+      await SessionTimeoutService.instance.startSession();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => HomePage(currentUser: result.user!)),

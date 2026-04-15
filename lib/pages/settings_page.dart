@@ -8,6 +8,7 @@ import '../services/app_language_service.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
+import '../services/session_timeout_service.dart';
 import 'auth_page.dart';
 import 'error_log_page.dart';
 import 'premium_page.dart';
@@ -147,6 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       await _premiumService.clearLocalState();
       await _db.deleteAllData();
+      await SessionTimeoutService.instance.endSession();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthPage()),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/body_measurement.dart';
-import '../pages/auth_page.dart';
 import '../services/database.dart';
+import '../services/session_timeout_service.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
 
@@ -197,10 +197,7 @@ class _AddBodyMeasurementPageState extends State<AddBodyMeasurementPage> {
     );
   }
 
-  void _logout() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const AuthPage()),
-      (route) => false,
-    );
+  Future<void> _logout() async {
+    await SessionTimeoutService.instance.logoutNow();
   }
 }

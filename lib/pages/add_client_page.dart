@@ -5,8 +5,8 @@ import '../models/program_type.dart';
 import '../models/user.dart';
 import '../models/session_schedule.dart';
 import '../models/package_type.dart';
-import '../pages/auth_page.dart';
 import '../services/database.dart';
+import '../services/session_timeout_service.dart';
 import '../widgets/app_background.dart';
 import '../l10n/app_localizations.dart';
 import '../models/trainer_weekday.dart';
@@ -113,7 +113,8 @@ class _AddClientPageState extends State<AddClientPage> {
     }
 
     if (!mounted) return;
-    Navigator.of(context).pop(true);
+    final createdClient = client.copyWith(id: clientId);
+    Navigator.of(context).pop(createdClient);
   }
 
   void _showAddScheduleDialog() {
@@ -303,11 +304,13 @@ class _AddClientPageState extends State<AddClientPage> {
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: ProgramType.values.map((type) {
+                    children: [ProgramType.sport, ProgramType.personal].map((
+                      type,
+                    ) {
                       final label = switch (type) {
                         ProgramType.sport => l.programTypeSport,
-                        ProgramType.course => l.programTypeCourse,
                         ProgramType.personal => l.programTypePersonal,
+                        ProgramType.course => l.programTypeCourse,
                       };
                       return ChoiceChip(
                         label: Text(label),
@@ -473,10 +476,7 @@ class _AddClientPageState extends State<AddClientPage> {
     );
   }
 
-  void _logout() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const AuthPage()),
-      (route) => false,
-    );
+  Future<void> _logout() async {
+    await SessionTimeoutService.instance.logoutNow();
   }
 }
