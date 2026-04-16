@@ -8,7 +8,7 @@ import '../config/app_environment.dart';
 
 /// Premium / Free tier yönetim servisi.
 /// In-App Purchase ile gerçek ödeme entegrasyonu.
-/// Non-consumable (bir kere satın al, hep kullan) model.
+/// Auto-renewable subscription (abonelik) modeli.
 class PremiumService {
   // ── Singleton ──
   static final PremiumService _instance = PremiumService._internal();
@@ -57,8 +57,26 @@ class PremiumService {
   Future<void> init() async {
     // Önce SharedPreferences'tan oku
     final prefs = await SharedPreferences.getInstance();
-    _isPremium = prefs.getBool(_keyIsPremium) ?? false;
-    _activePlan = _planFromProductId(prefs.getString(_keyPremiumProductId));
+    final storedPlan = _planFromProductId(
+      prefs.getString(_keyPremiumProductId),
+    );
+    final storedPurchaseDate = DateTime.tryParse(
+      prefs.getString(_keyPurchaseDate) ?? '',
+    );
+    _activePlan = storedPlan;
+    _isPremium = _isStoredEntitlementActive(
+      isPremiumFlag: prefs.getBool(_keyIsPremium) ?? false,
+      plan: storedPlan,
+      purchaseDate: storedPurchaseDate,
+    );
+
+    // Süresi dolmuş yerel premium durumunu temizle.
+    if (!_isPremium) {
+      await prefs.setBool(_keyIsPremium, false);
+      await prefs.remove(_keyPremiumProductId);
+      await prefs.remove(_keyPurchaseDate);
+      _activePlan = null;
+    }
 
     // IAP başlat
     _iapAvailable = await _iap.isAvailable();
@@ -78,6 +96,10 @@ class PremiumService {
 
     // Ürünleri yükle
     await _loadProducts();
+
+    // Aktif abonelikleri mağazadan senkronize et.
+    // Auto-renewable subscription için entitlement güncel tutulmalıdır.
+    unawaited(restorePurchases());
   }
 
   /// Ürünleri mağazadan yükle
@@ -131,10 +153,20 @@ class PremiumService {
 
   /// Satın almayı doğrula ve premium'u aktifleştir
   Future<void> _verifyAndActivate(PurchaseDetails purchase) async {
+    if (!_productIds.contains(purchase.productID)) {
+      debugPrint('IAP: Ignoring unknown product id: ${purchase.productID}');
+      _stateController.add(PurchaseState.error);
+      return;
+    }
+
     // Not: Gerçek bir üretim uygulamasında burada sunucu taraflı
     // receipt validation yapılmalıdır. Basit uygulamalar için
     // client-side yeterlidir.
-    await activatePremium(productId: purchase.productID);
+    final purchaseDate = _parseStorePurchaseDate(purchase.transactionDate);
+    await activatePremium(
+      productId: purchase.productID,
+      purchaseDate: purchaseDate,
+    );
     _stateController.add(
       purchase.status == PurchaseStatus.restored
           ? PurchaseState.restored
@@ -145,9 +177,12 @@ class PremiumService {
   /// Premium satın alma başlat
   Future<bool> buyPremium(PremiumPlan plan) async {
     // Debug modda gerçek IAP yerine doğrudan aktifleştir
-    if (AppEnvironmentConfig().isDev) {
+    if (kDebugMode && AppEnvironmentConfig().isDev) {
       debugPrint('IAP: Debug mode – activating premium directly');
-      await activatePremium(productId: productIdForPlan(plan));
+      await activatePremium(
+        productId: productIdForPlan(plan),
+        purchaseDate: DateTime.now(),
+      );
       _stateController.add(PurchaseState.purchased);
       return true;
     }
@@ -167,7 +202,7 @@ class PremiumService {
 
     final purchaseParam = PurchaseParam(productDetails: product);
     try {
-      // Subscriptions are also initiated through buyNonConsumable in this API.
+      // in_app_purchase API'de subscription satın alımı da buyNonConsumable ile başlatılır.
       final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
       if (!started) {
         _stateController.add(PurchaseState.error);
@@ -183,9 +218,12 @@ class PremiumService {
   /// Önceki satın almayı geri yükle
   Future<void> restorePurchases() async {
     // Debug modda gerçek IAP yerine doğrudan aktifleştir
-    if (AppEnvironmentConfig().isDev) {
+    if (kDebugMode && AppEnvironmentConfig().isDev) {
       debugPrint('IAP: Debug mode – restoring premium directly');
-      await activatePremium(productId: yearlySubscriptionProductId);
+      await activatePremium(
+        productId: yearlySubscriptionProductId,
+        purchaseDate: DateTime.now(),
+      );
       _stateController.add(PurchaseState.restored);
       return;
     }
@@ -222,15 +260,72 @@ class PremiumService {
   }
 
   /// Premium'u aktifleştir
-  Future<void> activatePremium({String? productId}) async {
+  Future<void> activatePremium({
+    String? productId,
+    DateTime? purchaseDate,
+  }) async {
+    if (productId != null && !_productIds.contains(productId)) {
+      debugPrint(
+        'IAP: activatePremium blocked for unknown product id: $productId',
+      );
+      return;
+    }
+
     _isPremium = true;
     _activePlan = _planFromProductId(productId);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyIsPremium, true);
-    await prefs.setString(_keyPurchaseDate, DateTime.now().toIso8601String());
+    await prefs.setString(
+      _keyPurchaseDate,
+      (purchaseDate ?? DateTime.now()).toIso8601String(),
+    );
     if (productId != null) {
       await prefs.setString(_keyPremiumProductId, productId);
     }
+  }
+
+  DateTime? _parseStorePurchaseDate(String? rawMillis) {
+    if (rawMillis == null || rawMillis.isEmpty) return null;
+    final millis = int.tryParse(rawMillis);
+    if (millis == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(millis);
+  }
+
+  bool _isStoredEntitlementActive({
+    required bool isPremiumFlag,
+    required PremiumPlan? plan,
+    required DateTime? purchaseDate,
+  }) {
+    if (!isPremiumFlag) return false;
+    if (plan == null || purchaseDate == null) return false;
+
+    final expiry = _estimatedExpiryDate(plan, purchaseDate);
+    return DateTime.now().isBefore(expiry);
+  }
+
+  DateTime _estimatedExpiryDate(PremiumPlan plan, DateTime purchaseDate) {
+    return switch (plan) {
+      PremiumPlan.monthly => DateTime(
+        purchaseDate.year,
+        purchaseDate.month + 1,
+        purchaseDate.day,
+        purchaseDate.hour,
+        purchaseDate.minute,
+        purchaseDate.second,
+        purchaseDate.millisecond,
+        purchaseDate.microsecond,
+      ),
+      PremiumPlan.yearly => DateTime(
+        purchaseDate.year + 1,
+        purchaseDate.month,
+        purchaseDate.day,
+        purchaseDate.hour,
+        purchaseDate.minute,
+        purchaseDate.second,
+        purchaseDate.millisecond,
+        purchaseDate.microsecond,
+      ),
+    };
   }
 
   /// Premium'u deaktifleştir (test için)
