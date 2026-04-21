@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/premium_service.dart';
 import '../services/session_timeout_service.dart';
+import 'analysis_page.dart';
 import 'client_list_page.dart';
 import 'weekly_plan_page.dart';
 import 'settings_page.dart';
@@ -35,6 +36,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final premiumService = PremiumService();
+    final canAccessAnalysis = premiumService.canAccessAnalysis;
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
@@ -165,6 +168,36 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 16),
                   _MenuCard(
+                    icon: Icons.analytics_rounded,
+                    title: l.analysis,
+                    subtitle: canAccessAnalysis
+                        ? l.analysisDesc
+                        : l.analysisPreviewTeaser,
+                    gradientColors: const [
+                      Color(0xFF1565C0),
+                      Color(0xFF42A5F5),
+                    ],
+                    isLocked: !canAccessAnalysis,
+                    badgeLabel: canAccessAnalysis ? null : l.premiumLabel,
+                    onTap: () {
+                      if (!canAccessAnalysis) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const PremiumPage(),
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              AnalysisPage(currentUser: widget.currentUser),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _MenuCard(
                     icon: Icons.calendar_month_rounded,
                     title: l.weeklyPlan,
                     subtitle: l.weeklyPlanDesc,
@@ -173,6 +206,9 @@ class _HomePageState extends State<HomePage> {
                       Color(0xFF42A5F5),
                     ],
                     isLocked: !PremiumService().canAccessWeeklyPlan,
+                    badgeLabel: PremiumService().canAccessWeeklyPlan
+                        ? null
+                        : l.premiumLabel,
                     onTap: () {
                       if (!PremiumService().canAccessWeeklyPlan) {
                         Navigator.of(context).push(
@@ -193,7 +229,6 @@ class _HomePageState extends State<HomePage> {
                           .then((_) => _refreshThisWeek());
                     },
                   ),
-                  // Analiz kartı ileride eklenecek
                 ],
               ),
             ),
@@ -211,6 +246,7 @@ class _MenuCard extends StatelessWidget {
   final List<Color> gradientColors;
   final VoidCallback onTap;
   final bool isLocked;
+  final String? badgeLabel;
 
   const _MenuCard({
     required this.icon,
@@ -219,6 +255,7 @@ class _MenuCard extends StatelessWidget {
     required this.gradientColors,
     required this.onTap,
     this.isLocked = false,
+    this.badgeLabel,
   });
 
   @override
@@ -272,20 +309,44 @@ class _MenuCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (badgeLabel != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3E0),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              badgeLabel!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFEF6C00),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
                       style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-                      maxLines: 2,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

@@ -1,6 +1,8 @@
 import '../models/attendance_record.dart';
 import '../models/client.dart';
+import '../models/lesson_reason.dart';
 import '../models/period.dart';
+import '../models/program_type.dart';
 import '../models/screen_preload.dart';
 import '../models/session_schedule.dart';
 import 'attendance_service.dart';
@@ -298,5 +300,173 @@ class ScreenPreloadService {
       period: period,
       attendanceRecords: attendanceRecords,
     );
+  }
+
+  Future<HomeMonthlyAnalyticsPreload> loadHomeMonthlyAnalytics({
+    required int userId,
+    DateTime? referenceDate,
+  }) async {
+    final now = referenceDate ?? DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+    final trendStart = DateTime(monthStart.year, monthStart.month - 5, 1);
+
+    final clients = await _clientRepository.getClientsByUser(userId);
+    final clientsById = <int, Client>{
+      for (final client in clients)
+        if (client.id != null) client.id!: client,
+    };
+    final clientIds = clientsById.keys.toList();
+    if (clientIds.isEmpty) {
+      return HomeMonthlyAnalyticsPreload(
+        monthStart: monthStart,
+        monthEnd: monthEnd,
+        totalPaidAmount: 0,
+        totalExpectedAmount: 0,
+        cancelledNonHolidayCount: 0,
+        topCancelledItems: const [],
+        revenueTrend: List.generate(6, (index) {
+          final pointMonth = DateTime(
+            trendStart.year,
+            trendStart.month + index,
+            1,
+          );
+          return MonthlyRevenuePoint(
+            monthStart: pointMonth,
+            paidAmount: 0,
+            expectedAmount: 0,
+          );
+        }),
+        cancellationDistribution: const [],
+      );
+    }
+
+    final periodsFuture = _periodRepository.getPeriodsByClientIds(clientIds);
+    final attendanceFuture = _attendanceRepository
+        .getAttendanceRecordsForClientIdsInRange(
+          clientIds: clientIds,
+          startDate: monthStart,
+          endDate: monthEnd,
+        );
+
+    final periods = await periodsFuture;
+    final attendanceRecords = await attendanceFuture;
+
+    final revenueByMonth = <String, MonthlyRevenuePoint>{
+      for (var index = 0; index < 6; index++)
+        _monthKey(
+          DateTime(trendStart.year, trendStart.month + index, 1),
+        ): MonthlyRevenuePoint(
+          monthStart: DateTime(trendStart.year, trendStart.month + index, 1),
+          paidAmount: 0,
+          expectedAmount: 0,
+        ),
+    };
+
+    double totalExpectedAmount = 0;
+    double totalPaidAmount = 0;
+    for (final period in periods) {
+      final periodStart = DateTime.tryParse(period.startDate);
+      if (periodStart == null) continue;
+      if (periodStart.isBefore(trendStart) || periodStart.isAfter(monthEnd)) {
+        continue;
+      }
+
+      final amount = period.paymentAmount;
+      if (amount == null) continue;
+      final bucketMonth = DateTime(periodStart.year, periodStart.month, 1);
+      final bucketKey = _monthKey(bucketMonth);
+      final existingPoint = revenueByMonth[bucketKey];
+      if (existingPoint != null) {
+        revenueByMonth[bucketKey] = MonthlyRevenuePoint(
+          monthStart: existingPoint.monthStart,
+          paidAmount: existingPoint.paidAmount + (period.isPaid ? amount : 0),
+          expectedAmount: existingPoint.expectedAmount + amount,
+        );
+      }
+
+      if (!periodStart.isBefore(monthStart) && !periodStart.isAfter(monthEnd)) {
+        totalExpectedAmount += amount;
+        if (period.isPaid) {
+          totalPaidAmount += amount;
+        }
+      }
+    }
+
+    final monthlyLessonCountByClient = <int, int>{};
+    final cancelledCountByClient = <int, int>{};
+    final cancelledByProgramType = <ProgramType, int>{};
+
+    for (final record in attendanceRecords) {
+      final clientId = record.clientId;
+      final lessonDate = record.lessonDate;
+      if (clientId == null || lessonDate == null) continue;
+      if (lessonDate.isBefore(monthStart) || lessonDate.isAfter(monthEnd)) {
+        continue;
+      }
+
+      monthlyLessonCountByClient[clientId] =
+          (monthlyLessonCountByClient[clientId] ?? 0) + 1;
+
+      final isNonHolidayCancellation =
+          record.cancelled && record.reason != LessonReason.resmiTatil.index;
+      if (isNonHolidayCancellation) {
+        cancelledCountByClient[clientId] =
+            (cancelledCountByClient[clientId] ?? 0) + 1;
+        final client = clientsById[clientId];
+        if (client != null) {
+          cancelledByProgramType[client.programType] =
+              (cancelledByProgramType[client.programType] ?? 0) + 1;
+        }
+      }
+    }
+
+    final topCancelledItems =
+        cancelledCountByClient.entries
+            .where((entry) => clientsById.containsKey(entry.key))
+            .map(
+              (entry) => MonthlyCancellationItem(
+                client: clientsById[entry.key]!,
+                cancelledCount: entry.value,
+                monthlyLessonCount: monthlyLessonCountByClient[entry.key] ?? 0,
+              ),
+            )
+            .toList()
+          ..sort((a, b) {
+            final byCancel = b.cancelledCount.compareTo(a.cancelledCount);
+            if (byCancel != 0) return byCancel;
+            return a.client.fullName.compareTo(b.client.fullName);
+          });
+
+    final cancellationDistribution =
+        cancelledByProgramType.entries
+            .map(
+              (entry) => ProgramTypeDistributionItem(
+                programType: entry.key,
+                count: entry.value,
+              ),
+            )
+            .toList()
+          ..sort((a, b) => b.count.compareTo(a.count));
+
+    return HomeMonthlyAnalyticsPreload(
+      monthStart: monthStart,
+      monthEnd: monthEnd,
+      totalPaidAmount: totalPaidAmount,
+      totalExpectedAmount: totalExpectedAmount,
+      cancelledNonHolidayCount: cancelledCountByClient.values.fold(
+        0,
+        (sum, count) => sum + count,
+      ),
+      topCancelledItems: topCancelledItems.take(5).toList(),
+      revenueTrend: revenueByMonth.values.toList()
+        ..sort((a, b) => a.monthStart.compareTo(b.monthStart)),
+      cancellationDistribution: cancellationDistribution,
+    );
+  }
+
+  String _monthKey(DateTime date) {
+    final normalized = DateTime(date.year, date.month, 1);
+    return '${normalized.year}-${normalized.month.toString().padLeft(2, '0')}';
   }
 }

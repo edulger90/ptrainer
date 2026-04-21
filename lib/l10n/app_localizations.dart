@@ -141,7 +141,46 @@ class AppLocalizations {
   String get myAthletes => get('myAthletes');
   String get weeklyPlan => get('weeklyPlan');
   String get analysis => get('analysis');
+  String get analysisDesc => get('analysisDesc');
   String get analysisComingSoon => get('analysisComingSoon');
+  String get analysisPreviewTitle => get('analysisPreviewTitle');
+  String get analysisPreviewTeaser => get('analysisPreviewTeaser');
+  String get monthlyAnalysisTitle => get('monthlyAnalysisTitle');
+  String get monthlyAnalysisNoData => get('monthlyAnalysisNoData');
+  String get monthlySelectedMonth => get('monthlySelectedMonth');
+  String get selectMonthYear => get('selectMonthYear');
+  String get monthlyOverviewTitle => get('monthlyOverviewTitle');
+  String get monthlyPaidTotal => get('monthlyPaidTotal');
+  String get monthlyExpectedTotal => get('monthlyExpectedTotal');
+  String get monthlyCollectionRate => get('monthlyCollectionRate');
+  String get monthlyOutstandingAmount => get('monthlyOutstandingAmount');
+  String get monthlyInsightsTitle => get('monthlyInsightsTitle');
+  String get monthlyChartsTitle => get('monthlyChartsTitle');
+  String get monthlyRevenueTrendTitle => get('monthlyRevenueTrendTitle');
+  String get monthlyProgramTypeChartTitle =>
+      get('monthlyProgramTypeChartTitle');
+  String get monthlyChartsEmpty => get('monthlyChartsEmpty');
+  String get monthlyTrendPaidLegend => get('monthlyTrendPaidLegend');
+  String get monthlyTrendExpectedLegend => get('monthlyTrendExpectedLegend');
+  String get monthlyMostCancelledLabel => get('monthlyMostCancelledLabel');
+  String get monthlyHighestCancellationRateLabel =>
+      get('monthlyHighestCancellationRateLabel');
+  String get monthlyCollectionStatusLabel =>
+      get('monthlyCollectionStatusLabel');
+  String get monthlyStatusStrong => get('monthlyStatusStrong');
+  String get monthlyStatusWatch => get('monthlyStatusWatch');
+  String get monthlyStatusAttention => get('monthlyStatusAttention');
+  String get monthlyNonHolidayCancelCount =>
+      get('monthlyNonHolidayCancelCount');
+  String get monthlyTopCancellationsTitle =>
+      get('monthlyTopCancellationsTitle');
+  String get monthlyTopCancellationsEmpty =>
+      get('monthlyTopCancellationsEmpty');
+  String monthlyTopCancellationMetrics(int count, String share, String rate) =>
+      get('monthlyTopCancellationMetrics')
+          .replaceAll('{count}', '$count')
+          .replaceAll('{share}', share)
+          .replaceAll('{rate}', rate);
 
   // ── Client List ──
   String get noAthletesYet => get('noAthletesYet');

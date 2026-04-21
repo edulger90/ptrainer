@@ -180,72 +180,6 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // --- Legal Links ---
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    Icons.privacy_tip,
-                    color: Color(0xFF00897B),
-                  ),
-                  title: const Text('Privacy Policy'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    final url = Uri.parse(
-                      'https://edulger90.github.io/ptrainer/privacy-policy.html',
-                    );
-                    await launchUrl(url, mode: LaunchMode.externalApplication);
-                  },
-                ),
-                if (isIosDevice) ...[
-                  const Divider(height: 1, indent: 72),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.description,
-                      color: Color(0xFF00897B),
-                    ),
-                    title: const Text('Terms of Use'),
-                    subtitle: const Text('Apple Standard EULA'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () async {
-                      final url = Uri.parse(
-                        'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-                      );
-                      await launchUrl(
-                        url,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    },
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _buildSectionHeader(l.languageSettings, Icons.language),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: ListTile(
-              leading: const Icon(Icons.translate, color: Color(0xFF00897B)),
-              title: Text(l.appLanguage),
-              subtitle: Text(_selectedLanguageLabel(l)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _showLanguagePicker,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
           // Uygulama bilgileri kartı
           _buildSectionHeader(l.appInfo, Icons.info_outline),
           const SizedBox(height: 8),
@@ -283,27 +217,24 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-
           const SizedBox(height: 24),
-          // --- Premium Test Butonu (Sadece debug modda) ---
-          if (isDevEnvironment) ...[
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: ListTile(
-                leading: Icon(Icons.workspace_premium, color: Colors.blue),
-                title: const Text('Premium Dev Toggle'),
-                subtitle: Text(_isPremium ? 'Premium aktif' : 'Premium pasif'),
-                trailing: Switch(
-                  value: _isPremium,
-                  onChanged: (val) => _setPremium(val),
-                ),
-              ),
+
+          _buildSectionHeader(l.languageSettings, Icons.language),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
             ),
-            const SizedBox(height: 24),
-          ],
+            child: ListTile(
+              leading: const Icon(Icons.translate, color: Color(0xFF00897B)),
+              title: Text(l.appLanguage),
+              subtitle: Text(_selectedLanguageLabel(l)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _showLanguagePicker,
+            ),
+          ),
+          const SizedBox(height: 24),
 
           // Premium plan kartı
           _buildSectionHeader(l.premiumPlan, Icons.workspace_premium),
@@ -375,8 +306,75 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
           ),
-
           const SizedBox(height: 24),
+
+          // --- Legal Links ---
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.privacy_tip,
+                    color: Color(0xFF00897B),
+                  ),
+                  title: const Text('Privacy Policy'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final url = Uri.parse(
+                      'https://edulger90.github.io/ptrainer/privacy-policy.html',
+                    );
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  },
+                ),
+                if (isIosDevice) ...[
+                  const Divider(height: 1, indent: 72),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.description,
+                      color: Color(0xFF00897B),
+                    ),
+                    title: const Text('Terms of Use'),
+                    subtitle: const Text('Apple Standard EULA'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final url = Uri.parse(
+                        'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                      );
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // --- Premium Test Butonu (Sadece debug modda) ---
+          if (isDevEnvironment) ...[
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.workspace_premium, color: Colors.blue),
+                title: const Text('Premium Dev Toggle'),
+                subtitle: Text(_isPremium ? 'Premium aktif' : 'Premium pasif'),
+                trailing: Switch(
+                  value: _isPremium,
+                  onChanged: (val) => _setPremium(val),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
 
           _buildSectionHeader(l.dangerZone, Icons.warning_amber_rounded),
           const SizedBox(height: 8),
@@ -583,65 +581,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
           ),
-
-          const SizedBox(height: 24),
-
-          // Versiyon geçmişi
-          _buildSectionHeader(l.versionHistory, Icons.history),
-          const SizedBox(height: 8),
-          ...AppVersionInfo.changelog.map((entry) {
-            return Card(
-              elevation: 1,
-              margin: const EdgeInsets.only(bottom: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF00BCD4,
-                            ).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'v${entry['version']}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00897B),
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          entry['date'] ?? '',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      entry['changes'] ?? '',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
 
           const SizedBox(height: 32),
         ],

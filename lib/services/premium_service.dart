@@ -374,6 +374,7 @@ class PremiumService {
   bool get canAccessBodyMeasurements => _isPremium;
   bool get canAccessWeeklyPlan => _isPremium;
   bool get canAccessPaymentTracking => _isPremium;
+  bool get canAccessAnalysis => _isPremium;
 
   /// Kaynakları temizle
   void dispose() {
