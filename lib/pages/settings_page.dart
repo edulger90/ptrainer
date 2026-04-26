@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../services/app_language_service.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
+import '../services/notification_service.dart';
 import '../services/premium_service.dart';
 import '../services/session_timeout_service.dart';
 import 'auth_page.dart';
@@ -25,8 +26,28 @@ class _SettingsPageState extends State<SettingsPage> {
   final _db = AppDatabase();
   final _premiumService = PremiumService();
   final _appLanguageService = AppLanguageService();
+  final _notificationService = NotificationService.instance;
   bool _isPremium = PremiumService().isPremium;
   bool _isDeletingAccount = false;
+  NotificationPreferences _notificationPreferences =
+      const NotificationPreferences.defaults();
+  bool _isLoadingNotificationPreferences = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPreferences();
+  }
+
+  Future<void> _loadNotificationPreferences() async {
+    await _notificationService.initialize();
+    final preferences = await _notificationService.loadPreferences();
+    if (!mounted) return;
+    setState(() {
+      _notificationPreferences = preferences;
+      _isLoadingNotificationPreferences = false;
+    });
+  }
 
   String _languageNativeLabel(String languageCode) {
     switch (languageCode) {
@@ -104,6 +125,207 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  String _notificationSettingsSubtitle(AppLocalizations l) {
+    if (_isLoadingNotificationPreferences) {
+      return l.notificationSettingsLoading;
+    }
+
+    final beforeProgram = _notificationPreferences.sessionReminderEnabled;
+    final morningPlan = _notificationPreferences.morningPlanEnabled;
+
+    if (!beforeProgram && !morningPlan) {
+      return l.notificationSettingsDisabled;
+    }
+
+    final beforeProgramLabel = beforeProgram
+        ? l.notificationBeforeProgramSummary(
+            _notificationPreferences.reminderMinutesBefore,
+          )
+        : l.notificationBeforeProgramOff;
+    final morningLabel = morningPlan
+        ? l.notificationMorningPlanSummary(
+            _notificationPreferences.morningHour,
+            _notificationPreferences.morningMinute,
+          )
+        : l.notificationMorningPlanOff;
+
+    return '$beforeProgramLabel • $morningLabel';
+  }
+
+  Future<void> _showNotificationSettings() async {
+    final l = AppLocalizations.of(context);
+    final localizations = MaterialLocalizations.of(context);
+
+    var sessionReminderEnabled =
+        _notificationPreferences.sessionReminderEnabled;
+    var reminderMinutes = _notificationPreferences.reminderMinutesBefore;
+    var morningPlanEnabled = _notificationPreferences.morningPlanEnabled;
+    var morningHour = _notificationPreferences.morningHour;
+    var morningMinute = _notificationPreferences.morningMinute;
+
+    final updatedSettings = await showModalBottomSheet<NotificationPreferences>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final morningTimeText = localizations.formatTimeOfDay(
+              TimeOfDay(hour: morningHour, minute: morningMinute),
+              alwaysUse24HourFormat: true,
+            );
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.notificationSettings,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l.notificationSettingsDesc,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      value: sessionReminderEnabled,
+                      onChanged: (value) {
+                        setSheetState(() {
+                          sessionReminderEnabled = value;
+                        });
+                      },
+                      title: Text(l.notificationBeforeProgram),
+                      subtitle: Text(l.notificationBeforeProgramDesc),
+                    ),
+                    const SizedBox(height: 8),
+                    InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: l.notificationBeforeProgramMinutes,
+                        border: const OutlineInputBorder(),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          value: reminderMinutes,
+                          isExpanded: true,
+                          items: const [5, 10, 15, 30, 45, 60, 90, 120]
+                              .map(
+                                (minutes) => DropdownMenuItem<int>(
+                                  value: minutes,
+                                  child: Text(
+                                    l.notificationMinuteValue(minutes),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: sessionReminderEnabled
+                              ? (value) {
+                                  if (value == null) return;
+                                  setSheetState(() {
+                                    reminderMinutes = value;
+                                  });
+                                }
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      value: morningPlanEnabled,
+                      onChanged: (value) {
+                        setSheetState(() {
+                          morningPlanEnabled = value;
+                        });
+                      },
+                      title: Text(l.notificationMorningPlan),
+                      subtitle: Text(l.notificationMorningPlanDesc),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.schedule),
+                      label: Text(
+                        '${l.notificationMorningTime}: $morningTimeText',
+                      ),
+                      onPressed: morningPlanEnabled
+                          ? () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay(
+                                  hour: morningHour,
+                                  minute: morningMinute,
+                                ),
+                              );
+                              if (picked == null) return;
+                              setSheetState(() {
+                                morningHour = picked.hour;
+                                morningMinute = picked.minute;
+                              });
+                            }
+                          : null,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            child: Text(l.cancel),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(sheetContext).pop(
+                                NotificationPreferences(
+                                  sessionReminderEnabled:
+                                      sessionReminderEnabled,
+                                  reminderMinutesBefore: reminderMinutes,
+                                  morningPlanEnabled: morningPlanEnabled,
+                                  morningHour: morningHour,
+                                  morningMinute: morningMinute,
+                                ),
+                              );
+                            },
+                            child: Text(l.save),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (updatedSettings == null) return;
+
+    await _notificationService.updatePreferences(updatedSettings);
+    if (!mounted) return;
+    setState(() {
+      _notificationPreferences = updatedSettings;
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.notificationSettingsSaved)));
+  }
+
   Future<void> _setPremium(bool value) async {
     if (value) {
       await PremiumService().activatePremium();
@@ -146,6 +368,7 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     try {
+      await _notificationService.clearAllSettingsAndNotifications();
       await _premiumService.clearLocalState();
       await _db.deleteAllData();
       await SessionTimeoutService.instance.endSession();
@@ -226,12 +449,42 @@ class _SettingsPageState extends State<SettingsPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.translate,
+                    color: Color(0xFF00897B),
+                  ),
+                  title: Text(l.appLanguage),
+                  subtitle: Text(_selectedLanguageLabel(l)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _showLanguagePicker,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(
+            l.notificationSettings,
+            Icons.notifications_active_outlined,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: ListTile(
-              leading: const Icon(Icons.translate, color: Color(0xFF00897B)),
-              title: Text(l.appLanguage),
-              subtitle: Text(_selectedLanguageLabel(l)),
+              leading: const Icon(
+                Icons.notifications_active_outlined,
+                color: Color(0xFF00897B),
+              ),
+              title: Text(l.notificationSettings),
+              subtitle: Text(_notificationSettingsSubtitle(l)),
               trailing: const Icon(Icons.chevron_right),
-              onTap: _showLanguagePicker,
+              onTap: _showNotificationSettings,
             ),
           ),
           const SizedBox(height: 24),
@@ -245,22 +498,13 @@ class _SettingsPageState extends State<SettingsPage> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: PremiumService().isPremium
-                      ? Colors.amber[50]
-                      : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  PremiumService().isPremium
-                      ? Icons.workspace_premium
-                      : Icons.lock_outline,
-                  color: PremiumService().isPremium
-                      ? Colors.amber[700]
-                      : Colors.grey[600],
-                ),
+              leading: Icon(
+                PremiumService().isPremium
+                    ? Icons.workspace_premium
+                    : Icons.lock_outline,
+                color: PremiumService().isPremium
+                    ? Colors.amber[700]
+                    : Colors.grey[600],
               ),
               title: Text(
                 PremiumService().isPremium ? l.premiumLabel : l.premiumFree,
@@ -278,26 +522,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              trailing: PremiumService().isPremium
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.amber[100],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        l.premiumActive,
-                        style: TextStyle(
-                          color: Colors.amber[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    )
-                  : const Icon(Icons.chevron_right),
+              trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(
                   context,
@@ -308,7 +533,8 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const SizedBox(height: 24),
 
-          // --- Legal Links ---
+          _buildSectionHeader('Legal', Icons.gavel_outlined),
+          const SizedBox(height: 8),
           Card(
             elevation: 2,
             shape: RoundedRectangleBorder(
@@ -378,121 +604,47 @@ class _SettingsPageState extends State<SettingsPage> {
 
           _buildSectionHeader(l.dangerZone, Icons.warning_amber_rounded),
           const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF5F5),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFF2B8B5)),
+          Card(
+            color: const Color(0xFFFFF7F6),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: const BorderSide(color: Color(0xFFF2B8B5)),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFE3E0),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.warning_rounded,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Color(0xFFC62828),
+                  ),
+                  title: Text(
+                    l.deleteAccount,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFB71C1C),
+                    ),
+                  ),
+                  subtitle: Text(
+                    l.deleteAccountDesc,
+                    style: const TextStyle(
+                      color: Color(0xFF7F1D1D),
+                      fontSize: 13,
+                    ),
+                  ),
+                  trailing: _isDeletingAccount
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(
+                          Icons.chevron_right,
                           color: Color(0xFFC62828),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l.dangerZone,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFFB71C1C),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l.dangerZoneDesc,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF7F1D1D),
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Material(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: _isDeletingAccount ? null : _deleteAccount,
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFF2B8B5)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFEBEE),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.delete_forever,
-                                color: Color(0xFFC62828),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l.deleteAccount,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFB71C1C),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    l.deleteAccountDesc,
-                                    style: const TextStyle(
-                                      color: Color(0xFF7F1D1D),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            _isDeletingAccount
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.chevron_right,
-                                    color: Color(0xFFC62828),
-                                  ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                  onTap: _isDeletingAccount ? null : _deleteAccount,
+                ),
+              ],
             ),
           ),
 
@@ -509,14 +661,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Column(
               children: [
                 ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.bug_report, color: Colors.red[400]),
-                  ),
+                  leading: Icon(Icons.bug_report, color: Colors.red[400]),
                   title: Text(l.errorLogs),
                   subtitle: Text(l.errorLogsDesc),
                   trailing: const Icon(Icons.chevron_right),
@@ -530,16 +675,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 if (kDebugMode) ...[
                   const Divider(height: 1, indent: 72),
                   ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey[50],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.query_stats,
-                        color: Colors.blueGrey[700],
-                      ),
+                    leading: Icon(
+                      Icons.query_stats,
+                      color: Colors.blueGrey[700],
                     ),
                     title: const Text('Query Plan Debug'),
                     subtitle: const Text(
@@ -562,16 +700,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   builder: (context, snapshot) {
                     final count = snapshot.data ?? 0;
                     return ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.orange[50],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          Icons.analytics_outlined,
-                          color: Colors.orange[400],
-                        ),
+                      leading: Icon(
+                        Icons.analytics_outlined,
+                        color: Colors.orange[400],
                       ),
                       title: Text(l.errorStats),
                       subtitle: Text('$count ${l.totalEntries}'),

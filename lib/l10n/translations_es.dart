@@ -192,6 +192,7 @@ const Map<String, String> esStrings = {
   'lessonTimes': 'Horarios de Asistencia',
   'noScheduleAdded': 'No se han agregado horarios de asistencia.',
   'editLessonTime': 'Editar Horario de Asistencia',
+  'updateLessonTimes': 'Actualizar Horarios de Asistencia',
   'day': 'Día',
   'timeLabel': 'Hora: {time}',
 
@@ -231,6 +232,10 @@ const Map<String, String> esStrings = {
       'Todas las acciones (asistencia, recuperación, etc.) de la clase del {date} se restablecerán.\n\n¿Desea continuar?',
   'resetActionConfirm': 'Deshacer',
   'actionReset': 'Acción deshecha',
+  'pastPeriodUpdateConfirmTitle':
+      'Advertencia de Actualizacion de Periodo Anterior',
+  'pastPeriodUpdateConfirmBody':
+      'Estas actualizando {date} en un periodo anterior. Hay periodos creados despues de este. ¿Estas seguro?',
 
   // Weekly Plan
   'noLessonToday': 'No hay asistencia para este día.',
@@ -246,6 +251,31 @@ const Map<String, String> esStrings = {
   'appLanguage': 'Idioma de la aplicacion',
   'selectAppLanguage': 'Selecciona el idioma de la aplicacion',
   'systemDefaultLanguage': 'Predeterminado del sistema',
+  'notificationSettings': 'Ajustes de Notificaciones',
+  'notificationSettingsDesc':
+      'Elige cuando la app debe enviar notificaciones de programa automaticamente.',
+  'notificationSettingsLoading': 'Cargando...',
+  'notificationSettingsDisabled': 'Todas las notificaciones estan desactivadas',
+  'notificationSettingsSaved': 'Ajustes de notificaciones guardados',
+  'notificationBeforeProgram': 'Recordatorio antes del programa',
+  'notificationBeforeProgramDesc':
+      'Recibe un recordatorio antes de cada hora programada.',
+  'notificationBeforeProgramMinutes': 'Tiempo del recordatorio',
+  'notificationBeforeProgramOff': 'Recordatorio previo desactivado',
+  'notificationMinuteValue': '{minutes} minutos antes',
+  'notificationBeforeProgramSummary': 'Antes del programa: {minutes} min',
+  'notificationMorningPlan': 'Plan diario por la manana',
+  'notificationMorningPlanDesc':
+      'Recibe cada manana la cantidad de programas del dia.',
+  'notificationMorningTime': 'Hora de notificacion matutina',
+  'notificationMorningPlanOff': 'Plan de manana desactivado',
+  'notificationMorningPlanSummary': 'Plan manana: {hour}:{minute}',
+  'notificationSessionReminderTitle': 'Programa Proximo',
+  'notificationSessionReminderBody':
+      '{name} empieza a las {time}. Recordatorio: {minutes} min antes.',
+  'notificationMorningPlanTitle': 'Plan de Hoy',
+  'notificationMorningPlanBody': 'Tienes {count} programa(s) hoy.',
+  'notificationMorningPlanBodyNoSessions': 'No hay programas para hoy.',
   'appInfo': 'Información de la App',
   'versionLabel': 'Versión',
   'buildNumber': 'Número de Build',

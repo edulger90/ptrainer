@@ -143,6 +143,52 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     return l.dayOfWeekByIndex(weekday);
   }
 
+  Future<bool> _confirmPastPeriodUpdateIfNeeded(DateTime day) async {
+    final clientId = widget.client.id;
+    final currentPeriodId = _currentPeriod.id;
+    if (clientId == null || currentPeriodId == null) return true;
+
+    final periods = await _db.getPeriodsByClient(clientId);
+    final currentStart = DateTime.tryParse(_currentPeriod.startDate);
+    if (currentStart == null) return true;
+
+    final hasLaterPeriod = periods.any((period) {
+      if (period.id == currentPeriodId) return false;
+      final periodStart = DateTime.tryParse(period.startDate);
+      if (periodStart == null) return false;
+      return periodStart.isAfter(currentStart);
+    });
+
+    if (!hasLaterPeriod) return true;
+    if (!mounted) return false;
+
+    final l = AppLocalizations.of(context);
+    final dateStr =
+        '${day.day.toString().padLeft(2, '0')}.${day.month.toString().padLeft(2, '0')}.${day.year}';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.pastPeriodUpdateConfirmTitle),
+          content: Text(l.pastPeriodUpdateConfirmBody(dateStr)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.yes),
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed == true;
+  }
+
   List<DateTime> _getLessonDays() {
     if (_cachedLessonDays != null) return _cachedLessonDays!;
     final days = <DateTime>[];
@@ -224,6 +270,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final clientId = widget.client.id;
     final periodId = _currentPeriod.id;
     if (clientId == null || periodId == null) return;
+    if (!await _confirmPastPeriodUpdateIfNeeded(day)) return;
 
     final att = _attendance[day];
     if (att != null && att.cancelled) {
@@ -275,6 +322,8 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final clientId = widget.client.id;
     final periodId = _currentPeriod.id;
     if (clientId == null || periodId == null) return;
+    if (!await _confirmPastPeriodUpdateIfNeeded(day)) return;
+    if (!mounted) return;
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: day,
@@ -319,6 +368,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final clientId = widget.client.id;
     final periodId = _currentPeriod.id;
     if (clientId == null || periodId == null) return;
+    if (!await _confirmPastPeriodUpdateIfNeeded(day)) return;
 
     final att = _attendance[day];
     if (att != null && att.cancelled) {
@@ -499,6 +549,8 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final clientId = widget.client.id;
     final periodId = _currentPeriod.id;
     if (clientId == null || periodId == null) return;
+    if (!await _confirmPastPeriodUpdateIfNeeded(day)) return;
+    if (!mounted) return;
 
     final att = _attendance[day];
     // Henüz bir işlem yapılmamışsa geri alınacak bir şey yok

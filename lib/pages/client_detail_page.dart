@@ -49,20 +49,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
   bool get _showsBodyMeasurements => _client.programType == ProgramType.sport;
 
-  bool _hasScheduleForDay(String dayOfWeek, {int? excludingScheduleId}) {
-    return _schedules.any(
-      (schedule) =>
-          schedule.dayOfWeek == dayOfWeek && schedule.id != excludingScheduleId,
-    );
-  }
-
-  void _showScheduleDayExistsMessage() {
-    final l = AppLocalizations.of(context);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l.scheduleDayAlreadyExists)));
-  }
-
   Set<int> _scheduledWeekdays() {
     return _schedules
         .map((schedule) => TrainerWeekday.fromStorageKey(schedule.dayOfWeek))
@@ -198,59 +184,70 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     );
   }
 
-  Future<void> _showAddScheduleDialog(BuildContext context) async {
-    String selectedDay = _scheduleDays.first.storageKey;
-    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+  Future<void> _showBulkScheduleEditorDialog(BuildContext context) async {
+    final l = AppLocalizations.of(context);
+    final draft = <String, String>{
+      for (final schedule in _schedules) schedule.dayOfWeek: schedule.time,
+    };
 
-    await showDialog(
+    final updatedDraft = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            final l = AppLocalizations.of(context);
             return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: Text(l.addLessonTimeTitle),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedDay,
-                    decoration: InputDecoration(labelText: l.day),
-                    items: _scheduleDays
-                        .map(
-                          (day) => DropdownMenuItem(
-                            value: day.storageKey,
-                            child: Text(day.localized(context)),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setStateDialog(() => selectedDay = value);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: selectedTime,
+              title: Text(l.updateLessonTimes),
+              content: SizedBox(
+                width: 460,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _scheduleDays.map((day) {
+                      final dayKey = day.storageKey;
+                      final selectedTime = draft[dayKey];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                day.localized(context),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            OutlinedButton(
+                              onPressed: () async {
+                                final picked = await showTimePicker(
+                                  context: context,
+                                  initialTime: _parseTime(selectedTime),
+                                );
+                                if (picked == null) return;
+                                final value =
+                                    '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                                setStateDialog(() {
+                                  draft[dayKey] = value;
+                                });
+                              },
+                              child: Text(selectedTime ?? l.selectTime),
+                            ),
+                            if (selectedTime != null)
+                              IconButton(
+                                onPressed: () {
+                                  setStateDialog(() {
+                                    draft.remove(dayKey);
+                                  });
+                                },
+                                icon: const Icon(Icons.close, size: 18),
+                                tooltip: l.delete,
+                              ),
+                          ],
+                        ),
                       );
-                      if (picked != null) {
-                        setStateDialog(() => selectedTime = picked);
-                      }
-                    },
-                    child: Text(
-                      l.timeLabel(
-                        '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
-                      ),
-                    ),
+                    }).toList(),
                   ),
-                ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -258,30 +255,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                   child: Text(l.cancel),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    if (_hasScheduleForDay(selectedDay)) {
-                      Navigator.pop(context);
-                      _showScheduleDayExistsMessage();
-                      return;
-                    }
-
-                    final newSchedule = SessionSchedule(
-                      clientId: widget.client.id,
-                      dayOfWeek: selectedDay,
-                      time:
-                          '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
-                    );
-                    try {
-                      await _db.insertSessionSchedule(newSchedule);
-                      await _loadAllData();
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                    } on DuplicateSessionScheduleDayException {
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      _showScheduleDayExistsMessage();
-                    }
-                  },
+                  onPressed: () => Navigator.pop(context, draft),
                   child: Text(l.save),
                 ),
               ],
@@ -290,6 +264,45 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         );
       },
     );
+
+    if (updatedDraft == null) return;
+
+    final byDay = <String, SessionSchedule>{
+      for (final schedule in _schedules) schedule.dayOfWeek: schedule,
+    };
+
+    for (final existing in byDay.values) {
+      final scheduleId = existing.id;
+      if (scheduleId == null) continue;
+      final newTime = updatedDraft[existing.dayOfWeek];
+      if (newTime == null) {
+        await _db.deleteSessionSchedule(scheduleId);
+        continue;
+      }
+      if (newTime != existing.time) {
+        await _db.updateSessionSchedule(
+          SessionSchedule(
+            id: scheduleId,
+            clientId: existing.clientId,
+            dayOfWeek: existing.dayOfWeek,
+            time: newTime,
+          ),
+        );
+      }
+    }
+
+    for (final entry in updatedDraft.entries) {
+      if (byDay.containsKey(entry.key)) continue;
+      await _db.insertSessionSchedule(
+        SessionSchedule(
+          clientId: widget.client.id,
+          dayOfWeek: entry.key,
+          time: entry.value,
+        ),
+      );
+    }
+
+    await _loadAllData();
   }
 
   Future<void> _deleteSchedule(SessionSchedule schedule) async {
@@ -331,109 +344,8 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     }
   }
 
-  Future<void> _showEditScheduleDialog(
-    BuildContext context,
-    SessionSchedule schedule,
-  ) async {
-    final scheduleId = schedule.id;
-    if (scheduleId == null) return;
-
-    String selectedDay = schedule.dayOfWeek;
-    TimeOfDay selectedTime = _parseTime(schedule.time);
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            final l = AppLocalizations.of(context);
-            return AlertDialog(
-              title: Text(l.editLessonTime),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedDay,
-                    decoration: InputDecoration(labelText: l.day),
-                    items: _scheduleDays
-                        .map(
-                          (day) => DropdownMenuItem(
-                            value: day.storageKey,
-                            child: Text(day.localized(context)),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setStateDialog(() => selectedDay = value);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: selectedTime,
-                      );
-                      if (picked != null) {
-                        setStateDialog(() => selectedTime = picked);
-                      }
-                    },
-                    child: Text(
-                      l.timeLabel(
-                        '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(l.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (selectedDay != schedule.dayOfWeek &&
-                        _hasScheduleForDay(
-                          selectedDay,
-                          excludingScheduleId: scheduleId,
-                        )) {
-                      Navigator.pop(context);
-                      _showScheduleDayExistsMessage();
-                      return;
-                    }
-
-                    final updatedSchedule = SessionSchedule(
-                      id: scheduleId,
-                      clientId: schedule.clientId,
-                      dayOfWeek: selectedDay,
-                      time:
-                          '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
-                    );
-                    try {
-                      await _db.updateSessionSchedule(updatedSchedule);
-                      await _loadAllData();
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                    } on DuplicateSessionScheduleDayException {
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      _showScheduleDayExistsMessage();
-                    }
-                  },
-                  child: Text(l.save),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  TimeOfDay _parseTime(String timeStr) {
+  TimeOfDay _parseTime(String? timeStr) {
+    if (timeStr == null) return const TimeOfDay(hour: 9, minute: 0);
     final parts = timeStr.split(':');
     if (parts.length >= 2) {
       final hour = int.tryParse(parts[0]) ?? 0;
@@ -1289,19 +1201,26 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(10),
-                              onTap: () => _showAddScheduleDialog(context),
+                              onTap: () =>
+                                  _showBulkScheduleEditorDialog(context),
                               child: Container(
-                                padding: const EdgeInsets.all(6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(
                                     0xFF43A047,
                                   ).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(
-                                  Icons.add,
-                                  color: Color(0xFF43A047),
-                                  size: 22,
+                                child: Text(
+                                  l.updateLessonTimes,
+                                  style: const TextStyle(
+                                    color: Color(0xFF2E7D32),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1430,30 +1349,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                               ],
                                             ),
                                           ),
-                                          // Düzenle ikonu
-                                          GestureDetector(
-                                            onTap: () =>
-                                                _showEditScheduleDialog(
-                                                  context,
-                                                  schedule,
-                                                ),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                color: accentColor.withValues(
-                                                  alpha: 0.1,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Icon(
-                                                Icons.edit_outlined,
-                                                size: 18,
-                                                color: accentColor,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
                                           // Sil ikonu
                                           GestureDetector(
                                             onTap: () =>

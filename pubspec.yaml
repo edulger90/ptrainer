@@ -44,6 +44,9 @@ dependencies:
   share_plus: ^10.1.4
   in_app_purchase: ^3.2.3
   url_launcher: ^6.2.5
+  timezone: ^0.10.1
+  flutter_local_notifications: ^20.1.0
+  flutter_timezone: ^5.0.2
 
 dev_dependencies:
   flutter_test:

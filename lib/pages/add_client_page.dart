@@ -29,14 +29,12 @@ class _AddClientPageState extends State<AddClientPage> {
   PackageType _selectedPackageType = PackageType.daily;
   DateTime _registrationDate = DateTime.now();
   String? _error;
-  String? _selectedDay; // Internal key (Turkish for DB compat)
-  String? _selectedTime;
 
   static const List<TrainerWeekday> _scheduleDays = TrainerWeekday.values;
 
   // ...existing code...
 
-  final Map<String, List<String>> _selectedSchedules = {};
+  final Map<String, String> _selectedSchedules = {};
 
   @override
   void dispose() {
@@ -48,13 +46,6 @@ class _AddClientPageState extends State<AddClientPage> {
   String _localizedDay(BuildContext context, String storageKey) {
     return TrainerWeekday.fromStorageKey(storageKey)?.localized(context) ??
         storageKey;
-  }
-
-  void _showScheduleDayExistsMessage() {
-    final l = AppLocalizations.of(context);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l.scheduleDayAlreadyExists)));
   }
 
   Future<void> _saveClient() async {
@@ -101,15 +92,13 @@ class _AddClientPageState extends State<AddClientPage> {
     final clientId = await _db.insertClient(client);
 
     // Save schedules
-    for (final day in _selectedSchedules.keys) {
-      for (final time in _selectedSchedules[day]!) {
-        final schedule = SessionSchedule(
-          clientId: clientId,
-          dayOfWeek: day,
-          time: time,
-        );
-        await _db.insertSessionSchedule(schedule);
-      }
+    for (final entry in _selectedSchedules.entries) {
+      final schedule = SessionSchedule(
+        clientId: clientId,
+        dayOfWeek: entry.key,
+        time: entry.value,
+      );
+      await _db.insertSessionSchedule(schedule);
     }
 
     if (!mounted) return;
@@ -117,119 +106,110 @@ class _AddClientPageState extends State<AddClientPage> {
     Navigator.of(context).pop(createdClient);
   }
 
-  void _showAddScheduleDialog() {
-    setState(() {
-      _selectedDay = null;
-      _selectedTime = null;
-    });
+  Future<void> _showBulkScheduleDialog() async {
+    final draft = <String, String>{..._selectedSchedules};
 
-    showDialog(
+    final updatedSchedules = await showDialog<Map<String, String>>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setStateDialog) {
-          final l = AppLocalizations.of(context);
-          return AlertDialog(
-            title: Text(l.addLessonTimeTitle),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l.selectDay,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: _scheduleDays.map((day) {
-                    final dayKey = day.storageKey;
-                    final isSelected = _selectedDay == dayKey;
-                    final isUsed =
-                        _selectedSchedules.containsKey(dayKey) && !isSelected;
-                    return FilterChip(
-                      label: Text(day.localized(context)),
-                      selected: isSelected,
-                      onSelected: isUsed
-                          ? null
-                          : (selected) {
-                              setStateDialog(() {
-                                _selectedDay = selected ? dayKey : null;
-                              });
-                            },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l.selectTime,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                if (_selectedDay != null)
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final time = await _selectTime();
-                      if (time != null) {
-                        setStateDialog(() {
-                          _selectedTime = time;
-                        });
-                      }
-                    },
-                    icon: const Icon(Icons.schedule),
-                    label: Text(
-                      _selectedTime ?? l.selectTime,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  )
-                else
-                  Text(
-                    l.selectDayFirst,
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final l = AppLocalizations.of(context);
+            return AlertDialog(
+              title: Text(l.addLessonTimeTitle),
+              content: SizedBox(
+                width: 460,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _scheduleDays.map((day) {
+                      final dayKey = day.storageKey;
+                      final selectedTime = draft[dayKey];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                day.localized(context),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            OutlinedButton(
+                              onPressed: () async {
+                                final time = await _selectTime(
+                                  initial: _parseTime(selectedTime),
+                                );
+                                if (time == null) return;
+                                setStateDialog(() {
+                                  draft[dayKey] = time;
+                                });
+                              },
+                              child: Text(selectedTime ?? l.selectTime),
+                            ),
+                            if (selectedTime != null)
+                              IconButton(
+                                onPressed: () {
+                                  setStateDialog(() {
+                                    draft.remove(dayKey);
+                                  });
+                                },
+                                icon: const Icon(Icons.close, size: 18),
+                                tooltip: l.delete,
+                              ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, draft),
+                  child: Text(l.save),
+                ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.cancel),
-              ),
-              ElevatedButton(
-                onPressed: (_selectedDay != null && _selectedTime != null)
-                    ? () {
-                        if (_selectedSchedules.containsKey(_selectedDay)) {
-                          Navigator.pop(context);
-                          _showScheduleDayExistsMessage();
-                          return;
-                        }
-                        setState(() {
-                          if (!_selectedSchedules.containsKey(_selectedDay)) {
-                            _selectedSchedules[_selectedDay!] = [];
-                          }
-                          _selectedSchedules[_selectedDay!]!.add(
-                            _selectedTime!,
-                          );
-                        });
-                        Navigator.pop(context);
-                      }
-                    : null,
-                child: Text(l.add),
-              ),
-            ],
-          );
-        },
-      ),
+            );
+          },
+        );
+      },
     );
+
+    if (updatedSchedules == null) return;
+    setState(() {
+      _selectedSchedules
+        ..clear()
+        ..addAll(updatedSchedules);
+    });
   }
 
-  Future<String?> _selectTime() async {
+  Future<String?> _selectTime({TimeOfDay? initial}) async {
     final picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: initial ?? TimeOfDay.now(),
     );
     if (picked != null) {
       return '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
     }
     return null;
+  }
+
+  TimeOfDay _parseTime(String? timeStr) {
+    if (timeStr == null) return const TimeOfDay(hour: 10, minute: 0);
+    final parts = timeStr.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0]) ?? 10;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      return TimeOfDay(hour: hour, minute: minute);
+    }
+    return const TimeOfDay(hour: 10, minute: 0);
   }
 
   @override
@@ -383,7 +363,7 @@ class _AddClientPageState extends State<AddClientPage> {
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
-                  onPressed: _showAddScheduleDialog,
+                  onPressed: _showBulkScheduleDialog,
                   icon: const Icon(Icons.add),
                   label: Text(l.addLessonTime),
                 ),
@@ -404,13 +384,13 @@ class _AddClientPageState extends State<AddClientPage> {
                     itemCount: _selectedSchedules.length,
                     itemBuilder: (context, index) {
                       final day = _selectedSchedules.keys.toList()[index];
-                      final times = _selectedSchedules[day]!;
+                      final time = _selectedSchedules[day]!;
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8.0),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 _localizedDay(context, day),
@@ -419,41 +399,10 @@ class _AddClientPageState extends State<AddClientPage> {
                                   fontSize: 14,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              ...times.asMap().entries.map((e) {
-                                final timeIndex = e.key;
-                                final time = e.value;
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 4.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(time),
-                                      IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            _selectedSchedules[day]!.removeAt(
-                                              timeIndex,
-                                            );
-                                            if (_selectedSchedules[day]!
-                                                .isEmpty) {
-                                              _selectedSchedules.remove(day);
-                                            }
-                                          });
-                                        },
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                          size: 18,
-                                        ),
-                                        padding: const EdgeInsets.all(0),
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }),
+                              Text(
+                                time,
+                                style: TextStyle(color: Colors.grey[700]),
+                              ),
                             ],
                           ),
                         ),

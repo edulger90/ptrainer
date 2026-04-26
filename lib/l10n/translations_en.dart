@@ -193,6 +193,7 @@ const Map<String, String> enStrings = {
   'lessonTimes': 'Attendance Times',
   'noScheduleAdded': 'No attendance times added.',
   'editLessonTime': 'Edit Attendance Time',
+  'updateLessonTimes': 'Update Attendance Times',
   'day': 'Day',
   'timeLabel': 'Time: {time}',
 
@@ -232,6 +233,9 @@ const Map<String, String> enStrings = {
       'All actions (attendance, makeup, etc.) for the attendance on {date} will be reset.\n\nDo you want to continue?',
   'resetActionConfirm': 'Undo',
   'actionReset': 'Action undone',
+  'pastPeriodUpdateConfirmTitle': 'Past Period Update Warning',
+  'pastPeriodUpdateConfirmBody':
+      'You are updating {date} in a past period. There are periods created after this one. Are you sure?',
 
   // Weekly Plan
   'noLessonToday': 'No attendance for this day.',
@@ -247,6 +251,31 @@ const Map<String, String> enStrings = {
   'appLanguage': 'App Language',
   'selectAppLanguage': 'Select app language',
   'systemDefaultLanguage': 'System Default',
+  'notificationSettings': 'Notification Settings',
+  'notificationSettingsDesc':
+      'Choose when the app should send schedule notifications automatically.',
+  'notificationSettingsLoading': 'Loading...',
+  'notificationSettingsDisabled': 'All notifications are off',
+  'notificationSettingsSaved': 'Notification settings saved',
+  'notificationBeforeProgram': 'Reminder before program',
+  'notificationBeforeProgramDesc':
+      'Get a reminder before each planned program time.',
+  'notificationBeforeProgramMinutes': 'Reminder time',
+  'notificationBeforeProgramOff': 'Before-program reminder off',
+  'notificationMinuteValue': '{minutes} minutes before',
+  'notificationBeforeProgramSummary': 'Before program: {minutes} min',
+  'notificationMorningPlan': 'Morning daily plan',
+  'notificationMorningPlanDesc':
+      'Receive the number of today\'s programs each morning.',
+  'notificationMorningTime': 'Morning notification time',
+  'notificationMorningPlanOff': 'Morning plan off',
+  'notificationMorningPlanSummary': 'Morning plan: {hour}:{minute}',
+  'notificationSessionReminderTitle': 'Upcoming Program',
+  'notificationSessionReminderBody':
+      '{name} starts at {time}. Reminder: {minutes} min before.',
+  'notificationMorningPlanTitle': 'Today\'s Program Plan',
+  'notificationMorningPlanBody': 'You have {count} program(s) today.',
+  'notificationMorningPlanBodyNoSessions': 'No programs are planned for today.',
   'appInfo': 'App Info',
   'versionLabel': 'Version',
   'buildNumber': 'Build Number',

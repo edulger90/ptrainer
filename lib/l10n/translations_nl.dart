@@ -194,6 +194,7 @@ const Map<String, String> nlStrings = {
   'lessonTimes': 'Aanwezigheidstijden',
   'noScheduleAdded': 'Geen aanwezigheidstijden toegevoegd.',
   'editLessonTime': 'Aanwezigheidstijd Bewerken',
+  'updateLessonTimes': 'Aanwezigheidstijden Bijwerken',
   'day': 'Dag',
   'timeLabel': 'Tijd: {time}',
 
@@ -233,6 +234,9 @@ const Map<String, String> nlStrings = {
       'Alle acties (aanwezigheid, inhaalles, etc.) voor de les op {date} worden gereset.\n\nWilt u doorgaan?',
   'resetActionConfirm': 'Ongedaan Maken',
   'actionReset': 'Actie ongedaan gemaakt',
+  'pastPeriodUpdateConfirmTitle': 'Waarschuwing Vorige Periode Bijwerken',
+  'pastPeriodUpdateConfirmBody':
+      'Je werkt {date} bij in een vorige periode. Er zijn periodes aangemaakt na deze periode. Weet je het zeker?',
 
   // Weekly Plan
   'noLessonToday': 'Geen aanwezigheid voor deze dag.',
@@ -248,6 +252,32 @@ const Map<String, String> nlStrings = {
   'appLanguage': 'App-taal',
   'selectAppLanguage': 'Selecteer app-taal',
   'systemDefaultLanguage': 'Standaard van systeem',
+  'notificationSettings': 'Meldingsinstellingen',
+  'notificationSettingsDesc':
+      'Kies wanneer de app automatisch programmameldingen moet sturen.',
+  'notificationSettingsLoading': 'Bezig met laden...',
+  'notificationSettingsDisabled': 'Alle meldingen staan uit',
+  'notificationSettingsSaved': 'Meldingsinstellingen opgeslagen',
+  'notificationBeforeProgram': 'Herinnering voor programma',
+  'notificationBeforeProgramDesc':
+      'Ontvang een herinnering voor elke geplande programmatijd.',
+  'notificationBeforeProgramMinutes': 'Herinneringstijd',
+  'notificationBeforeProgramOff': 'Vooraf-herinnering uit',
+  'notificationMinuteValue': '{minutes} minuten van tevoren',
+  'notificationBeforeProgramSummary': 'Voor programma: {minutes} min',
+  'notificationMorningPlan': 'Ochtend dagplanning',
+  'notificationMorningPlanDesc':
+      'Ontvang elke ochtend het aantal programma\'s van vandaag.',
+  'notificationMorningTime': 'Tijd ochtendmelding',
+  'notificationMorningPlanOff': 'Ochtendplanning uit',
+  'notificationMorningPlanSummary': 'Ochtendplanning: {hour}:{minute}',
+  'notificationSessionReminderTitle': 'Aankomend Programma',
+  'notificationSessionReminderBody':
+      '{name} start om {time}. Herinnering: {minutes} min van tevoren.',
+  'notificationMorningPlanTitle': 'Vandaag\'s Programmaplan',
+  'notificationMorningPlanBody': 'Je hebt vandaag {count} programma(\'s).',
+  'notificationMorningPlanBodyNoSessions':
+      'Er zijn vandaag geen programma\'s gepland.',
   'appInfo': 'App Informatie',
   'versionLabel': 'Versie',
   'buildNumber': 'Build Nummer',

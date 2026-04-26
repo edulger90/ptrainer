@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'app_language_service.dart';
 import 'error_logger.dart';
+import 'notification_service.dart';
 import 'premium_service.dart';
 
 class StartupService {
@@ -19,6 +20,8 @@ class StartupService {
 
         await AppLanguageService().load();
         PremiumService().init();
+        await NotificationService.instance.initialize();
+        await NotificationService.instance.rescheduleFromSavedSettings();
 
         await appRunner();
         _logAppStart();

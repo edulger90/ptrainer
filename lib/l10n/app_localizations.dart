@@ -300,6 +300,7 @@ class AppLocalizations {
   String get lessonTimes => get('lessonTimes');
   String get noScheduleAdded => get('noScheduleAdded');
   String get editLessonTime => get('editLessonTime');
+  String get updateLessonTimes => get('updateLessonTimes');
   String get day => get('day');
   String timeLabel(String time) => get('timeLabel').replaceAll('{time}', time);
 
@@ -340,6 +341,10 @@ class AppLocalizations {
       get('resetActionBody').replaceAll('{date}', date);
   String get resetActionConfirm => get('resetActionConfirm');
   String get actionReset => get('actionReset');
+  String get pastPeriodUpdateConfirmTitle =>
+      get('pastPeriodUpdateConfirmTitle');
+  String pastPeriodUpdateConfirmBody(String date) =>
+      get('pastPeriodUpdateConfirmBody').replaceAll('{date}', date);
 
   // ── Weekly Plan ──
   String get noLessonToday => get('noLessonToday');
@@ -356,6 +361,48 @@ class AppLocalizations {
   String get appLanguage => get('appLanguage');
   String get selectAppLanguage => get('selectAppLanguage');
   String get systemDefaultLanguage => get('systemDefaultLanguage');
+  String get notificationSettings => get('notificationSettings');
+  String get notificationSettingsDesc => get('notificationSettingsDesc');
+  String get notificationSettingsLoading => get('notificationSettingsLoading');
+  String get notificationSettingsDisabled =>
+      get('notificationSettingsDisabled');
+  String get notificationSettingsSaved => get('notificationSettingsSaved');
+  String get notificationBeforeProgram => get('notificationBeforeProgram');
+  String get notificationBeforeProgramDesc =>
+      get('notificationBeforeProgramDesc');
+  String get notificationBeforeProgramMinutes =>
+      get('notificationBeforeProgramMinutes');
+  String get notificationBeforeProgramOff =>
+      get('notificationBeforeProgramOff');
+  String get notificationMorningPlan => get('notificationMorningPlan');
+  String get notificationMorningPlanDesc => get('notificationMorningPlanDesc');
+  String get notificationMorningTime => get('notificationMorningTime');
+  String get notificationMorningPlanOff => get('notificationMorningPlanOff');
+  String notificationMinuteValue(int minutes) =>
+      get('notificationMinuteValue').replaceAll('{minutes}', '$minutes');
+  String notificationBeforeProgramSummary(int minutes) => get(
+    'notificationBeforeProgramSummary',
+  ).replaceAll('{minutes}', '$minutes');
+  String notificationMorningPlanSummary(int hour, int minute) =>
+      get('notificationMorningPlanSummary')
+          .replaceAll('{hour}', hour.toString().padLeft(2, '0'))
+          .replaceAll('{minute}', minute.toString().padLeft(2, '0'));
+  String get notificationSessionReminderTitle =>
+      get('notificationSessionReminderTitle');
+  String notificationSessionReminderBody(
+    String clientName,
+    String time,
+    int minutes,
+  ) => get('notificationSessionReminderBody')
+      .replaceAll('{name}', clientName)
+      .replaceAll('{time}', time)
+      .replaceAll('{minutes}', '$minutes');
+  String get notificationMorningPlanTitle =>
+      get('notificationMorningPlanTitle');
+  String notificationMorningPlanBody(int count) =>
+      get('notificationMorningPlanBody').replaceAll('{count}', '$count');
+  String get notificationMorningPlanBodyNoSessions =>
+      get('notificationMorningPlanBodyNoSessions');
   String get appInfo => get('appInfo');
   String get versionLabel => get('versionLabel');
   String get buildNumber => get('buildNumber');

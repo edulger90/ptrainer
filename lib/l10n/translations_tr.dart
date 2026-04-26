@@ -190,6 +190,7 @@ const Map<String, String> trStrings = {
   'lessonTimes': 'Katılım Saatleri',
   'noScheduleAdded': 'Henüz katılım saati eklenmemiş.',
   'editLessonTime': 'Katılım Saati Düzenle',
+  'updateLessonTimes': 'Katılım Saatlerini Güncelle',
   'day': 'Gün',
   'timeLabel': 'Saat: {time}',
 
@@ -229,6 +230,9 @@ const Map<String, String> trStrings = {
       '{date} tarihli katılım için yapılan tüm işlemler (yoklama, telafi, vb.) geri alınacak.\n\nDevam etmek istiyor musunuz?',
   'resetActionConfirm': 'Geri Al',
   'actionReset': 'İşlem geri alındı',
+  'pastPeriodUpdateConfirmTitle': 'Gecmis Donem Guncelleme Uyarisi',
+  'pastPeriodUpdateConfirmBody':
+      '{date} tarihli guncellemeyi gecmis donem icin yapiyorsunuz. Bu perioddan sonra acilmis periodlar var. Emin misiniz?',
 
   // Weekly Plan
   'noLessonToday': 'Bu gün için katılım yok.',
@@ -244,6 +248,31 @@ const Map<String, String> trStrings = {
   'appLanguage': 'Uygulama Dili',
   'selectAppLanguage': 'Uygulama dilini sec',
   'systemDefaultLanguage': 'Sistem Varsayilani',
+  'notificationSettings': 'Bildirim Ayarları',
+  'notificationSettingsDesc':
+      'Uygulamanın program bildirimlerini ne zaman otomatik göndereceğini seçin.',
+  'notificationSettingsLoading': 'Yukleniyor...',
+  'notificationSettingsDisabled': 'Tum bildirimler kapali',
+  'notificationSettingsSaved': 'Bildirim ayarlari kaydedildi',
+  'notificationBeforeProgram': 'Program oncesi hatirlatma',
+  'notificationBeforeProgramDesc':
+      'Planlanan her program saatinden once hatirlatma al.',
+  'notificationBeforeProgramMinutes': 'Hatirlatma suresi',
+  'notificationBeforeProgramOff': 'Program oncesi hatirlatma kapali',
+  'notificationMinuteValue': 'Programdan {minutes} dk once',
+  'notificationBeforeProgramSummary': 'Program oncesi: {minutes} dk',
+  'notificationMorningPlan': 'Sabah gunluk plan bildirimi',
+  'notificationMorningPlanDesc':
+      'Her sabah bugunku program sayisini bildirim olarak al.',
+  'notificationMorningTime': 'Sabah bildirim saati',
+  'notificationMorningPlanOff': 'Sabah plan bildirimi kapali',
+  'notificationMorningPlanSummary': 'Sabah plani: {hour}:{minute}',
+  'notificationSessionReminderTitle': 'Yaklasan Program',
+  'notificationSessionReminderBody':
+      '{name} programi {time} saatinde basliyor. Hatirlatma: {minutes} dk once.',
+  'notificationMorningPlanTitle': 'Bugunku Program Plani',
+  'notificationMorningPlanBody': 'Bugun {count} programiniz var.',
+  'notificationMorningPlanBodyNoSessions': 'Bugun planlanmis program yok.',
   'appInfo': 'Uygulama Bilgileri',
   'versionLabel': 'Versiyon',
   'buildNumber': 'Build Numarası',
