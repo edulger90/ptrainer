@@ -242,8 +242,8 @@ class ErrorLogger {
 /// pubspec.yaml'daki version alanından alınır.
 class AppVersionInfo {
   // Bu değerler her build'de güncellenmelidir
-  static const String version = '1.0.6';
-  static const String buildNumber = '14';
+  static const String version = '1.0.7';
+  static const String buildNumber = '15';
   static const String fullVersion = '$version+$buildNumber';
   static const String copyrightNotice =
       'Copyright © 2026 Ece Geçit. All rights reserved.';

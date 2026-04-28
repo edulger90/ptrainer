@@ -350,10 +350,14 @@ class AppLocalizations {
   String get noLessonToday => get('noLessonToday');
   String get thisWeek => get('thisWeek');
   String get nextWeek => get('nextWeek');
+  String get weeklyAttendanceListTitle => get('weeklyAttendanceListTitle');
+  String get markAttendanceDone => get('markAttendanceDone');
   String get makeup => get('makeup');
   String periodLabel(int index) =>
       get('periodLabel').replaceAll('{index}', '$index');
   String get noPeriod => get('noPeriod');
+  String scheduleRealignedPendingLessons(int count) =>
+      get('scheduleRealignedPendingLessons').replaceAll('{count}', '$count');
 
   // ── Settings & About ──
   String get settings => get('settings');

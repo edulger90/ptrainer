@@ -1,14 +1,20 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/attendance_record.dart';
 import '../models/client.dart';
+import '../models/lesson_reason.dart';
+import '../models/period.dart';
+import '../models/program_type.dart';
 import '../models/session_schedule.dart';
 import '../models/trainer_weekday.dart';
 import '../models/week_range.dart';
 import '../models/user.dart';
 import '../services/attendance_service.dart';
+import '../services/attendance_actions_service.dart';
 import '../services/calendar_service.dart';
+import '../services/database.dart';
 import '../services/period_service.dart';
 import '../services/screen_preload_service.dart';
 
@@ -18,6 +24,11 @@ class WeekClientInfo {
   final bool isMakeup;
   final WeekEntrySource source;
   final LessonAttendanceStatus status;
+  final DateTime lessonDate;
+  final int? periodId;
+  final bool hasAttendanceRecord;
+  final AttendanceRecord? attendanceRecord;
+  final Set<int> lessonWeekdays;
 
   const WeekClientInfo({
     required this.client,
@@ -25,10 +36,39 @@ class WeekClientInfo {
     required this.isMakeup,
     required this.source,
     required this.status,
+    required this.lessonDate,
+    required this.periodId,
+    required this.hasAttendanceRecord,
+    required this.attendanceRecord,
+    required this.lessonWeekdays,
   });
+
+  WeekClientInfo copyWith({
+    LessonAttendanceStatus? status,
+    bool? hasAttendanceRecord,
+    AttendanceRecord? attendanceRecord,
+    bool clearAttendanceRecord = false,
+  }) {
+    return WeekClientInfo(
+      client: client,
+      time: time,
+      isMakeup: isMakeup,
+      source: source,
+      status: status ?? this.status,
+      lessonDate: lessonDate,
+      periodId: periodId,
+      hasAttendanceRecord: hasAttendanceRecord ?? this.hasAttendanceRecord,
+      attendanceRecord: clearAttendanceRecord
+          ? null
+          : (attendanceRecord ?? this.attendanceRecord),
+      lessonWeekdays: lessonWeekdays,
+    );
+  }
 }
 
 enum WeekEntrySource { attendance, makeup, schedule }
+
+enum _DayEntryAction { toggleAttendance, setMakeup, cancelOrUndo, reset }
 
 class ThisWeekWidget extends StatefulWidget {
   final User currentUser;
@@ -42,9 +82,11 @@ class ThisWeekWidget extends StatefulWidget {
 class _ThisWeekWidgetState extends State<ThisWeekWidget>
     with WidgetsBindingObserver {
   final _attendanceService = AttendanceService();
+  final _attendanceActionsService = AttendanceActionsService();
   final _calendarService = CalendarService();
   final _periodService = PeriodService();
   final _screenPreloadService = ScreenPreloadService();
+  final _db = AppDatabase();
   final _weekScrollController = ScrollController();
 
   late final WeekRange _currentWeek;
@@ -83,7 +125,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
     _loadWeekData();
   }
 
-  Future<void> _loadWeekData() async {
+  Future<void> _loadWeekData({bool recenterToday = true}) async {
     final userId = widget.currentUser.id;
     if (userId == null) {
       if (!mounted) return;
@@ -118,6 +160,10 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       final schedules = preload.schedules;
       final attendanceRecords = preload.weeklyAttendance;
       final handledLessonDays = <String>{};
+      final lessonWeekdays = schedules
+          .map((s) => TrainerWeekday.fromStorageKey(s.dayOfWeek)?.weekdayNumber)
+          .whereType<int>()
+          .toSet();
 
       for (final attendance in attendanceRecords) {
         final lessonDate = attendance.lessonDate;
@@ -147,6 +193,11 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
                   ? WeekEntrySource.makeup
                   : WeekEntrySource.attendance,
               status: resolvedEntry.status,
+              lessonDate: attendance.lessonDate ?? resolvedEntry.showDate,
+              periodId: attendance.periodId,
+              hasAttendanceRecord: true,
+              attendanceRecord: attendance,
+              lessonWeekdays: lessonWeekdays,
             ),
           );
         }
@@ -172,6 +223,11 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
               isMakeup: false,
               source: WeekEntrySource.schedule,
               status: LessonAttendanceStatus.pending,
+              lessonDate: lessonDate,
+              periodId: _findPeriodIdForDay(preload.periods, lessonDate),
+              hasAttendanceRecord: false,
+              attendanceRecord: null,
+              lessonWeekdays: lessonWeekdays,
             ),
           );
         }
@@ -188,10 +244,12 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       _isLoading = false;
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToTodayCard(animated: false);
-      _updateVisibleWeekFromScroll();
-    });
+    if (recenterToday) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToTodayCard(animated: false);
+        _updateVisibleWeekFromScroll();
+      });
+    }
   }
 
   void _handleWeekScroll() {
@@ -248,6 +306,500 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       return;
     }
     _weekScrollController.jumpTo(target);
+  }
+
+  int? _findPeriodIdForDay(List<Period> periods, DateTime lessonDate) {
+    for (final period in periods) {
+      final periodId = period.id;
+      if (periodId == null) continue;
+      final start = DateTime.parse(period.startDate);
+      final end = _periodService.effectiveEnd(period);
+      if (!start.isAfter(lessonDate) && !end.isBefore(lessonDate)) {
+        return periodId;
+      }
+    }
+    return null;
+  }
+
+  List<LessonReason> _reasonOptionsForClient(Client client) {
+    if (client.programType == ProgramType.personal) {
+      return const [
+        LessonReason.resmiTatil,
+        LessonReason.hastalik,
+        LessonReason.other,
+      ];
+    }
+
+    return const [
+      LessonReason.resmiTatil,
+      LessonReason.sporcuHasta,
+      LessonReason.trainerHasta,
+      LessonReason.sporcuKisisel,
+      LessonReason.trainerKisisel,
+    ];
+  }
+
+  Future<_ReasonSelection?> _pickReasonDialog(Client client) async {
+    final l = AppLocalizations.of(context);
+    final reasonOptions = _reasonOptionsForClient(client);
+
+    return showDialog<_ReasonSelection>(
+      context: context,
+      builder: (context) {
+        return _ReasonPickerDialog(l: l, reasonOptions: reasonOptions);
+      },
+    );
+  }
+
+  Future<bool> _confirmPastPeriodUpdateIfNeeded(WeekClientInfo info) async {
+    final clientId = info.client.id;
+    final currentPeriodId = info.periodId;
+    if (clientId == null || currentPeriodId == null) return false;
+
+    final hasLaterPeriod = await _attendanceActionsService
+        .requiresPastPeriodConfirmation(
+          clientId: clientId,
+          currentPeriodId: currentPeriodId,
+        );
+
+    if (!hasLaterPeriod) return true;
+    if (!mounted) return false;
+
+    final l = AppLocalizations.of(context);
+    final dateStr =
+        '${info.lessonDate.day.toString().padLeft(2, '0')}.${info.lessonDate.month.toString().padLeft(2, '0')}.${info.lessonDate.year}';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.pastPeriodUpdateConfirmTitle),
+          content: Text(l.pastPeriodUpdateConfirmBody(dateStr)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.yes),
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed == true;
+  }
+
+  Future<bool> _toggleAttendanceForEntry(WeekClientInfo info) async {
+    final clientId = info.client.id;
+    final periodId = info.periodId;
+    if (clientId == null || periodId == null) return false;
+    if (!await _confirmPastPeriodUpdateIfNeeded(info)) return false;
+
+    final att = info.attendanceRecord;
+    if (att != null && att.cancelled) {
+      return false;
+    }
+
+    await _attendanceActionsService.toggleAttendance(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: info.lessonDate,
+      existingAttendance: att,
+    );
+
+    return true;
+  }
+
+  Future<bool> _setMakeupForEntry(WeekClientInfo info) async {
+    final clientId = info.client.id;
+    final periodId = info.periodId;
+    if (clientId == null || periodId == null) return false;
+    if (!await _confirmPastPeriodUpdateIfNeeded(info)) return false;
+
+    final att = info.attendanceRecord;
+    if (att != null && att.cancelled) return false;
+
+    final period = await _db.getPeriodById(periodId);
+    if (period == null || !mounted) return false;
+
+    final periodStart = DateTime.parse(period.startDate);
+    final periodEnd = _periodService.effectiveEnd(period);
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: info.lessonDate,
+      firstDate: periodStart,
+      lastDate: periodEnd.add(const Duration(days: 60)),
+    );
+    if (pickedDate == null || !mounted) return false;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (pickedTime == null || !mounted) return false;
+
+    final selection = await _pickReasonDialog(info.client);
+    if (selection == null) return false;
+
+    final makeupDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    await _attendanceActionsService.setMakeup(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: info.lessonDate,
+      makeupDateTime: makeupDateTime,
+      reason: selection.reason.index,
+      reasonNote: selection.note,
+    );
+
+    return true;
+  }
+
+  Future<bool> _cancelLessonForEntry(WeekClientInfo info) async {
+    final clientId = info.client.id;
+    final periodId = info.periodId;
+    if (clientId == null || periodId == null) return false;
+    if (!await _confirmPastPeriodUpdateIfNeeded(info)) return false;
+
+    final att = info.attendanceRecord;
+    if (att != null && att.cancelled) {
+      return _unCancelLessonForEntry(info);
+    }
+
+    final selection = await _pickReasonDialog(info.client);
+    if (selection == null || !mounted) return false;
+
+    final l = AppLocalizations.of(context);
+    final dateStr =
+        '${info.lessonDate.day.toString().padLeft(2, '0')}.${info.lessonDate.month.toString().padLeft(2, '0')}.${info.lessonDate.year}';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.cancelLesson),
+          content: Text(l.cancelLessonBody(dateStr)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.giveUp),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC8A415),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.confirmCancel),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return false;
+
+    final addToEnd = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.addLessonToPeriodEndTitle),
+          content: Text(l.addLessonToPeriodEndBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.no),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00897B),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.yes),
+            ),
+          ],
+        );
+      },
+    );
+
+    await _attendanceActionsService.cancelLesson(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: info.lessonDate,
+      addToEnd: addToEnd == true,
+      reason: selection.reason.index,
+      reasonNote: selection.note,
+      lessonWeekdays: info.lessonWeekdays,
+    );
+
+    return true;
+  }
+
+  Future<bool> _unCancelLessonForEntry(WeekClientInfo info) async {
+    final clientId = info.client.id;
+    final periodId = info.periodId;
+    if (clientId == null || periodId == null || !mounted) return false;
+
+    final l = AppLocalizations.of(context);
+    final dateStr =
+        '${info.lessonDate.day.toString().padLeft(2, '0')}.${info.lessonDate.month.toString().padLeft(2, '0')}.${info.lessonDate.year}';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.undoCancel),
+          content: Text(l.undoCancelBody(dateStr)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.giveUp),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.confirmUndo),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) return false;
+
+    await _attendanceActionsService.undoCancelledLesson(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: info.lessonDate,
+      lessonWeekdays: info.lessonWeekdays,
+    );
+
+    return true;
+  }
+
+  Future<bool> _resetEntry(WeekClientInfo info) async {
+    final clientId = info.client.id;
+    final periodId = info.periodId;
+    final att = info.attendanceRecord;
+    if (clientId == null || periodId == null || att == null || !mounted) {
+      return false;
+    }
+    if (!await _confirmPastPeriodUpdateIfNeeded(info)) return false;
+
+    final l = AppLocalizations.of(context);
+    final dateStr =
+        '${info.lessonDate.day.toString().padLeft(2, '0')}.${info.lessonDate.month.toString().padLeft(2, '0')}.${info.lessonDate.year}';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.resetAction),
+          content: Text(l.resetActionBody(dateStr)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.giveUp),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.resetActionConfirm),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) return false;
+
+    await _attendanceActionsService.resetAttendance(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: info.lessonDate,
+      existingAttendance: att,
+      lessonWeekdays: info.lessonWeekdays,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.actionReset)));
+    }
+
+    return true;
+  }
+
+  String _formatDayLabel(DateTime day, BuildContext context) {
+    final weekdayLabel = TrainerWeekday.fromDate(day)?.localized(context) ?? '';
+    final dayText = day.day.toString().padLeft(2, '0');
+    final monthText = day.month.toString().padLeft(2, '0');
+    return '$weekdayLabel $dayText/$monthText';
+  }
+
+  Future<void> _openDayAttendanceSheet(DateTime day) async {
+    final l = AppLocalizations.of(context);
+    final dayKey = _dayKeyFor(day);
+    final dayEntries = _weekData[dayKey] ?? const <WeekClientInfo>[];
+    if (dayEntries.isEmpty || !mounted) return;
+
+    var localEntries = List<WeekClientInfo>.from(dayEntries);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _formatDayLabel(day, sheetContext),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l.weeklyAttendanceListTitle,
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: localEntries.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final entry = localEntries[index];
+                          final currentAttendance = entry.attendanceRecord;
+                          final isCancelled =
+                              currentAttendance?.cancelled == true ||
+                              entry.status == LessonAttendanceStatus.cancelled;
+                          final isAttended =
+                              entry.status == LessonAttendanceStatus.attended;
+                          final canReset = currentAttendance != null;
+
+                          Future<void> refreshDayEntries() async {
+                            await _loadWeekData(recenterToday: false);
+                            if (!mounted) return;
+                            setSheetState(() {
+                              localEntries = List<WeekClientInfo>.from(
+                                _weekData[dayKey] ?? const <WeekClientInfo>[],
+                              );
+                            });
+                          }
+
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Text(
+                              entry.time,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            title: Text(
+                              entry.client.fullName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: isCancelled ? Text(l.cancelled) : null,
+                            trailing: PopupMenuButton<_DayEntryAction>(
+                              tooltip: l.settings,
+                              icon: const Icon(Icons.more_vert),
+                              onSelected: (_DayEntryAction action) async {
+                                switch (action) {
+                                  case _DayEntryAction.toggleAttendance:
+                                    if (isCancelled) return;
+                                    final changed =
+                                        await _toggleAttendanceForEntry(entry);
+                                    if (!changed) return;
+                                    await refreshDayEntries();
+                                    return;
+                                  case _DayEntryAction.setMakeup:
+                                    if (isCancelled) return;
+                                    final changed = await _setMakeupForEntry(
+                                      entry,
+                                    );
+                                    if (!changed) return;
+                                    await refreshDayEntries();
+                                    return;
+                                  case _DayEntryAction.cancelOrUndo:
+                                    final changed = await _cancelLessonForEntry(
+                                      entry,
+                                    );
+                                    if (!changed) return;
+                                    await refreshDayEntries();
+                                    return;
+                                  case _DayEntryAction.reset:
+                                    if (!canReset) return;
+                                    final changed = await _resetEntry(entry);
+                                    if (!changed) return;
+                                    await refreshDayEntries();
+                                    return;
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem<_DayEntryAction>(
+                                  value: _DayEntryAction.toggleAttendance,
+                                  enabled: !isCancelled,
+                                  child: Text(
+                                    isAttended
+                                        ? l.resetAction
+                                        : l.markAttendanceDone,
+                                  ),
+                                ),
+                                PopupMenuItem<_DayEntryAction>(
+                                  value: _DayEntryAction.setMakeup,
+                                  enabled: !isCancelled,
+                                  child: Text(l.selectMakeupDate),
+                                ),
+                                PopupMenuItem<_DayEntryAction>(
+                                  value: _DayEntryAction.cancelOrUndo,
+                                  child: Text(
+                                    isCancelled
+                                        ? l.undoCancelTooltip
+                                        : l.cancelAndPostpone,
+                                  ),
+                                ),
+                                PopupMenuItem<_DayEntryAction>(
+                                  value: _DayEntryAction.reset,
+                                  enabled: canReset,
+                                  child: Text(l.resetAction),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   DateTime get _displayStart => _currentWeek.start;
@@ -352,54 +904,57 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
         day.day == today.day;
     final clients = _weekData[_dayKeyFor(day)] ?? const <WeekClientInfo>[];
 
-    return Container(
-      width: _cardWidthFor(clients),
-      margin: const EdgeInsets.only(right: 8),
-      constraints: const BoxConstraints(minHeight: 136),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: isToday
-            ? const Color(0xFF00897B).withValues(alpha: 0.08)
-            : Colors.grey[50],
-        borderRadius: BorderRadius.circular(14),
-        border: isToday
-            ? Border.all(color: const Color(0xFF00897B), width: 1.5)
-            : Border.all(color: Colors.grey[200]!, width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '${TrainerWeekday.fromDate(day)?.localized(context) ?? ''} ${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: isToday ? const Color(0xFF00897B) : Colors.grey[700],
-              ),
-            ),
-          ),
-          const Divider(height: 12, thickness: 0.5),
-          if (clients.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Center(
-                child: Text(
-                  '-',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 13),
+    return GestureDetector(
+      onDoubleTap: clients.isEmpty ? null : () => _openDayAttendanceSheet(day),
+      child: Container(
+        width: _cardWidthFor(clients),
+        margin: const EdgeInsets.only(right: 8),
+        constraints: const BoxConstraints(minHeight: 136),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isToday
+              ? const Color(0xFF00897B).withValues(alpha: 0.08)
+              : Colors.grey[50],
+          borderRadius: BorderRadius.circular(14),
+          border: isToday
+              ? Border.all(color: const Color(0xFF00897B), width: 1.5)
+              : Border.all(color: Colors.grey[200]!, width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${TrainerWeekday.fromDate(day)?.localized(context) ?? ''} ${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: isToday ? const Color(0xFF00897B) : Colors.grey[700],
                 ),
               ),
-            )
-          else
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: clients.map(_buildClientText).toList(),
             ),
-        ],
+            const Divider(height: 12, thickness: 0.5),
+            if (clients.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: Text(
+                    '-',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                  ),
+                ),
+              )
+            else
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: clients.map(_buildClientText).toList(),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -472,5 +1027,102 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       return info.isMakeup ? FontWeight.w600 : FontWeight.w500;
     }
     return FontWeight.w700;
+  }
+}
+
+class _ReasonSelection {
+  final LessonReason reason;
+  final String? note;
+
+  const _ReasonSelection({required this.reason, this.note});
+}
+
+class _ReasonPickerDialog extends StatefulWidget {
+  final AppLocalizations l;
+  final List<LessonReason> reasonOptions;
+
+  const _ReasonPickerDialog({required this.l, required this.reasonOptions});
+
+  @override
+  State<_ReasonPickerDialog> createState() => _ReasonPickerDialogState();
+}
+
+class _ReasonPickerDialogState extends State<_ReasonPickerDialog> {
+  late final TextEditingController reasonNoteController;
+  late LessonReason selected;
+
+  @override
+  void initState() {
+    super.initState();
+    reasonNoteController = TextEditingController();
+    selected = widget.reasonOptions.first;
+  }
+
+  @override
+  void dispose() {
+    reasonNoteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.l.selectReason),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ...widget.reasonOptions.map((reason) {
+              return RadioListTile<LessonReason>(
+                title: Text(widget.l.lessonReasonLabel(reason)),
+                value: reason,
+                // ignore: deprecated_member_use
+                groupValue: selected,
+                // ignore: deprecated_member_use
+                onChanged: (val) {
+                  if (val == null) return;
+                  setState(() => selected = val);
+                },
+                visualDensity: VisualDensity.compact,
+                selected: selected == reason,
+              );
+            }),
+            const SizedBox(height: 8),
+            TextField(
+              controller: reasonNoteController,
+              minLines: 3,
+              maxLines: 6,
+              maxLength: 4000,
+              inputFormatters: [LengthLimitingTextInputFormatter(4000)],
+              decoration: InputDecoration(
+                labelText: widget.l.reasonNoteLabel,
+                hintText: widget.l.reasonNoteHint,
+                border: const OutlineInputBorder(),
+                alignLabelWithHint: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: Text(widget.l.cancel),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final note = reasonNoteController.text.trim();
+            Navigator.pop(
+              context,
+              _ReasonSelection(
+                reason: selected,
+                note: note.isEmpty ? null : note,
+              ),
+            );
+          },
+          child: Text(widget.l.save),
+        ),
+      ],
+    );
   }
 }

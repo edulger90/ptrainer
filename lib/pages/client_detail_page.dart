@@ -6,6 +6,7 @@ import '../models/body_measurement.dart';
 import '../models/package_type.dart';
 import '../models/program_type.dart';
 import '../services/database.dart';
+import '../services/attendance_actions_service.dart';
 import '../services/error_logger.dart';
 import '../services/premium_service.dart';
 import '../services/screen_preload_service.dart';
@@ -27,6 +28,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   static const List<TrainerWeekday> _scheduleDays = TrainerWeekday.values;
 
   final _db = AppDatabase();
+  final _attendanceActionsService = AttendanceActionsService();
   final _screenPreloadService = ScreenPreloadService();
   late Client _client;
   List<Period> _periods = [];
@@ -55,6 +57,29 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         .whereType<TrainerWeekday>()
         .map((day) => day.weekdayNumber)
         .toSet();
+  }
+
+  Set<int> _scheduledWeekdaysFromDraft(Map<String, String> draft) {
+    return draft.keys
+        .map(TrainerWeekday.fromStorageKey)
+        .whereType<TrainerWeekday>()
+        .map((day) => day.weekdayNumber)
+        .toSet();
+  }
+
+  bool _sameWeekdaySet(Set<int> left, Set<int> right) {
+    return left.length == right.length && left.containsAll(right);
+  }
+
+  void _showPendingLessonsRealignedSnackBar(int movedCount) {
+    if (!mounted || movedCount <= 0) return;
+    final l = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l.scheduleRealignedPendingLessons(movedCount)),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _loadAllData() async {
@@ -186,6 +211,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
   Future<void> _showBulkScheduleEditorDialog(BuildContext context) async {
     final l = AppLocalizations.of(context);
+    final previousWeekdays = _scheduledWeekdays();
     final draft = <String, String>{
       for (final schedule in _schedules) schedule.dayOfWeek: schedule.time,
     };
@@ -302,11 +328,26 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
       );
     }
 
+    final newWeekdays = _scheduledWeekdaysFromDraft(updatedDraft);
+    final clientId = _client.id;
+    var movedCount = 0;
+    if (clientId != null &&
+        newWeekdays.isNotEmpty &&
+        !_sameWeekdaySet(previousWeekdays, newWeekdays)) {
+      movedCount = await _attendanceActionsService
+          .realignOpenPeriodPendingLessonsToSchedule(
+            clientId: clientId,
+            newLessonWeekdays: newWeekdays,
+          );
+    }
+
     await _loadAllData();
+    _showPendingLessonsRealignedSnackBar(movedCount);
   }
 
   Future<void> _deleteSchedule(SessionSchedule schedule) async {
     final l = AppLocalizations.of(context);
+    final previousWeekdays = _scheduledWeekdays();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -340,7 +381,29 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     );
     if (confirmed == true && schedule.id != null) {
       await _db.deleteSessionSchedule(schedule.id!);
+
+      final removedWeekday = TrainerWeekday.fromStorageKey(
+        schedule.dayOfWeek,
+      )?.weekdayNumber;
+      final newWeekdays = Set<int>.from(previousWeekdays);
+      if (removedWeekday != null) {
+        newWeekdays.remove(removedWeekday);
+      }
+
+      final clientId = _client.id;
+      var movedCount = 0;
+      if (clientId != null &&
+          newWeekdays.isNotEmpty &&
+          !_sameWeekdaySet(previousWeekdays, newWeekdays)) {
+        movedCount = await _attendanceActionsService
+            .realignOpenPeriodPendingLessonsToSchedule(
+              clientId: clientId,
+              newLessonWeekdays: newWeekdays,
+            );
+      }
+
       await _loadAllData();
+      _showPendingLessonsRealignedSnackBar(movedCount);
     }
   }
 

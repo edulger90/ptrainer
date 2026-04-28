@@ -241,9 +241,13 @@ const Map<String, String> esStrings = {
   'noLessonToday': 'No hay asistencia para este día.',
   'thisWeek': 'Esta Semana',
   'nextWeek': 'Próxima Semana',
+  'weeklyAttendanceListTitle': 'Lista de asistencia',
+  'markAttendanceDone': 'Hecho',
   'makeup': 'Recuperación',
   'periodLabel': 'Periodo {index}',
   'noPeriod': 'Sin Periodo',
+  'scheduleRealignedPendingLessons':
+      'Se actualizaron {count} asistencias pendientes del periodo activo según los nuevos días.',
 
   // Settings & About
   'settings': 'Configuración',

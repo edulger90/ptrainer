@@ -6,8 +6,8 @@ import '../models/session_schedule.dart';
 import '../models/client.dart';
 import '../models/program_type.dart';
 import '../models/trainer_weekday.dart';
+import '../services/attendance_actions_service.dart';
 import '../services/attendance_service.dart';
-import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
@@ -33,6 +33,7 @@ class PeriodCalendarPage extends StatefulWidget {
 
 class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
   final _attendanceService = AttendanceService();
+  final _attendanceActionsService = AttendanceActionsService();
   late int _completedLessonCountCache;
 
   DateTime _normalizeDay(DateTime date) {
@@ -52,7 +53,6 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     return _completedLessonCountCache;
   }
 
-  final _db = AppDatabase();
   final _screenPreloadService = ScreenPreloadService();
   late Period _currentPeriod;
   late DateTime _start;
@@ -148,16 +148,11 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final currentPeriodId = _currentPeriod.id;
     if (clientId == null || currentPeriodId == null) return true;
 
-    final periods = await _db.getPeriodsByClient(clientId);
-    final currentStart = DateTime.tryParse(_currentPeriod.startDate);
-    if (currentStart == null) return true;
-
-    final hasLaterPeriod = periods.any((period) {
-      if (period.id == currentPeriodId) return false;
-      final periodStart = DateTime.tryParse(period.startDate);
-      if (periodStart == null) return false;
-      return periodStart.isAfter(currentStart);
-    });
+    final hasLaterPeriod = await _attendanceActionsService
+        .requiresPastPeriodConfirmation(
+          clientId: clientId,
+          currentPeriodId: currentPeriodId,
+        );
 
     if (!hasLaterPeriod) return true;
     if (!mounted) return false;
@@ -277,31 +272,15 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       return;
     }
 
-    // Ders yapıldı durumda ise (absent == false), kayıtı sil (işaretlenmemiş yap)
-    if (att != null && !att.absent && !att.cancelled) {
-      await _db.deleteAttendance(
-        clientId: clientId,
-        periodId: periodId,
-        lessonDate: day,
-      );
-    } else {
-      // Normal toggle: işaretlenmemiş → yapıldı
-      bool newAttended = att == null || att.absent;
-      DateTime? attendedDate = newAttended ? day : null;
+    await _attendanceActionsService.toggleAttendance(
+      clientId: clientId,
+      periodId: periodId,
+      lessonDate: day,
+      existingAttendance: att == null
+          ? null
+          : _attendanceToRecord(att, lessonDate: day),
+    );
 
-      await _db.upsertAttendance(
-        clientId: clientId,
-        periodId: periodId,
-        lessonDate: day,
-        attended: newAttended,
-        cancelled: false,
-        isPostponed: false,
-        attendedDate: attendedDate,
-        makeupDate: att?.makeup,
-        reason: null,
-        reasonNote: null,
-      );
-    }
     await _reloadData();
     widget.onAttendanceChanged?.call();
   }
@@ -347,15 +326,12 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
         pickedTime.hour,
         pickedTime.minute,
       );
-      await _db.upsertAttendance(
+
+      await _attendanceActionsService.setMakeup(
         clientId: clientId,
         periodId: periodId,
         lessonDate: day,
-        attended: false, // Telafi günü eklerken yapılmadı olarak kaydet
-        cancelled: false,
-        isPostponed: false,
-        attendedDate: null, // Yapıldı tarihi boş
-        makeupDate: makeupDateTime, // Tarih ve saat birlikte kaydedilsin
+        makeupDateTime: makeupDateTime,
         reason: selection.reason.index,
         reasonNote: selection.note,
       );
@@ -437,30 +413,15 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       },
     );
 
-    // Cancelled attendance kaydı: isPostponed, period uzatılacak mı?
-    await _db.upsertAttendance(
+    await _attendanceActionsService.cancelLesson(
       clientId: clientId,
       periodId: periodId,
       lessonDate: day,
-      attended: false,
-      cancelled: true,
-      isPostponed: addToEnd == true,
-      attendedDate: null,
-      makeupDate: null,
+      addToEnd: addToEnd == true,
       reason: selection.reason.index,
       reasonNote: selection.note,
+      lessonWeekdays: _lessonWeekdays,
     );
-
-    if (addToEnd == true) {
-      final currentEffectiveEnd = DateTime.parse(
-        _currentPeriod.postponedEndDate ?? _currentPeriod.endDate,
-      );
-      final nextLessonDay = _findNextLessonDay(currentEffectiveEnd);
-      final updatedPeriod = _currentPeriod.copyWith(
-        postponedEndDate: nextLessonDay.toIso8601String(),
-      );
-      await _db.updatePeriod(updatedPeriod);
-    }
 
     await _reloadData();
     widget.onAttendanceChanged?.call();
@@ -496,53 +457,15 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
 
     if (confirmed != true) return;
 
-    await _db.upsertAttendance(
+    await _attendanceActionsService.undoCancelledLesson(
       clientId: clientId,
       periodId: periodId,
       lessonDate: day,
-      attended: false,
-      cancelled: false,
-      isPostponed: false,
-      attendedDate: null,
-      makeupDate: null,
-      reason: null,
-      reasonNote: null,
+      lessonWeekdays: _lessonWeekdays,
     );
-
-    final currentPostponed = _currentPeriod.postponedEndDate;
-    if (currentPostponed != null) {
-      final currentEnd = DateTime.parse(currentPostponed);
-      final originalEnd = DateTime.parse(_currentPeriod.endDate);
-      final previousEnd = _findPreviousLessonDay(currentEnd);
-
-      String? newPostponed;
-      if (!previousEnd.isAfter(originalEnd)) {
-        newPostponed = null;
-      } else {
-        newPostponed = previousEnd.toIso8601String();
-      }
-
-      await _db.updatePeriodPostponedEndDate(periodId, newPostponed);
-    }
 
     await _reloadData();
     widget.onAttendanceChanged?.call();
-  }
-
-  DateTime _findNextLessonDay(DateTime fromDate) {
-    var day = fromDate.add(const Duration(days: 1));
-    while (!_lessonWeekdays.contains(day.weekday)) {
-      day = day.add(const Duration(days: 1));
-    }
-    return day;
-  }
-
-  DateTime _findPreviousLessonDay(DateTime fromDate) {
-    var day = fromDate.subtract(const Duration(days: 1));
-    while (!_lessonWeekdays.contains(day.weekday)) {
-      day = day.subtract(const Duration(days: 1));
-    }
-    return day;
   }
 
   Future<void> _resetAttendance(DateTime day) async {
@@ -586,29 +509,12 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
 
     if (confirmed != true) return;
 
-    // İptal edilmiş ve period uzatılmışsa, period'u geri çek
-    if (att.cancelled && att.isPostponed) {
-      final currentPostponed = _currentPeriod.postponedEndDate;
-      if (currentPostponed != null) {
-        final currentEnd = DateTime.parse(currentPostponed);
-        final originalEnd = DateTime.parse(_currentPeriod.endDate);
-        final previousEnd = _findPreviousLessonDay(currentEnd);
-
-        String? newPostponed;
-        if (!previousEnd.isAfter(originalEnd)) {
-          newPostponed = null;
-        } else {
-          newPostponed = previousEnd.toIso8601String();
-        }
-        await _db.updatePeriodPostponedEndDate(periodId, newPostponed);
-      }
-    }
-
-    // Attendance kaydını tamamen sil
-    await _db.deleteAttendance(
+    await _attendanceActionsService.resetAttendance(
       clientId: clientId,
       periodId: periodId,
       lessonDate: day,
+      existingAttendance: _attendanceToRecord(att, lessonDate: day),
+      lessonWeekdays: _lessonWeekdays,
     );
 
     await _reloadData();

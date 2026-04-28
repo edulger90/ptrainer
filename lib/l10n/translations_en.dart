@@ -241,9 +241,13 @@ const Map<String, String> enStrings = {
   'noLessonToday': 'No attendance for this day.',
   'thisWeek': 'This Week',
   'nextWeek': 'Next Week',
+  'weeklyAttendanceListTitle': 'Attendance list',
+  'markAttendanceDone': 'Done',
   'makeup': 'Makeup',
   'periodLabel': 'Period {index}',
   'noPeriod': 'No Period',
+  'scheduleRealignedPendingLessons':
+      '{count} pending lessons in the active period were updated to match the new schedule.',
 
   // Settings & About
   'settings': 'Settings',

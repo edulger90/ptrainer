@@ -238,9 +238,13 @@ const Map<String, String> trStrings = {
   'noLessonToday': 'Bu gün için katılım yok.',
   'thisWeek': 'Bu Hafta',
   'nextWeek': 'Gelecek Hafta',
+  'weeklyAttendanceListTitle': 'Katılım listesi',
+  'markAttendanceDone': 'Yapıldı',
   'makeup': 'Telafi',
   'periodLabel': 'Periyot {index}',
   'noPeriod': 'Periyot Yok',
+  'scheduleRealignedPendingLessons':
+      'Açık perioddaki {count} bekleyen ders yeni günlere göre güncellendi.',
 
   // Settings & About
   'settings': 'Ayarlar',

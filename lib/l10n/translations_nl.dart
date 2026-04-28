@@ -242,9 +242,13 @@ const Map<String, String> nlStrings = {
   'noLessonToday': 'Geen aanwezigheid voor deze dag.',
   'thisWeek': 'Deze Week',
   'nextWeek': 'Volgende Week',
+  'weeklyAttendanceListTitle': 'Aanwezigheidslijst',
+  'markAttendanceDone': 'Gereed',
   'makeup': 'Inhaalles',
   'periodLabel': 'Periode {index}',
   'noPeriod': 'Geen Periode',
+  'scheduleRealignedPendingLessons':
+      '{count} openstaande lessen in de actieve periode zijn bijgewerkt volgens de nieuwe dagen.',
 
   // Settings & About
   'settings': 'Instellingen',
