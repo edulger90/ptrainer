@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
@@ -241,10 +242,31 @@ class ErrorLogger {
 /// Uygulama versiyon bilgileri.
 /// pubspec.yaml'daki version alanından alınır.
 class AppVersionInfo {
-  // Bu değerler her build'de güncellenmelidir
-  static const String version = '1.0.7';
-  static const String buildNumber = '15';
-  static const String fullVersion = '$version+$buildNumber';
+  static String _version = '1.0.7';
+  static String _buildNumber = '15';
+  static bool _initialized = false;
+
+  static String get version => _version;
+  static String get buildNumber => _buildNumber;
+  static String get fullVersion => '$_version+$_buildNumber';
+
+  static Future<void> init() async {
+    if (_initialized) return;
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (info.version.isNotEmpty) {
+        _version = info.version;
+      }
+      if (info.buildNumber.isNotEmpty) {
+        _buildNumber = info.buildNumber;
+      }
+    } catch (_) {
+      // Package bilgisi okunamazsa fallback değerlerle devam edilir.
+    } finally {
+      _initialized = true;
+    }
+  }
+
   static const String copyrightNotice =
       'Copyright © 2026 Ece Geçit. All rights reserved.';
 

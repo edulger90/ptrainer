@@ -14,6 +14,7 @@ class StartupService {
     runZonedGuarded(
       () async {
         WidgetsFlutterBinding.ensureInitialized();
+        await AppVersionInfo.init();
         _configureFlutterErrorHandling();
         _configurePlatformErrorHandling();
         _configureErrorWidget();
