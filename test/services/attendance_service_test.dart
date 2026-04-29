@@ -141,27 +141,32 @@ void main() {
       },
     );
 
-    test('resolveWeeklyPlacement keeps attended lesson on original date', () {
-      final attendance = buildAttendance(
-        lessonDate: DateTime(2026, 4, 1),
-        attended: true,
-        makeupDate: DateTime(2026, 4, 4, 18, 30),
-      );
-      final schedules = [SessionSchedule(dayOfWeek: 'Çarşamba', time: '09:00')];
+    test(
+      'resolveWeeklyPlacement keeps attended makeup lesson on makeup date',
+      () {
+        final attendance = buildAttendance(
+          lessonDate: DateTime(2026, 4, 1),
+          attended: true,
+          makeupDate: DateTime(2026, 4, 4, 18, 30),
+        );
+        final schedules = [
+          SessionSchedule(dayOfWeek: 'Çarşamba', time: '09:00'),
+        ];
 
-      final placement = service.resolveWeeklyPlacement(
-        attendance: attendance,
-        week: week,
-        schedules: schedules,
-        now: DateTime(2026, 4, 2),
-      );
+        final placement = service.resolveWeeklyPlacement(
+          attendance: attendance,
+          week: week,
+          schedules: schedules,
+          now: DateTime(2026, 4, 2),
+        );
 
-      expect(placement, isNotNull);
-      expect(placement!.showDate, DateTime(2026, 4, 1));
-      expect(placement.showTime, '09:00');
-      expect(placement.isMakeup, isFalse);
-      expect(placement.status, LessonAttendanceStatus.attended);
-    });
+        expect(placement, isNotNull);
+        expect(placement!.showDate, DateTime(2026, 4, 4, 18, 30));
+        expect(placement.showTime, '18:30');
+        expect(placement.isMakeup, isTrue);
+        expect(placement.status, LessonAttendanceStatus.attended);
+      },
+    );
 
     test(
       'resolveWeeklyPlacement returns null when lesson date is outside week',

@@ -89,8 +89,9 @@ class AttendanceService {
     DateTime? now,
   }) {
     final status = resolveAttendanceStatus(attendance, now: now);
-    if (status == LessonAttendanceStatus.pending &&
-        week.contains(attendance.makeupDate)) {
+    // Makeup kaydı varsa haftalık yerleşimi her durumda telafi gününe sabitle.
+    // Bu sayede telafi "yapıldı" olduktan sonra da orijinal schedule gününe dönmez.
+    if (!attendance.cancelled && week.contains(attendance.makeupDate)) {
       final makeupDate = attendance.makeupDate!;
       return AttendancePlacement(
         showDate: makeupDate,

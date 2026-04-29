@@ -49,6 +49,9 @@ class AttendanceActionsService {
     }
 
     final newAttended = att == null || att.absent;
+    final effectiveAttendedDate = newAttended
+        ? (att?.makeupDate ?? lessonDate)
+        : null;
     await _db.upsertAttendance(
       clientId: clientId,
       periodId: periodId,
@@ -56,7 +59,7 @@ class AttendanceActionsService {
       attended: newAttended,
       cancelled: false,
       isPostponed: false,
-      attendedDate: newAttended ? lessonDate : null,
+      attendedDate: effectiveAttendedDate,
       makeupDate: att?.makeupDate,
       reason: null,
       reasonNote: null,
