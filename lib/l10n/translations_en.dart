@@ -383,6 +383,13 @@ const Map<String, String> enStrings = {
   'premiumPurchaseError': 'An error occurred during purchase.',
   'premiumStoreUnavailable': 'Store is currently unavailable.',
   'premiumProductNotFound': 'Product not found. Please try again later.',
+  'offerCodeLabel': 'Have an Offer Code?',
+  'offerCodeInputHint': 'Enter offer code...',
+  'offerCodeButton': 'Apply Code',
+  'offerCodeSuccess':
+      'Offer applied successfully! Your premium membership is now active.',
+  'offerCodeError': 'Failed to apply offer code.',
+  'offerCodeOpenStore': 'Apply Code in Store',
   'selectReason': 'Select Reason',
 
   // Help

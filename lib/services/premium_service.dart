@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../config/app_environment.dart';
 
@@ -375,6 +378,60 @@ class PremiumService {
   bool get canAccessWeeklyPlan => _isPremium;
   bool get canAccessPaymentTracking => _isPremium;
   bool get canAccessAnalysis => _isPremium;
+
+  /// Offer kodunu kullan
+  /// iOS: Apple'ın native redemption sheet'ini açar (kod orada girilir)
+  /// Android: Google Play redemption URL'ini açar (kod URL'e eklenir)
+  Future<void> redeemOfferCode(String offerCode) async {
+    // Debug modda doğrudan aktifleştir
+    if (kDebugMode && AppEnvironmentConfig().isDev) {
+      debugPrint('IAP: Debug mode – activating premium via offer code');
+      await activatePremium(
+        productId: yearlySubscriptionProductId,
+        purchaseDate: DateTime.now(),
+      );
+      _stateController.add(PurchaseState.purchased);
+      return;
+    }
+
+    if (!_iapAvailable) {
+      _stateController.add(PurchaseState.storeUnavailable);
+      return;
+    }
+
+    _stateController.add(PurchaseState.pending);
+
+    if (Platform.isIOS) {
+      // iOS: StoreKit native sheet – kullanıcı kodu orada girer
+      // Uygulamamızda girilen kodu görmezden gelebiliriz; Apple kendi UI'ını sunar.
+      try {
+        final iosPlatformAddition = _iap
+            .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+        await iosPlatformAddition.presentCodeRedemptionSheet();
+      } catch (e) {
+        debugPrint('IAP iOS offer sheet error: $e');
+        _stateController.add(PurchaseState.error);
+        return;
+      }
+    } else {
+      // Android: Google Play promo code deep link
+      final code = Uri.encodeComponent(offerCode.trim());
+      final uri = Uri.parse('https://play.google.com/redeem?code=$code');
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        debugPrint('IAP Android: Could not open Play Store redemption URL');
+        _stateController.add(PurchaseState.error);
+        return;
+      }
+    }
+
+    // Store'dan döndükten sonra entitlemente algılamak için restore çalıştır.
+    // Bu, IAP stream'i üzerinden _handlePurchaseUpdates'i tetikler.
+    unawaited(restorePurchases());
+  }
 
   /// Kaynakları temizle
   void dispose() {

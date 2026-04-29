@@ -29,6 +29,8 @@ class WeekClientInfo {
   final bool hasAttendanceRecord;
   final AttendanceRecord? attendanceRecord;
   final Set<int> lessonWeekdays;
+  final bool isPeriodLastDay;
+  final bool isPeriodPaid;
 
   const WeekClientInfo({
     required this.client,
@@ -41,6 +43,8 @@ class WeekClientInfo {
     required this.hasAttendanceRecord,
     required this.attendanceRecord,
     required this.lessonWeekdays,
+    required this.isPeriodLastDay,
+    required this.isPeriodPaid,
   });
 
   WeekClientInfo copyWith({
@@ -62,6 +66,8 @@ class WeekClientInfo {
           ? null
           : (attendanceRecord ?? this.attendanceRecord),
       lessonWeekdays: lessonWeekdays,
+      isPeriodLastDay: isPeriodLastDay,
+      isPeriodPaid: isPeriodPaid,
     );
   }
 }
@@ -164,6 +170,15 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
           .map((s) => TrainerWeekday.fromStorageKey(s.dayOfWeek)?.weekdayNumber)
           .whereType<int>()
           .toSet();
+      final periodEndsById = <int, DateTime>{
+        for (final period in preload.periods)
+          if (period.id != null)
+            period.id!: _dateOnly(_periodService.effectiveEnd(period)),
+      };
+      final periodPaidById = <int, bool>{
+        for (final period in preload.periods)
+          if (period.id != null) period.id!: period.isPaid,
+      };
 
       for (final attendance in attendanceRecords) {
         final lessonDate = attendance.lessonDate;
@@ -198,6 +213,15 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
               hasAttendanceRecord: true,
               attendanceRecord: attendance,
               lessonWeekdays: lessonWeekdays,
+              isPeriodLastDay: _isPeriodLastDay(
+                lessonDate: attendance.lessonDate ?? resolvedEntry.showDate,
+                periodId: attendance.periodId,
+                periodEndsById: periodEndsById,
+              ),
+              isPeriodPaid: _isPeriodPaid(
+                periodId: attendance.periodId,
+                periodPaidById: periodPaidById,
+              ),
             ),
           );
         }
@@ -215,6 +239,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
 
           final lessonDayKey = _dayKeyFor(lessonDate);
           if (handledLessonDays.contains(lessonDayKey)) continue;
+          final periodId = _findPeriodIdForDay(preload.periods, lessonDate);
 
           weekData[lessonDayKey]?.add(
             WeekClientInfo(
@@ -224,10 +249,19 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
               source: WeekEntrySource.schedule,
               status: LessonAttendanceStatus.pending,
               lessonDate: lessonDate,
-              periodId: _findPeriodIdForDay(preload.periods, lessonDate),
+              periodId: periodId,
               hasAttendanceRecord: false,
               attendanceRecord: null,
               lessonWeekdays: lessonWeekdays,
+              isPeriodLastDay: _isPeriodLastDay(
+                lessonDate: lessonDate,
+                periodId: periodId,
+                periodEndsById: periodEndsById,
+              ),
+              isPeriodPaid: _isPeriodPaid(
+                periodId: periodId,
+                periodPaidById: periodPaidById,
+              ),
             ),
           );
         }
@@ -319,6 +353,37 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       }
     }
     return null;
+  }
+
+  DateTime _dateOnly(DateTime value) {
+    return DateTime(value.year, value.month, value.day);
+  }
+
+  bool _isPeriodLastDay({
+    required DateTime lessonDate,
+    required int? periodId,
+    required Map<int, DateTime> periodEndsById,
+  }) {
+    if (periodId == null) return false;
+    final endDay = periodEndsById[periodId];
+    if (endDay == null) return false;
+    return _dateOnly(lessonDate) == endDay;
+  }
+
+  bool _isPeriodPaid({
+    required int? periodId,
+    required Map<int, bool> periodPaidById,
+  }) {
+    if (periodId == null) return true;
+    return periodPaidById[periodId] ?? true;
+  }
+
+  String _nameLabelFor(WeekClientInfo info) {
+    final prefixes = <String>[];
+    if (!info.isPeriodPaid) prefixes.add('!');
+    if (info.isPeriodLastDay) prefixes.add('*');
+    if (prefixes.isEmpty) return info.client.fullName;
+    return '${prefixes.join(' ')} ${info.client.fullName}';
   }
 
   List<LessonReason> _reasonOptionsForClient(Client client) {
@@ -994,7 +1059,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
           const SizedBox(width: 4),
           Expanded(
             child: Text(
-              info.client.fullName,
+              _nameLabelFor(info),
               style: TextStyle(
                 fontSize: 13,
                 color: _textColorFor(info),

@@ -382,6 +382,12 @@ const Map<String, String> trStrings = {
   'premiumStoreUnavailable': 'Mağaza şu anda kullanılamıyor.',
   'premiumProductNotFound':
       'Ürün bulunamadı. Lütfen daha sonra tekrar deneyin.',
+  'offerCodeLabel': 'Offer Kodun Var mı?',
+  'offerCodeInputHint': 'Offer kodunu gir...',
+  'offerCodeButton': 'Kodu Uygula',
+  'offerCodeSuccess': 'Offer başarıyla uygulandı! Premium üyeliğin aktif.',
+  'offerCodeError': 'Offer kodu uygulanırken hata oluştu.',
+  'offerCodeOpenStore': 'Mağazada Kodu Uygula',
   'selectReason': 'Sebep Seçin',
   'help': 'Yardım',
   'helpGuideTitle': 'Uygulama Kullanım Rehberi',

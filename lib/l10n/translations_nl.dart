@@ -388,6 +388,13 @@ const Map<String, String> nlStrings = {
   'premiumPurchaseError': 'Er is een fout opgetreden tijdens de aankoop.',
   'premiumStoreUnavailable': 'Winkel is momenteel niet beschikbaar.',
   'premiumProductNotFound': 'Product niet gevonden. Probeer het later opnieuw.',
+  'offerCodeLabel': 'Heb je een aanbiedingscode?',
+  'offerCodeInputHint': 'Voer aanbiedingscode in...',
+  'offerCodeButton': 'Code Toepassen',
+  'offerCodeSuccess':
+      'Aanbieding succesvol toegepast! Je Premium-lidmaatschap is nu actief.',
+  'offerCodeError': 'Fout bij toepassen aanbiedingscode.',
+  'offerCodeOpenStore': 'Code in Store Toepassen',
   'selectReason': 'Reden selecteren',
   'help': 'Help',
   'helpGuideTitle': 'App Gebruikersgids',

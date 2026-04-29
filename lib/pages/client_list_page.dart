@@ -394,6 +394,12 @@ class _ClientListPageState extends State<ClientListPage> {
                               : _resolveTotalCount(client, latestPeriod);
                           final isCompleted =
                               totalCount > 0 && completedCount >= totalCount;
+                          final hasUnpaidLatestPeriod =
+                              latestPeriod != null && !latestPeriod.isPaid;
+                          final hasOneLessonLeft =
+                              latestPeriod != null &&
+                              totalCount > 0 &&
+                              (totalCount - completedCount) == 1;
 
                           return Dismissible(
                             key: Key(client.id.toString()),
@@ -512,7 +518,13 @@ class _ClientListPageState extends State<ClientListPage> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  client.fullName,
+                                                  _nameWithProgramMarkers(
+                                                    client.fullName,
+                                                    showUnpaidMarker:
+                                                        hasUnpaidLatestPeriod,
+                                                    showOneLessonLeftMarker:
+                                                        hasOneLessonLeft,
+                                                  ),
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w600,
@@ -635,6 +647,18 @@ class _ClientListPageState extends State<ClientListPage> {
     } catch (_) {
       return '';
     }
+  }
+
+  String _nameWithProgramMarkers(
+    String name, {
+    required bool showUnpaidMarker,
+    required bool showOneLessonLeftMarker,
+  }) {
+    final markers = <String>[];
+    if (showUnpaidMarker) markers.add('!');
+    if (showOneLessonLeftMarker) markers.add('*');
+    if (markers.isEmpty) return name;
+    return '$name ${markers.join(' ')}';
   }
 
   Future<void> _logout() async {

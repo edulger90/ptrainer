@@ -506,6 +506,12 @@ class AppLocalizations {
   String get premiumPurchaseError => get('premiumPurchaseError');
   String get premiumStoreUnavailable => get('premiumStoreUnavailable');
   String get premiumProductNotFound => get('premiumProductNotFound');
+  String get offerCodeLabel => get('offerCodeLabel');
+  String get offerCodeInputHint => get('offerCodeInputHint');
+  String get offerCodeButton => get('offerCodeButton');
+  String get offerCodeSuccess => get('offerCodeSuccess');
+  String get offerCodeError => get('offerCodeError');
+  String get offerCodeOpenStore => get('offerCodeOpenStore');
   // ── Help Guide ──
   String get help => get('help');
   String get helpGuideTitle => get('helpGuideTitle');

@@ -384,6 +384,13 @@ const Map<String, String> esStrings = {
   'premiumPurchaseError': 'Ocurrió un error durante la compra.',
   'premiumStoreUnavailable': 'La tienda no está disponible actualmente.',
   'premiumProductNotFound': 'Producto no encontrado. Inténtalo más tarde.',
+  'offerCodeLabel': '¿Tienes un código de oferta?',
+  'offerCodeInputHint': 'Ingresa código de oferta...',
+  'offerCodeButton': 'Aplicar Código',
+  'offerCodeSuccess':
+      '¡Oferta aplicada correctamente! Tu membresía premium ya está activa.',
+  'offerCodeError': 'Error al aplicar el código de oferta.',
+  'offerCodeOpenStore': 'Aplicar Código en la Tienda',
   'selectReason': 'Seleccionar motivo',
 
   // Help Guide
