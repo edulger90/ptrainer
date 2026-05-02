@@ -19,6 +19,7 @@ class _AuthPageState extends State<AuthPage> {
   bool _userExists = false;
   bool _isSuccessMessage = false;
   bool _isForgotPassword = false;
+  bool _rememberMe = false;
   int _forgotStep = 0; // 0: enter username, 1: answer question, 2: new password
   String? _forgotSecurityQuestion;
   final _usernameController = TextEditingController();
@@ -55,10 +56,23 @@ class _AuthPageState extends State<AuthPage> {
     setState(() {
       _userExists = state.userExists;
       _isLogin = state.isLogin;
+      _rememberMe = state.rememberMe;
       if (state.savedUsername != null) {
         _usernameController.text = state.savedUsername!;
       }
+      if (state.savedPassword != null) {
+        _passwordController.text = state.savedPassword!;
+      }
     });
+  }
+
+  Future<void> _setRememberMe(bool value) async {
+    setState(() {
+      _rememberMe = value;
+    });
+    if (!value) {
+      await _authController.clearRememberedCredentials();
+    }
   }
 
   void _toggleMode() {
@@ -156,6 +170,7 @@ class _AuthPageState extends State<AuthPage> {
       username: _usernameController.text,
       email: _emailController.text,
       password: _passwordController.text,
+      rememberMe: _rememberMe,
       securityQuestion: _securityQuestionController.text,
       securityAnswer: _securityAnswerController.text,
     );
@@ -399,6 +414,19 @@ class _AuthPageState extends State<AuthPage> {
                             ),
                             obscureText: true,
                           ),
+                          if (_isLogin) ...[
+                            const SizedBox(height: 8),
+                            CheckboxListTile(
+                              value: _rememberMe,
+                              contentPadding: EdgeInsets.zero,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              title: Text(l.rememberMe),
+                              onChanged: (value) {
+                                if (value == null) return;
+                                _setRememberMe(value);
+                              },
+                            ),
+                          ],
                           if (!_isLogin) ...[
                             const SizedBox(height: 16),
                             TextField(

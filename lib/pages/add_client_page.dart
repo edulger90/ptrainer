@@ -115,52 +115,83 @@ class _AddClientPageState extends State<AddClientPage> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             final l = AppLocalizations.of(context);
+            final dialogWidth = MediaQuery.sizeOf(context).width;
+            final useCompactLayout = dialogWidth < 380;
             return AlertDialog(
               title: Text(l.addLessonTimeTitle),
-              content: SizedBox(
-                width: 460,
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: dialogWidth > 520 ? 460 : dialogWidth * 0.9,
+                ),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: _scheduleDays.map((day) {
                       final dayKey = day.storageKey;
                       final selectedTime = draft[dayKey];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                day.localized(context),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            OutlinedButton(
-                              onPressed: () async {
-                                final time = await _selectTime(
-                                  initial: _parseTime(selectedTime),
-                                );
-                                if (time == null) return;
+                      final timeButton = OutlinedButton(
+                        onPressed: () async {
+                          final time = await _selectTime(
+                            initial: _parseTime(selectedTime),
+                          );
+                          if (time == null) return;
+                          setStateDialog(() {
+                            draft[dayKey] = time;
+                          });
+                        },
+                        child: Text(selectedTime ?? l.selectTime),
+                      );
+
+                      final deleteButton = selectedTime != null
+                          ? IconButton(
+                              onPressed: () {
                                 setStateDialog(() {
-                                  draft[dayKey] = time;
+                                  draft.remove(dayKey);
                                 });
                               },
-                              child: Text(selectedTime ?? l.selectTime),
-                            ),
-                            if (selectedTime != null)
-                              IconButton(
-                                onPressed: () {
-                                  setStateDialog(() {
-                                    draft.remove(dayKey);
-                                  });
-                                },
-                                icon: const Icon(Icons.close, size: 18),
-                                tooltip: l.delete,
+                              icon: const Icon(Icons.close, size: 18),
+                              tooltip: l.delete,
+                            )
+                          : null;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: useCompactLayout
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    day.localized(context),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(child: timeButton),
+                                      if (deleteButton != null) ...[
+                                        const SizedBox(width: 8),
+                                        deleteButton,
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      day.localized(context),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  timeButton,
+                                  if (deleteButton != null) deleteButton,
+                                ],
                               ),
-                          ],
-                        ),
                       );
                     }).toList(),
                   ),
@@ -314,23 +345,22 @@ class _AddClientPageState extends State<AddClientPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
                         children: PackageType.values.map((type) {
                           final label = type == PackageType.daily
                               ? l.packageTypeDaily
                               : l.packageTypeMonthly;
                           final selected = _selectedPackageType == type;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text(label),
-                              selected: selected,
-                              onSelected: (_) {
-                                setState(() {
-                                  _selectedPackageType = type;
-                                });
-                              },
-                            ),
+                          return ChoiceChip(
+                            label: Text(label),
+                            selected: selected,
+                            onSelected: (_) {
+                              setState(() {
+                                _selectedPackageType = type;
+                              });
+                            },
                           );
                         }).toList(),
                       ),

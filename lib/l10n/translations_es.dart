@@ -67,6 +67,7 @@ const Map<String, String> esStrings = {
       'Contraseña restablecida exitosamente. Por favor, inicia sesión.',
   'backToLogin': 'Volver al Inicio de Sesión',
   'continueText': 'Continuar',
+  'rememberMe': 'Recuérdame',
 
   // Home
   'myAthletes': 'Mis Programas',

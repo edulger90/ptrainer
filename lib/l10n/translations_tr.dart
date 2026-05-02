@@ -67,6 +67,7 @@ const Map<String, String> trStrings = {
   'passwordResetSuccess': 'Şifre sıfırlama başarılı. Lütfen giriş yapın.',
   'backToLogin': 'Girişe Dön',
   'continueText': 'Devam',
+  'rememberMe': 'Beni hatırla',
 
   // Home
   'myAthletes': 'Programlarım',

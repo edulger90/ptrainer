@@ -544,14 +544,19 @@ class _ClientListPageState extends State<ClientListPage> {
                                                         color: Colors.grey[500],
                                                       ),
                                                       const SizedBox(width: 3),
-                                                      Text(
-                                                        _formatPeriodDates(
-                                                          latestPeriod,
-                                                        ),
-                                                        style: TextStyle(
-                                                          fontSize: 11,
-                                                          color:
-                                                              Colors.grey[600],
+                                                      Expanded(
+                                                        child: Text(
+                                                          _formatPeriodDates(
+                                                            latestPeriod,
+                                                          ),
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            color: Colors
+                                                                .grey[600],
+                                                          ),
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                         ),
                                                       ),
                                                     ],

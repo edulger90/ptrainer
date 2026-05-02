@@ -42,11 +42,15 @@ class AuthInitializationState {
   const AuthInitializationState({
     required this.userExists,
     required this.savedUsername,
+    required this.savedPassword,
+    required this.rememberMe,
     required this.isLogin,
   });
 
   final bool userExists;
   final String? savedUsername;
+  final String? savedPassword;
+  final bool rememberMe;
   final bool isLogin;
 }
 
@@ -89,6 +93,8 @@ class AuthController {
 
   Future<AuthInitializationState> loadInitialState() async {
     String? savedUsername;
+    String? savedPassword;
+    var rememberMe = false;
     var userExists = false;
 
     try {
@@ -102,10 +108,19 @@ class AuthController {
     }
 
     savedUsername = await _authService.loadSavedUsername();
+    final rememberedCredentials = await _authService
+        .loadRememberedCredentials();
+    if (rememberedCredentials != null) {
+      savedUsername = rememberedCredentials.username;
+      savedPassword = rememberedCredentials.password;
+      rememberMe = true;
+    }
 
     return AuthInitializationState(
       userExists: userExists,
       savedUsername: savedUsername,
+      savedPassword: savedPassword,
+      rememberMe: rememberMe,
       isLogin: userExists,
     );
   }
@@ -115,6 +130,7 @@ class AuthController {
     required String username,
     required String email,
     required String password,
+    bool rememberMe = false,
     String securityQuestion = '',
     String securityAnswer = '',
   }) {
@@ -122,7 +138,7 @@ class AuthController {
     final normalizedEmail = email.trim();
 
     return isLogin
-        ? _submitLogin(normalizedUsername, password)
+        ? _submitLogin(normalizedUsername, password, rememberMe)
         : _submitRegistration(
             normalizedUsername,
             normalizedEmail,
@@ -212,6 +228,7 @@ class AuthController {
   Future<AuthSubmissionResult> _submitLogin(
     String username,
     String password,
+    bool rememberMe,
   ) async {
     final now = _clock();
     if (_lockoutUntil != null && now.isBefore(_lockoutUntil!)) {
@@ -244,6 +261,14 @@ class AuthController {
       _loginAttempts = 0;
       _lockoutUntil = null;
       await _authService.saveUsername(username);
+      if (rememberMe) {
+        await _authService.saveRememberedCredentials(
+          username: username,
+          password: password,
+        );
+      } else {
+        await _authService.clearRememberedCredentials();
+      }
 
       return AuthSubmissionResult(user: user, shouldClearPassword: true);
     } catch (e, stack) {
@@ -256,6 +281,10 @@ class AuthController {
         message: AuthMessage(AuthMessageCode.unexpectedError),
       );
     }
+  }
+
+  Future<void> clearRememberedCredentials() {
+    return _authService.clearRememberedCredentials();
   }
 
   Future<AuthSubmissionResult> _submitRegistration(

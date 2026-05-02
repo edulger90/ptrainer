@@ -69,6 +69,7 @@ const Map<String, String> enStrings = {
   'passwordResetSuccess': 'Password reset successful. Please log in.',
   'backToLogin': 'Back to Login',
   'continueText': 'Continue',
+  'rememberMe': 'Remember me',
 
   // Home
   'myAthletes': 'My Programs',

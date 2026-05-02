@@ -239,6 +239,7 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       LessonReason.trainerHasta,
       LessonReason.sporcuKisisel,
       LessonReason.trainerKisisel,
+      LessonReason.other,
     ];
   }
 
@@ -303,11 +304,18 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     if (clientId == null || periodId == null) return;
     if (!await _confirmPastPeriodUpdateIfNeeded(day)) return;
     if (!mounted) return;
+    final today = _normalizeDay(DateTime.now());
+    final periodStart = _normalizeDay(_start);
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: day,
-      firstDate: _start,
+      firstDate: today.isBefore(periodStart) ? today : periodStart,
       lastDate: _end.add(const Duration(days: 60)),
+      selectableDayPredicate: (candidate) {
+        final normalizedCandidate = _normalizeDay(candidate);
+        if (normalizedCandidate == today) return true;
+        return !normalizedCandidate.isBefore(periodStart);
+      },
     );
     if (pickedDate != null) {
       if (!mounted) return;

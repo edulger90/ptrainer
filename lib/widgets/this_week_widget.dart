@@ -401,6 +401,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
       LessonReason.trainerHasta,
       LessonReason.sporcuKisisel,
       LessonReason.trainerKisisel,
+      LessonReason.other,
     ];
   }
 
@@ -492,11 +493,33 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
 
     final periodStart = DateTime.parse(period.startDate);
     final periodEnd = _periodService.effectiveEnd(period);
+    final normalizedToday = DateTime.now();
+    final today = DateTime(
+      normalizedToday.year,
+      normalizedToday.month,
+      normalizedToday.day,
+    );
+    final normalizedPeriodStart = DateTime(
+      periodStart.year,
+      periodStart.month,
+      periodStart.day,
+    );
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: info.lessonDate,
-      firstDate: periodStart,
+      firstDate: today.isBefore(normalizedPeriodStart)
+          ? today
+          : normalizedPeriodStart,
       lastDate: periodEnd.add(const Duration(days: 60)),
+      selectableDayPredicate: (candidate) {
+        final normalizedCandidate = DateTime(
+          candidate.year,
+          candidate.month,
+          candidate.day,
+        );
+        if (normalizedCandidate == today) return true;
+        return !normalizedCandidate.isBefore(normalizedPeriodStart);
+      },
     );
     if (pickedDate == null || !mounted) return false;
 

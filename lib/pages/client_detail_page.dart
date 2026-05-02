@@ -132,45 +132,55 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             final l = AppLocalizations.of(context);
+            final dialogWidth = MediaQuery.sizeOf(context).width;
             return AlertDialog(
               title: Text(
                 measurement == null ? l.addMeasurement : l.editMeasurement,
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: date,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null) {
-                        setStateDialog(() => date = picked);
-                      }
-                    },
-                    child: Text(
-                      l.dateLabel('${date.day}.${date.month}.${date.year}'),
-                    ),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: dialogWidth > 520 ? 460 : dialogWidth * 0.9,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: date,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                          );
+                          if (picked != null) {
+                            setStateDialog(() => date = picked);
+                          }
+                        },
+                        child: Text(
+                          l.dateLabel('${date.day}.${date.month}.${date.year}'),
+                        ),
+                      ),
+                      TextField(
+                        controller: chestController,
+                        decoration: InputDecoration(labelText: l.chest),
+                        keyboardType: TextInputType.number,
+                      ),
+                      TextField(
+                        controller: waistController,
+                        decoration: InputDecoration(labelText: l.waist),
+                        keyboardType: TextInputType.number,
+                      ),
+                      TextField(
+                        controller: hipsController,
+                        decoration: InputDecoration(labelText: l.hips),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
                   ),
-                  TextField(
-                    controller: chestController,
-                    decoration: InputDecoration(labelText: l.chest),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
-                    controller: waistController,
-                    decoration: InputDecoration(labelText: l.waist),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
-                    controller: hipsController,
-                    decoration: InputDecoration(labelText: l.hips),
-                    keyboardType: TextInputType.number,
-                  ),
-                ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -221,55 +231,86 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
+            final dialogWidth = MediaQuery.sizeOf(context).width;
+            final useCompactLayout = dialogWidth < 380;
             return AlertDialog(
               title: Text(l.updateLessonTimes),
-              content: SizedBox(
-                width: 460,
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: dialogWidth > 520 ? 460 : dialogWidth * 0.9,
+                ),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: _scheduleDays.map((day) {
                       final dayKey = day.storageKey;
                       final selectedTime = draft[dayKey];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                day.localized(context),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            OutlinedButton(
-                              onPressed: () async {
-                                final picked = await showTimePicker(
-                                  context: context,
-                                  initialTime: _parseTime(selectedTime),
-                                );
-                                if (picked == null) return;
-                                final value =
-                                    '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                      final timeButton = OutlinedButton(
+                        onPressed: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: _parseTime(selectedTime),
+                          );
+                          if (picked == null) return;
+                          final value =
+                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                          setStateDialog(() {
+                            draft[dayKey] = value;
+                          });
+                        },
+                        child: Text(selectedTime ?? l.selectTime),
+                      );
+
+                      final deleteButton = selectedTime != null
+                          ? IconButton(
+                              onPressed: () {
                                 setStateDialog(() {
-                                  draft[dayKey] = value;
+                                  draft.remove(dayKey);
                                 });
                               },
-                              child: Text(selectedTime ?? l.selectTime),
-                            ),
-                            if (selectedTime != null)
-                              IconButton(
-                                onPressed: () {
-                                  setStateDialog(() {
-                                    draft.remove(dayKey);
-                                  });
-                                },
-                                icon: const Icon(Icons.close, size: 18),
-                                tooltip: l.delete,
+                              icon: const Icon(Icons.close, size: 18),
+                              tooltip: l.delete,
+                            )
+                          : null;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: useCompactLayout
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    day.localized(context),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(child: timeButton),
+                                      if (deleteButton != null) ...[
+                                        const SizedBox(width: 8),
+                                        deleteButton,
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      day.localized(context),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  timeButton,
+                                  if (deleteButton != null) deleteButton,
+                                ],
                               ),
-                          ],
-                        ),
                       );
                     }).toList(),
                   ),
@@ -524,102 +565,112 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             final l = AppLocalizations.of(context);
+            final dialogWidth = MediaQuery.sizeOf(context).width;
             return AlertDialog(
               title: Text(l.addNewPeriod),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now().add(
-                            const Duration(days: 365),
-                          ),
-                        );
-                        if (picked != null) {
-                          setStateDialog(() {
-                            startDate = _findFirstLessonDay(picked);
-                            endDate = _calculateEndDate(startDate!);
-                          });
-                        }
-                      },
-                      child: Text(
-                        startDate == null
-                            ? l.selectStartDate
-                            : l.startDateLabel(
-                                '${startDate!.day}.${startDate!.month}.${startDate!.year}',
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (widget.client.packageType != PackageType.monthly)
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: dialogWidth > 520 ? 460 : dialogWidth * 0.9,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       ElevatedButton(
                         onPressed: () async {
                           final picked = await showDatePicker(
                             context: context,
-                            initialDate: endDate ?? startDate ?? DateTime.now(),
+                            initialDate: DateTime.now(),
                             firstDate: DateTime(2000),
                             lastDate: DateTime.now().add(
                               const Duration(days: 365),
                             ),
                           );
                           if (picked != null) {
-                            setStateDialog(() => endDate = picked);
+                            setStateDialog(() {
+                              startDate = _findFirstLessonDay(picked);
+                              endDate = _calculateEndDate(startDate!);
+                            });
                           }
                         },
                         child: Text(
-                          endDate == null
-                              ? l.selectEndDate
-                              : l.endDateLabel(
-                                  '${endDate!.day}.${endDate!.month}.${endDate!.year}',
+                          startDate == null
+                              ? l.selectStartDate
+                              : l.startDateLabel(
+                                  '${startDate!.day}.${startDate!.month}.${startDate!.year}',
                                 ),
                         ),
-                      )
-                    else if (endDate != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.calendar_month,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l.endDateLabel(
-                                '${endDate!.day}.${endDate!.month}.${endDate!.year}',
+                      ),
+                      const SizedBox(height: 8),
+                      if (widget.client.packageType != PackageType.monthly)
+                        ElevatedButton(
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  endDate ?? startDate ?? DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
                               ),
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ],
+                            );
+                            if (picked != null) {
+                              setStateDialog(() => endDate = picked);
+                            }
+                          },
+                          child: Text(
+                            endDate == null
+                                ? l.selectEndDate
+                                : l.endDateLabel(
+                                    '${endDate!.day}.${endDate!.month}.${endDate!.year}',
+                                  ),
+                          ),
+                        )
+                      else if (endDate != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.calendar_month,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  l.endDateLabel(
+                                    '${endDate!.day}.${endDate!.month}.${endDate!.year}',
+                                  ),
+                                  style: const TextStyle(color: Colors.grey),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: paymentController,
+                        decoration: InputDecoration(
+                          labelText: l.paymentAmount,
+                          prefixIcon: const Icon(Icons.attach_money),
+                        ),
+                        keyboardType: TextInputType.number,
                       ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: paymentController,
-                      decoration: InputDecoration(
-                        labelText: l.paymentAmount,
-                        prefixIcon: const Icon(Icons.attach_money),
+                      const SizedBox(height: 8),
+                      CheckboxListTile(
+                        title: Text(l.paymentReceived),
+                        value: isPaid,
+                        onChanged: (value) {
+                          setStateDialog(() => isPaid = value ?? false);
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
                       ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 8),
-                    CheckboxListTile(
-                      title: Text(l.paymentReceived),
-                      value: isPaid,
-                      onChanged: (value) {
-                        setStateDialog(() => isPaid = value ?? false);
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -685,158 +736,171 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             final l = AppLocalizations.of(context);
+            final dialogWidth = MediaQuery.sizeOf(context).width;
             return AlertDialog(
               title: Text(l.periodDetail),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Card(
-                      color: Colors.grey[100],
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            InkWell(
-                              onTap: canEditStart
-                                  ? () async {
-                                      final today = DateTime.now();
-                                      final safeInitialDate =
-                                          periodStart.isBefore(today)
-                                          ? today
-                                          : periodStart;
-                                      final safeFirstDate = today.subtract(
-                                        const Duration(days: 7),
-                                      );
-                                      final picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: safeInitialDate,
-                                        firstDate: safeFirstDate,
-                                        lastDate: safeFirstDate.add(
-                                          const Duration(days: 365),
-                                        ),
-                                      );
-                                      if (picked != null) {
-                                        final newStart = _findFirstLessonDay(
-                                          picked,
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: dialogWidth > 560 ? 500 : dialogWidth * 0.92,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Card(
+                        color: Colors.grey[100],
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              InkWell(
+                                onTap: canEditStart
+                                    ? () async {
+                                        final today = DateTime.now();
+                                        final safeInitialDate =
+                                            periodStart.isBefore(today)
+                                            ? today
+                                            : periodStart;
+                                        final safeFirstDate = today.subtract(
+                                          const Duration(days: 7),
                                         );
-                                        final newEnd = _calculateEndDate(
-                                          newStart,
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: safeInitialDate,
+                                          firstDate: safeFirstDate,
+                                          lastDate: safeFirstDate.add(
+                                            const Duration(days: 365),
+                                          ),
                                         );
-                                        setStateDialog(() {
-                                          periodStart = newStart;
-                                          if (newEnd != null) {
-                                            periodEnd = newEnd;
-                                          }
-                                        });
+                                        if (picked != null) {
+                                          final newStart = _findFirstLessonDay(
+                                            picked,
+                                          );
+                                          final newEnd = _calculateEndDate(
+                                            newStart,
+                                          );
+                                          setStateDialog(() {
+                                            periodStart = newStart;
+                                            if (newEnd != null) {
+                                              periodEnd = newEnd;
+                                            }
+                                          });
+                                        }
                                       }
-                                    }
-                                  : null,
-                              child: Row(
+                                    : null,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.calendar_today, size: 18),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        l.startInfo(
+                                          '${periodStart.day.toString().padLeft(2, '0')}.${periodStart.month.toString().padLeft(2, '0')}.${periodStart.year}',
+                                        ),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    if (canEditStart)
+                                      const Icon(
+                                        Icons.edit_calendar,
+                                        size: 18,
+                                        color: Color(0xFF00897B),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
                                 children: [
-                                  const Icon(Icons.calendar_today, size: 18),
+                                  const Icon(Icons.event, size: 18),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      l.startInfo(
-                                        '${periodStart.day.toString().padLeft(2, '0')}.${periodStart.month.toString().padLeft(2, '0')}.${periodStart.year}',
+                                      l.endInfo(
+                                        '${periodEnd.day.toString().padLeft(2, '0')}.${periodEnd.month.toString().padLeft(2, '0')}.${periodEnd.year}',
                                       ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
-                                  if (canEditStart)
-                                    const Icon(
-                                      Icons.edit_calendar,
-                                      size: 18,
-                                      color: Color(0xFF00897B),
-                                    ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.event, size: 18),
-                                const SizedBox(width: 8),
-                                Text(
-                                  l.endInfo(
-                                    '${periodEnd.day.toString().padLeft(2, '0')}.${periodEnd.month.toString().padLeft(2, '0')}.${periodEnd.year}',
-                                  ),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (period.postponedEndDate != null) ...[
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.event_busy,
-                                    size: 18,
-                                    color: Color(0xFFC8A415),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    l.postponedInfo(
-                                      period.postponedEndDate!.substring(0, 10),
-                                    ),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
+                              if (period.postponedEndDate != null) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.event_busy,
+                                      size: 18,
                                       color: Color(0xFFC8A415),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        l.postponedInfo(
+                                          period.postponedEndDate!.substring(
+                                            0,
+                                            10,
+                                          ),
+                                        ),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFFC8A415),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l.paymentInfo,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 16),
+                      Text(
+                        l.paymentInfo,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: paymentController,
-                      decoration: InputDecoration(
-                        labelText: l.paymentAmount,
-                        prefixIcon: const Icon(Icons.attach_money),
-                        border: const OutlineInputBorder(),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: paymentController,
+                        decoration: InputDecoration(
+                          labelText: l.paymentAmount,
+                          prefixIcon: const Icon(Icons.attach_money),
+                          border: const OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
                       ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 8),
-                    CheckboxListTile(
-                      title: Text(l.paymentReceived),
-                      subtitle: Text(
-                        isPaid ? l.paymentCompleted : l.paymentAwaiting,
-                        style: TextStyle(
+                      const SizedBox(height: 8),
+                      CheckboxListTile(
+                        title: Text(l.paymentReceived),
+                        subtitle: Text(
+                          isPaid ? l.paymentCompleted : l.paymentAwaiting,
+                          style: TextStyle(
+                            color: isPaid ? Colors.green : Colors.orange,
+                          ),
+                        ),
+                        value: isPaid,
+                        onChanged: (value) {
+                          setStateDialog(() => isPaid = value ?? false);
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                        secondary: Icon(
+                          isPaid ? Icons.check_circle : Icons.pending,
                           color: isPaid ? Colors.green : Colors.orange,
                         ),
                       ),
-                      value: isPaid,
-                      onChanged: (value) {
-                        setStateDialog(() => isPaid = value ?? false);
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
-                      secondary: Icon(
-                        isPaid ? Icons.check_circle : Icons.pending,
-                        color: isPaid ? Colors.green : Colors.orange,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -896,45 +960,55 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             final l = AppLocalizations.of(context);
+            final dialogWidth = MediaQuery.sizeOf(context).width;
             return AlertDialog(
               title: Text(l.editAthleteInfo),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: l.fullName,
-                      prefixIcon: const Icon(Icons.person),
-                      border: const OutlineInputBorder(),
-                    ),
-                    textCapitalization: TextCapitalization.words,
-                  ),
-                  const SizedBox(height: 16),
-                  InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: regDate!,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null) {
-                        setStateDialog(() => regDate = picked);
-                      }
-                    },
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: l.registrationDate,
-                        prefixIcon: const Icon(Icons.calendar_today),
-                        border: const OutlineInputBorder(),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: dialogWidth > 520 ? 460 : dialogWidth * 0.9,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          labelText: l.fullName,
+                          prefixIcon: const Icon(Icons.person),
+                          border: const OutlineInputBorder(),
+                        ),
+                        textCapitalization: TextCapitalization.words,
                       ),
-                      child: Text(
-                        '${regDate!.day.toString().padLeft(2, '0')}.${regDate!.month.toString().padLeft(2, '0')}.${regDate!.year}',
+                      const SizedBox(height: 16),
+                      InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: regDate!,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                          );
+                          if (picked != null) {
+                            setStateDialog(() => regDate = picked);
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: l.registrationDate,
+                            prefixIcon: const Icon(Icons.calendar_today),
+                            border: const OutlineInputBorder(),
+                          ),
+                          child: Text(
+                            '${regDate!.day.toString().padLeft(2, '0')}.${regDate!.month.toString().padLeft(2, '0')}.${regDate!.year}',
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
               actions: [
                 TextButton(

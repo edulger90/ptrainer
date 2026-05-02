@@ -361,22 +361,26 @@ class _PremiumPageState extends State<PremiumPage> {
                                       strokeWidth: 2.5,
                                     ),
                                   )
-                                : Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.workspace_premium,
-                                        size: 22,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '${l.premiumBuy} • ${_planPrice(_selectedPlan, isDevEnvironment)}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                : FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.workspace_premium,
+                                          size: 22,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '${l.premiumBuy} • ${_planPrice(_selectedPlan, isDevEnvironment)}',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                           ),
                         ),
@@ -645,105 +649,136 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Ink(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF00897B)
-                  : Colors.grey.withValues(alpha: 0.18),
-              width: selected ? 2 : 1,
-            ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF00897B).withValues(alpha: 0.12),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (badgeText != null) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF3CD),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              badgeText!,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF8D6E00),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                    ),
-                  ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useCompactLayout = constraints.maxWidth < 360;
+        final badge = badgeText != null
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3CD),
+                  borderRadius: BorderRadius.circular(999),
                 ),
-              ),
-              const SizedBox(width: 12),
+                child: Text(
+                  badgeText!,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF8D6E00),
+                  ),
+                ),
+              )
+            : null;
+
+        final leadingContent = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (useCompactLayout)
               Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    price,
+                    title,
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFFFFB300),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Icon(
-                    selected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                    color: selected
-                        ? const Color(0xFF00897B)
-                        : Colors.grey[400],
+                  if (badge != null) ...[const SizedBox(height: 6), badge],
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
+                  if (badge != null) ...[const SizedBox(width: 8), badge],
                 ],
               ),
-            ],
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+          ],
+        );
+
+        final trailingContent = Column(
+          crossAxisAlignment: useCompactLayout
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.end,
+          children: [
+            Text(
+              price,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFFFFB300),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: selected ? const Color(0xFF00897B) : Colors.grey[400],
+            ),
+          ],
+        );
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Ink(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selected
+                      ? const Color(0xFF00897B)
+                      : Colors.grey.withValues(alpha: 0.18),
+                  width: selected ? 2 : 1,
+                ),
+                boxShadow: selected
+                    ? [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF00897B,
+                          ).withValues(alpha: 0.12),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: useCompactLayout
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        leadingContent,
+                        const SizedBox(height: 12),
+                        trailingContent,
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(child: leadingContent),
+                        const SizedBox(width: 12),
+                        trailingContent,
+                      ],
+                    ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -767,84 +802,157 @@ class _FeatureRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 22, color: const Color(0xFF00897B)),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 3,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            // Free
-            Expanded(
-              flex: 2,
-              child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useCompactLayout = constraints.maxWidth < 360;
+        final comparisonColumns = useCompactLayout
+            ? Row(
                 children: [
-                  Text(
-                    l.premiumFree,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[400],
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: _ComparisonValue(
+                      label: l.premiumFree,
+                      value: freeValue,
+                      valueColor: freeBlocked
+                          ? Colors.red[300]!
+                          : Colors.grey[700]!,
+                      labelColor: Colors.grey[400]!,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    freeValue,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: freeBlocked ? Colors.red[300] : Colors.grey[700],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ComparisonValue(
+                      label: l.premiumLabel,
+                      value: premiumValue,
+                      valueColor: const Color(0xFF00897B),
+                      labelColor: const Color(0xFFFFB300),
                     ),
                   ),
                 ],
-              ),
-            ),
-            // Premium
-            Expanded(
-              flex: 2,
-              child: Column(
+              )
+            : Row(
                 children: [
-                  Text(
-                    l.premiumLabel,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFFFFB300),
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    flex: 2,
+                    child: _ComparisonValue(
+                      label: l.premiumFree,
+                      value: freeValue,
+                      valueColor: freeBlocked
+                          ? Colors.red[300]!
+                          : Colors.grey[700]!,
+                      labelColor: Colors.grey[400]!,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    premiumValue,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF00897B),
+                  Expanded(
+                    flex: 2,
+                    child: _ComparisonValue(
+                      label: l.premiumLabel,
+                      value: premiumValue,
+                      valueColor: const Color(0xFF00897B),
+                      labelColor: const Color(0xFFFFB300),
                     ),
                   ),
                 ],
-              ),
+              );
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
             ),
-          ],
+            child: useCompactLayout
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(icon, size: 22, color: const Color(0xFF00897B)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      comparisonColumns,
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Icon(icon, size: 22, color: const Color(0xFF00897B)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      comparisonColumns,
+                    ],
+                  ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ComparisonValue extends StatelessWidget {
+  const _ComparisonValue({
+    required this.label,
+    required this.value,
+    required this.valueColor,
+    required this.labelColor,
+  });
+
+  final String label;
+  final String value;
+  final Color valueColor;
+  final Color labelColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: labelColor,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
         ),
-      ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: valueColor,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }

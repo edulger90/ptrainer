@@ -68,6 +68,7 @@ const Map<String, String> nlStrings = {
   'passwordResetSuccess': 'Wachtwoord succesvol hersteld. Log alsjeblieft in.',
   'backToLogin': 'Terug naar Inloggen',
   'continueText': 'Doorgaan',
+  'rememberMe': 'Onthoud mij',
 
   // Home
   'myAthletes': 'Mijn Programma\'s',

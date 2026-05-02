@@ -136,6 +136,7 @@ class AppLocalizations {
   String get passwordResetSuccess => get('passwordResetSuccess');
   String get backToLogin => get('backToLogin');
   String get continueText => get('continueText');
+  String get rememberMe => get('rememberMe');
 
   // ── Home ──
   String get myAthletes => get('myAthletes');

@@ -7,12 +7,14 @@ class FakeAuthService implements AuthService {
   FakeAuthService({
     this.userExistsValue = false,
     this.savedUsername,
+    this.savedPassword,
     this.authenticatedUser,
     this.throwOnUserExists = false,
   });
 
   User? authenticatedUser;
   String? savedUsername;
+  String? savedPassword;
   bool userExistsValue;
   bool throwOnUserExists;
 
@@ -27,6 +29,8 @@ class FakeAuthService implements AuthService {
   >
   registeredUsers = [];
   final List<String> persistedUsernames = [];
+  final List<({String username, String password})> rememberedCredentials = [];
+  var clearRememberedCredentialsCallCount = 0;
 
   @override
   Future<User?> authenticate({
@@ -38,6 +42,17 @@ class FakeAuthService implements AuthService {
 
   @override
   Future<String?> loadSavedUsername() async => savedUsername;
+
+  @override
+  Future<RememberedCredentials?> loadRememberedCredentials() async {
+    if (savedUsername == null || savedPassword == null) {
+      return null;
+    }
+    return RememberedCredentials(
+      username: savedUsername!,
+      password: savedPassword!,
+    );
+  }
 
   @override
   Future<void> registerUser({
@@ -60,6 +75,19 @@ class FakeAuthService implements AuthService {
   @override
   Future<void> saveUsername(String username) async {
     persistedUsernames.add(username);
+  }
+
+  @override
+  Future<void> saveRememberedCredentials({
+    required String username,
+    required String password,
+  }) async {
+    rememberedCredentials.add((username: username, password: password));
+  }
+
+  @override
+  Future<void> clearRememberedCredentials() async {
+    clearRememberedCredentialsCallCount++;
   }
 
   @override
@@ -92,6 +120,7 @@ void main() {
           authService: FakeAuthService(
             userExistsValue: true,
             savedUsername: 'coach',
+            savedPassword: 'Password1',
           ),
         );
 
@@ -100,11 +129,13 @@ void main() {
         expect(state.userExists, isTrue);
         expect(state.isLogin, isTrue);
         expect(state.savedUsername, 'coach');
+        expect(state.savedPassword, 'Password1');
+        expect(state.rememberMe, isTrue);
       },
     );
 
     test(
-      'submit returns success user on valid login and persists username',
+      'submit returns success user on valid login and persists username and password when remember me is on',
       () async {
         final fakeService = FakeAuthService(
           authenticatedUser: User(
@@ -120,11 +151,39 @@ void main() {
           username: 'Coach',
           email: '',
           password: 'Password1',
+          rememberMe: true,
         );
 
         expect(result.user?.username, 'coach');
         expect(result.shouldClearPassword, isTrue);
         expect(fakeService.persistedUsernames, ['coach']);
+        expect(fakeService.rememberedCredentials, [
+          (username: 'coach', password: 'Password1'),
+        ]);
+      },
+    );
+
+    test(
+      'submit clears remembered credentials when remember me is off',
+      () async {
+        final fakeService = FakeAuthService(
+          authenticatedUser: User(
+            username: 'coach',
+            email: 'coach@example.com',
+            password: 'hash',
+          ),
+        );
+        final controller = AuthController(authService: fakeService);
+
+        final result = await controller.submit(
+          isLogin: true,
+          username: 'coach',
+          email: '',
+          password: 'Password1',
+        );
+
+        expect(result.user?.username, 'coach');
+        expect(fakeService.clearRememberedCredentialsCallCount, 1);
       },
     );
 

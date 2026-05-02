@@ -157,24 +157,52 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: Colors.grey[50],
-            child: Row(
-              children: [
-                Text(
-                  '$_totalCount ${l.totalEntries}',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Spacer(),
-                _filterChip(l.all, null),
-                const SizedBox(width: 6),
-                _filterChip('Error', 'ERROR'),
-                const SizedBox(width: 6),
-                _filterChip('Warning', 'WARNING'),
-                const SizedBox(width: 6),
-                _filterChip('Info', 'INFO'),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final useCompactLayout = constraints.maxWidth < 420;
+                final chips = [
+                  _filterChip(l.all, null),
+                  _filterChip('Error', 'ERROR'),
+                  _filterChip('Warning', 'WARNING'),
+                  _filterChip('Info', 'INFO'),
+                ];
+
+                if (useCompactLayout) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$_totalCount ${l.totalEntries}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(spacing: 6, runSpacing: 6, children: chips),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Text(
+                      '$_totalCount ${l.totalEntries}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Spacer(),
+                    ...[
+                      for (var index = 0; index < chips.length; index++) ...[
+                        if (index > 0) const SizedBox(width: 6),
+                        chips[index],
+                      ],
+                    ],
+                  ],
+                );
+              },
             ),
           ),
           // Log listesi
@@ -272,7 +300,11 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -292,7 +324,6 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
                             ),
                           ),
                         ),
-                        const Spacer(),
                         Text(
                           _formatTimestamp(timestamp),
                           style: TextStyle(
@@ -466,25 +497,48 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
   }
 
   Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 90,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useCompactLayout = constraints.maxWidth < 320;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: useCompactLayout
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(value, style: const TextStyle(fontSize: 13)),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 90,
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(value, style: const TextStyle(fontSize: 13)),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 }

@@ -48,93 +48,129 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ── Üst Bar: Logo + Çıkış ──
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00897B), Color(0xFF00BCD4)],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final useCompactHeader = constraints.maxWidth < 380;
+
+                      Widget settingsButton() {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.teal[50],
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFF00BCD4,
-                              ).withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
+                          child: IconButton(
+                            icon: Icon(Icons.settings, color: Colors.teal[400]),
+                            tooltip: l.settings,
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const SettingsPage(),
+                                    ),
+                                  )
+                                  .then((_) => _refreshThisWeek());
+                            },
+                          ),
+                        );
+                      }
+
+                      Widget logoutButton() {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            icon: Icon(Icons.logout, color: Colors.red[400]),
+                            tooltip: l.logout,
+                            onPressed: _logout,
+                          ),
+                        );
+                      }
+
+                      final titleBlock = Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              l.appTitle,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF00897B),
+                              ),
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.fitness_center,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                l.appTitle,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF00897B),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l.welcome(widget.currentUser.username),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      );
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF00897B),
+                                      Color(0xFF00BCD4),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF00BCD4,
+                                      ).withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.fitness_center,
+                                  color: Colors.white,
+                                  size: 28,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              l.welcome(widget.currentUser.username),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              const SizedBox(width: 14),
+                              Expanded(child: titleBlock),
+                              if (!useCompactHeader) ...[
+                                settingsButton(),
+                                const SizedBox(width: 8),
+                                logoutButton(),
+                              ],
+                            ],
+                          ),
+                          if (useCompactHeader) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                settingsButton(),
+                                const SizedBox(width: 8),
+                                logoutButton(),
+                              ],
                             ),
                           ],
-                        ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.teal[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.settings, color: Colors.teal[400]),
-                          tooltip: l.settings,
-                          onPressed: () {
-                            Navigator.of(context)
-                                .push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const SettingsPage(),
-                                  ),
-                                )
-                                .then((_) => _refreshThisWeek());
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.red[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.logout, color: Colors.red[400]),
-                          tooltip: l.logout,
-                          onPressed: _logout,
-                        ),
-                      ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
 
