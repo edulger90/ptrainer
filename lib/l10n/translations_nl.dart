@@ -20,6 +20,7 @@ const Map<String, String> nlStrings = {
   'showPassiveClients': 'Toon passieve klanten',
   'appTitle': 'P-Trainer',
   'cancel': 'Annuleren',
+  'ok': 'OK',
   'save': 'Opslaan',
   'add': 'Toevoegen',
   'update': 'Bijwerken',
@@ -73,6 +74,9 @@ const Map<String, String> nlStrings = {
   // Home
   'myAthletes': 'Mijn Programma\'s',
   'weeklyPlan': 'Wekelijks Aanwezigheidsrooster',
+  'monthlyAttendance': 'Maandelijkse Aanwezigheid',
+  'monthlyAttendanceDesc':
+      'Bekijk dagen, tijden, personen en officiële feestdagen in een maandkalender',
   'analysis': 'Analyse',
   'analysisDesc':
       'Bekijk maandelijkse analyses en voeg later meer rapporten toe',
@@ -214,6 +218,20 @@ const Map<String, String> nlStrings = {
 
   // Period Calendar
   'periodCalendar': 'Periode Kalender',
+  'periodCalendarLegendTooltip': 'Pictogramuitleg',
+  'periodCalendarLegendTitle': 'Pictogramuitleg',
+  'periodCalendarLegendDone':
+      'Les is gegeven of aanwezigheid is als voltooid gemarkeerd.',
+  'periodCalendarLegendAbsent':
+      'Les is niet gemarkeerd of staat als afwezig weergegeven.',
+  'periodCalendarLegendMakeup': 'Wordt gebruikt om een inhaaldatum te kiezen.',
+  'periodCalendarLegendCancel': 'Annuleert de les en start het uitstelproces.',
+  'periodCalendarLegendUndo':
+      'Maakt een annulering of uitgevoerde actie ongedaan.',
+  'periodCalendarLegendBlocked':
+      'Aanwezigheidsactie is uitgeschakeld omdat deze dag is geannuleerd.',
+  'periodCalendarLegendPostponed':
+      'Deze rij geeft een uitgestelde extra lesdag aan.',
   'postponedBadge': 'Uitgesteld',
   'cancelLesson': 'Aanwezigheid Annuleren',
   'cancelLessonBody':
@@ -243,6 +261,22 @@ const Map<String, String> nlStrings = {
   'noLessonToday': 'Geen aanwezigheid voor deze dag.',
   'thisWeek': 'Deze Week',
   'nextWeek': 'Volgende Week',
+  'monthlyAttendanceCountryLabel': 'Land',
+  'monthlyAttendanceHolidaySection': 'Officiële Feestdagen',
+  'monthlyAttendanceNoEntries': 'Geen aanwezigheid voor deze dag.',
+  'monthlyAttendanceOpenClient': 'Programmadata openen',
+  'monthlyAttendanceLegendTooltip': 'Kleur- en pictogramuitleg',
+  'monthlyAttendanceLegendTitle':
+      'Handleiding voor Kleuren en Pictogrammen van Maandelijkse Aanwezigheid',
+  'monthlyAttendanceLegendPending': 'Gepland',
+  'monthlyAttendanceLegendAttended': 'Gereed',
+  'monthlyAttendanceLegendAbsent': 'Afwezig',
+  'monthlyAttendanceLegendCancelled': 'Geannuleerd',
+  'monthlyAttendanceLegendMakeup': 'Inhaalles',
+  'weeklyWidgetInfoTooltip': 'Dubbelklik-info',
+  'weeklyWidgetInfoTitle': 'Deze Week Gebruiksinfo',
+  'weeklyWidgetInfoBody':
+      'Dubbeltik op een dagkaart in het onderdeel Deze Week om de detaillijst van die dag te openen. Daar kun je snel aanwezigheid als voltooid markeren, een inhaaldatum kiezen, een les annuleren of een actie resetten.',
   'weeklyAttendanceListTitle': 'Aanwezigheidslijst',
   'markAttendanceDone': 'Gereed',
   'makeup': 'Inhaalles',

@@ -20,6 +20,7 @@ const Map<String, String> trStrings = {
   'showPassiveClients': 'Pasifleri Göster',
   'appTitle': 'P-Trainer',
   'cancel': 'İptal',
+  'ok': 'Tamam',
   'save': 'Kaydet',
   'add': 'Ekle',
   'update': 'Güncelle',
@@ -72,6 +73,9 @@ const Map<String, String> trStrings = {
   // Home
   'myAthletes': 'Programlarım',
   'weeklyPlan': 'Haftalık Katılım Planı',
+  'monthlyAttendance': 'Aylık Katılım',
+  'monthlyAttendanceDesc':
+      'Aylık takvimde gün, saat, kişi ve resmi tatilleri görüntüle',
   'analysis': 'Analiz',
   'analysisDesc': 'Aylık analizleri ve eklenecek yeni raporları görüntüle',
   'analysisComingSoon': 'Analiz sayfası yakında eklenecek',
@@ -210,6 +214,18 @@ const Map<String, String> trStrings = {
 
   // Period Calendar
   'periodCalendar': 'Periyot Takvimi',
+  'periodCalendarLegendTooltip': 'İkon açıklamaları',
+  'periodCalendarLegendTitle': 'İkon Açıklamaları',
+  'periodCalendarLegendDone': 'Ders yapıldı veya katılım tamamlandı.',
+  'periodCalendarLegendAbsent': 'Ders işaretlenmedi veya devamsız görünüyor.',
+  'periodCalendarLegendMakeup': 'Telafi tarihi seçmek için kullanılır.',
+  'periodCalendarLegendCancel':
+      'Dersi iptal eder ve erteleme sürecini başlatır.',
+  'periodCalendarLegendUndo': 'İptal veya yapılan işlemi geri alır.',
+  'periodCalendarLegendBlocked':
+      'Bu gün iptal edildiği için katılım butonu pasiftir.',
+  'periodCalendarLegendPostponed':
+      'Bu satır ertelenmiş ek ders gününü gösterir.',
   'postponedBadge': 'Ötelendi',
   'cancelLesson': 'Katılım İptali',
   'cancelLessonBody':
@@ -239,6 +255,21 @@ const Map<String, String> trStrings = {
   'noLessonToday': 'Bu gün için katılım yok.',
   'thisWeek': 'Bu Hafta',
   'nextWeek': 'Gelecek Hafta',
+  'monthlyAttendanceCountryLabel': 'Ülke',
+  'monthlyAttendanceHolidaySection': 'Resmi Tatiller',
+  'monthlyAttendanceNoEntries': 'Bu gün için katılım yok.',
+  'monthlyAttendanceOpenClient': 'Program detayını aç',
+  'monthlyAttendanceLegendTooltip': 'Renk ve ikon açıklamaları',
+  'monthlyAttendanceLegendTitle': 'Aylık Katılım Renk ve İkon Açıklamaları',
+  'monthlyAttendanceLegendPending': 'Planlı',
+  'monthlyAttendanceLegendAttended': 'Yapıldı',
+  'monthlyAttendanceLegendAbsent': 'Gelmedi',
+  'monthlyAttendanceLegendCancelled': 'İptal',
+  'monthlyAttendanceLegendMakeup': 'Telafi',
+  'weeklyWidgetInfoTooltip': 'Çift tıklama bilgisi',
+  'weeklyWidgetInfoTitle': 'Bu Hafta Kullanım Bilgisi',
+  'weeklyWidgetInfoBody':
+      'Bu Hafta kartlarında herhangi bir günün üzerine çift tıkladığında, o günün detay listesi açılır. Bu listede dersi yapıldı olarak işaretleme, telafi tarihi seçme, iptal etme veya işlemi sıfırlama gibi hızlı aksiyonlara ulaşabilirsin.',
   'weeklyAttendanceListTitle': 'Katılım listesi',
   'markAttendanceDone': 'Yapıldı',
   'makeup': 'Telafi',

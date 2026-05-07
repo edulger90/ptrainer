@@ -89,6 +89,7 @@ class AppLocalizations {
   // ── Genel ──
   String get appTitle => get('appTitle');
   String get cancel => get('cancel');
+  String get ok => get('ok');
   String get save => get('save');
   String get add => get('add');
   String get update => get('update');
@@ -141,6 +142,8 @@ class AppLocalizations {
   // ── Home ──
   String get myAthletes => get('myAthletes');
   String get weeklyPlan => get('weeklyPlan');
+  String get monthlyAttendance => get('monthlyAttendance');
+  String get monthlyAttendanceDesc => get('monthlyAttendanceDesc');
   String get analysis => get('analysis');
   String get analysisDesc => get('analysisDesc');
   String get analysisComingSoon => get('analysisComingSoon');
@@ -320,6 +323,16 @@ class AppLocalizations {
 
   // ── Period Calendar ──
   String get periodCalendar => get('periodCalendar');
+  String get periodCalendarLegendTooltip => get('periodCalendarLegendTooltip');
+  String get periodCalendarLegendTitle => get('periodCalendarLegendTitle');
+  String get periodCalendarLegendDone => get('periodCalendarLegendDone');
+  String get periodCalendarLegendAbsent => get('periodCalendarLegendAbsent');
+  String get periodCalendarLegendMakeup => get('periodCalendarLegendMakeup');
+  String get periodCalendarLegendCancel => get('periodCalendarLegendCancel');
+  String get periodCalendarLegendUndo => get('periodCalendarLegendUndo');
+  String get periodCalendarLegendBlocked => get('periodCalendarLegendBlocked');
+  String get periodCalendarLegendPostponed =>
+      get('periodCalendarLegendPostponed');
   String get postponedBadge => get('postponedBadge');
   String get cancelLesson => get('cancelLesson');
   String cancelLessonBody(String date) =>
@@ -351,6 +364,29 @@ class AppLocalizations {
   String get noLessonToday => get('noLessonToday');
   String get thisWeek => get('thisWeek');
   String get nextWeek => get('nextWeek');
+  String get monthlyAttendanceCountryLabel =>
+      get('monthlyAttendanceCountryLabel');
+  String get monthlyAttendanceHolidaySection =>
+      get('monthlyAttendanceHolidaySection');
+  String get monthlyAttendanceNoEntries => get('monthlyAttendanceNoEntries');
+  String get monthlyAttendanceOpenClient => get('monthlyAttendanceOpenClient');
+  String get monthlyAttendanceLegendTooltip =>
+      get('monthlyAttendanceLegendTooltip');
+  String get monthlyAttendanceLegendTitle =>
+      get('monthlyAttendanceLegendTitle');
+  String get monthlyAttendanceLegendPending =>
+      get('monthlyAttendanceLegendPending');
+  String get monthlyAttendanceLegendAttended =>
+      get('monthlyAttendanceLegendAttended');
+  String get monthlyAttendanceLegendAbsent =>
+      get('monthlyAttendanceLegendAbsent');
+  String get monthlyAttendanceLegendCancelled =>
+      get('monthlyAttendanceLegendCancelled');
+  String get monthlyAttendanceLegendMakeup =>
+      get('monthlyAttendanceLegendMakeup');
+  String get weeklyWidgetInfoTooltip => get('weeklyWidgetInfoTooltip');
+  String get weeklyWidgetInfoTitle => get('weeklyWidgetInfoTitle');
+  String get weeklyWidgetInfoBody => get('weeklyWidgetInfoBody');
   String get weeklyAttendanceListTitle => get('weeklyAttendanceListTitle');
   String get markAttendanceDone => get('markAttendanceDone');
   String get makeup => get('makeup');

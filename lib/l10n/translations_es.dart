@@ -14,6 +14,7 @@ const Map<String, String> esStrings = {
   'showPassiveClients': 'Mostrar clientes pasivos',
   'appTitle': 'P-Trainer',
   'cancel': 'Cancelar',
+  'ok': 'Aceptar',
   'save': 'Guardar',
   'add': 'Agregar',
   'update': 'Actualizar',
@@ -72,6 +73,9 @@ const Map<String, String> esStrings = {
   // Home
   'myAthletes': 'Mis Programas',
   'weeklyPlan': 'Plan Semanal de Asistencia',
+  'monthlyAttendance': 'Asistencia Mensual',
+  'monthlyAttendanceDesc':
+      'Ver días, horas, personas y festivos oficiales en un calendario mensual',
   'analysis': 'Análisis',
   'analysisDesc': 'Ver análisis mensuales y agregar más reportes con el tiempo',
   'analysisComingSoon': 'La página de análisis estará disponible pronto',
@@ -212,6 +216,21 @@ const Map<String, String> esStrings = {
 
   // Period Calendar
   'periodCalendar': 'Calendario del Periodo',
+  'periodCalendarLegendTooltip': 'Descripción de iconos',
+  'periodCalendarLegendTitle': 'Descripción de Iconos',
+  'periodCalendarLegendDone':
+      'La clase se realizó o la asistencia fue marcada como completada.',
+  'periodCalendarLegendAbsent':
+      'La clase no está marcada o aparece como ausencia.',
+  'periodCalendarLegendMakeup': 'Se usa para elegir una fecha de recuperación.',
+  'periodCalendarLegendCancel':
+      'Cancela la clase e inicia el proceso de aplazamiento.',
+  'periodCalendarLegendUndo':
+      'Revierte una cancelación o una acción realizada.',
+  'periodCalendarLegendBlocked':
+      'La acción de asistencia está desactivada porque este día fue cancelado.',
+  'periodCalendarLegendPostponed':
+      'Esta fila indica un día extra de clase aplazada.',
   'postponedBadge': 'Pospuesto',
   'cancelLesson': 'Cancelar Asistencia',
   'cancelLessonBody':
@@ -242,6 +261,22 @@ const Map<String, String> esStrings = {
   'noLessonToday': 'No hay asistencia para este día.',
   'thisWeek': 'Esta Semana',
   'nextWeek': 'Próxima Semana',
+  'monthlyAttendanceCountryLabel': 'País',
+  'monthlyAttendanceHolidaySection': 'Festivos Oficiales',
+  'monthlyAttendanceNoEntries': 'No hay asistencia para este día.',
+  'monthlyAttendanceOpenClient': 'Abrir detalles del programa',
+  'monthlyAttendanceLegendTooltip': 'Descripción de colores e iconos',
+  'monthlyAttendanceLegendTitle':
+      'Guía de Colores e Iconos de la Asistencia Mensual',
+  'monthlyAttendanceLegendPending': 'Programada',
+  'monthlyAttendanceLegendAttended': 'Hecho',
+  'monthlyAttendanceLegendAbsent': 'Ausente',
+  'monthlyAttendanceLegendCancelled': 'Cancelada',
+  'monthlyAttendanceLegendMakeup': 'Recuperación',
+  'weeklyWidgetInfoTooltip': 'Información de doble toque',
+  'weeklyWidgetInfoTitle': 'Información de Uso de Esta Semana',
+  'weeklyWidgetInfoBody':
+      'Haz doble toque sobre cualquier tarjeta de día en la sección Esta Semana para abrir la lista de detalles de ese día. Desde allí puedes marcar la asistencia como realizada, elegir una fecha de recuperación, cancelar una clase o restablecer una acción.',
   'weeklyAttendanceListTitle': 'Lista de asistencia',
   'markAttendanceDone': 'Hecho',
   'makeup': 'Recuperación',

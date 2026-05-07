@@ -348,6 +348,76 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     }
   }
 
+  Future<void> _showIconLegend() async {
+    if (!mounted) return;
+
+    final l = AppLocalizations.of(context);
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.periodCalendarLegendTitle),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _LegendRow(
+                  icon: Icons.check,
+                  color: Colors.green,
+                  text: l.periodCalendarLegendDone,
+                ),
+                const SizedBox(height: 10),
+                _LegendRow(
+                  icon: Icons.close,
+                  color: Colors.red,
+                  text: l.periodCalendarLegendAbsent,
+                ),
+                const SizedBox(height: 10),
+                _LegendRow(
+                  icon: Icons.event_available,
+                  color: Colors.teal,
+                  text: l.periodCalendarLegendMakeup,
+                ),
+                const SizedBox(height: 10),
+                _LegendRow(
+                  icon: Icons.event_busy,
+                  color: Color(0xFFC8A415),
+                  text: l.periodCalendarLegendCancel,
+                ),
+                const SizedBox(height: 10),
+                _LegendRow(
+                  icon: Icons.undo,
+                  color: Colors.blue,
+                  text: l.periodCalendarLegendUndo,
+                ),
+                const SizedBox(height: 10),
+                _LegendRow(
+                  icon: Icons.block,
+                  color: Color(0xFFC8A415),
+                  text: l.periodCalendarLegendBlocked,
+                ),
+                const SizedBox(height: 10),
+                _LegendRow(
+                  icon: Icons.add_circle,
+                  color: Color(0xFFC8A415),
+                  text: l.periodCalendarLegendPostponed,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.ok),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _cancelLesson(DateTime day) async {
     final clientId = widget.client.id;
     final periodId = _currentPeriod.id;
@@ -547,6 +617,11 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
       appBar: AppBar(
         title: Text(l.periodCalendar),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: l.periodCalendarLegendTooltip,
+            onPressed: _showIconLegend,
+          ),
           if (_currentPeriod.postponedEndDate != null)
             Padding(
               padding: const EdgeInsets.only(right: 12),
@@ -851,4 +926,31 @@ class _ReasonSelection {
   final String? note;
 
   const _ReasonSelection({required this.reason, this.note});
+}
+
+class _LegendRow extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String text;
+
+  const _LegendRow({
+    required this.icon,
+    required this.color,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+      ],
+    );
+  }
 }

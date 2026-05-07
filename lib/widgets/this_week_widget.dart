@@ -890,6 +890,28 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
     );
   }
 
+  Future<void> _showWeeklyWidgetInfo() async {
+    if (!mounted) return;
+
+    final l = AppLocalizations.of(context);
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l.weeklyWidgetInfoTitle),
+          content: Text(l.weeklyWidgetInfoBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.ok),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   DateTime get _displayStart => _currentWeek.start;
 
   DateTime get _displayEnd => _nextWeek.end;
@@ -979,6 +1001,14 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
             fontWeight: FontWeight.bold,
             color: Color(0xFF00897B),
           ),
+        ),
+        const Spacer(),
+        IconButton(
+          icon: const Icon(Icons.info_outline),
+          color: const Color(0xFF00897B),
+          tooltip: l.weeklyWidgetInfoTooltip,
+          onPressed: _showWeeklyWidgetInfo,
+          visualDensity: VisualDensity.compact,
         ),
       ],
     );

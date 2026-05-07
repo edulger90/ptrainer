@@ -4,6 +4,7 @@ import '../services/premium_service.dart';
 import '../services/session_timeout_service.dart';
 import 'analysis_page.dart';
 import 'client_list_page.dart';
+import 'monthly_attendance_page.dart';
 import 'weekly_plan_page.dart';
 import 'settings_page.dart';
 import 'premium_page.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
     final l = AppLocalizations.of(context);
     final premiumService = PremiumService();
     final canAccessAnalysis = premiumService.canAccessAnalysis;
+    final canAccessMonthlyAttendance = premiumService.canAccessWeeklyPlan;
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
@@ -204,6 +206,39 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 16),
                   _MenuCard(
+                    icon: Icons.calendar_view_month_rounded,
+                    title: l.monthlyAttendance,
+                    subtitle: l.monthlyAttendanceDesc,
+                    gradientColors: const [
+                      Color(0xFFEF6C00),
+                      Color(0xFFFFB74D),
+                    ],
+                    isLocked: !canAccessMonthlyAttendance,
+                    badgeLabel: canAccessMonthlyAttendance
+                        ? null
+                        : l.premiumLabel,
+                    onTap: () {
+                      if (!canAccessMonthlyAttendance) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const PremiumPage(),
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder: (_) => MonthlyAttendancePage(
+                                currentUser: widget.currentUser,
+                              ),
+                            ),
+                          )
+                          .then((_) => _refreshThisWeek());
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _MenuCard(
                     icon: Icons.analytics_rounded,
                     title: l.analysis,
                     subtitle: canAccessAnalysis
@@ -232,6 +267,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
+
                   const SizedBox(height: 16),
                   _MenuCard(
                     icon: Icons.calendar_month_rounded,

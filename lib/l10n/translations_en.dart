@@ -20,6 +20,7 @@ const Map<String, String> enStrings = {
   'showPassiveClients': 'Show Passive Clients',
   'appTitle': 'P-Trainer',
   'cancel': 'Cancel',
+  'ok': 'OK',
   'save': 'Save',
   'add': 'Add',
   'update': 'Update',
@@ -74,6 +75,9 @@ const Map<String, String> enStrings = {
   // Home
   'myAthletes': 'My Programs',
   'weeklyPlan': 'Weekly Attendance Plan',
+  'monthlyAttendance': 'Monthly Attendance',
+  'monthlyAttendanceDesc':
+      'View days, times, people, and official holidays in a monthly calendar',
   'analysis': 'Analysis',
   'analysisDesc': 'View monthly analytics and add more reports over time',
   'analysisComingSoon': 'Analysis page coming soon',
@@ -213,6 +217,20 @@ const Map<String, String> enStrings = {
 
   // Period Calendar
   'periodCalendar': 'Period Calendar',
+  'periodCalendarLegendTooltip': 'Icon descriptions',
+  'periodCalendarLegendTitle': 'Icon Descriptions',
+  'periodCalendarLegendDone':
+      'Lesson completed or attendance has been marked as done.',
+  'periodCalendarLegendAbsent':
+      'Lesson is unmarked or currently shown as absent.',
+  'periodCalendarLegendMakeup': 'Used to select a makeup lesson date.',
+  'periodCalendarLegendCancel':
+      'Cancels the lesson and starts the postponement flow.',
+  'periodCalendarLegendUndo': 'Reverts a cancellation or applied action.',
+  'periodCalendarLegendBlocked':
+      'Attendance action is disabled because this day is cancelled.',
+  'periodCalendarLegendPostponed':
+      'This row indicates a postponed extra lesson day.',
   'postponedBadge': 'Postponed',
   'cancelLesson': 'Cancel Attendance',
   'cancelLessonBody':
@@ -242,6 +260,21 @@ const Map<String, String> enStrings = {
   'noLessonToday': 'No attendance for this day.',
   'thisWeek': 'This Week',
   'nextWeek': 'Next Week',
+  'monthlyAttendanceCountryLabel': 'Country',
+  'monthlyAttendanceHolidaySection': 'Official Holidays',
+  'monthlyAttendanceNoEntries': 'No attendance for this day.',
+  'monthlyAttendanceOpenClient': 'Open program details',
+  'monthlyAttendanceLegendTooltip': 'Color and icon descriptions',
+  'monthlyAttendanceLegendTitle': 'Monthly Attendance Color and Icon Guide',
+  'monthlyAttendanceLegendPending': 'Scheduled',
+  'monthlyAttendanceLegendAttended': 'Done',
+  'monthlyAttendanceLegendAbsent': 'Absent',
+  'monthlyAttendanceLegendCancelled': 'Cancelled',
+  'monthlyAttendanceLegendMakeup': 'Makeup',
+  'weeklyWidgetInfoTooltip': 'Double-tap info',
+  'weeklyWidgetInfoTitle': 'This Week Usage Info',
+  'weeklyWidgetInfoBody':
+      'Double-tap any day card in the This Week section to open that day\'s detail list. From there you can quickly mark attendance as done, choose a makeup date, cancel a lesson, or reset an action.',
   'weeklyAttendanceListTitle': 'Attendance list',
   'markAttendanceDone': 'Done',
   'makeup': 'Makeup',
