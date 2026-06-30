@@ -186,21 +186,38 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
 
   List<DateTime> _getLessonDays() {
     if (_cachedLessonDays != null) return _cachedLessonDays!;
-    final days = <DateTime>[];
     final effectiveEnd = DateTime.parse(
       _currentPeriod.postponedEndDate ?? _currentPeriod.endDate,
     );
-    for (
-      var d = _start;
-      !d.isAfter(effectiveEnd);
-      d = d.add(const Duration(days: 1))
-    ) {
-      if (_lessonWeekdays.contains(d.weekday)) {
-        days.add(d);
+    final today = _normalizeDay(DateTime.now());
+    final isClosed = _normalizeDay(effectiveEnd).isBefore(today);
+
+    final daySet = <DateTime>{};
+
+    // Aktif periyotlarda güncel programa göre sanal ders günlerini ekle.
+    // Kapatılmış periyotlarda eski program günleri görünmesin diye atla.
+    if (!isClosed) {
+      for (
+        var d = _start;
+        !d.isAfter(effectiveEnd);
+        d = d.add(const Duration(days: 1))
+      ) {
+        if (_lessonWeekdays.contains(d.weekday)) {
+          daySet.add(d);
+        }
       }
     }
-    _cachedLessonDays = days;
-    return days;
+
+    // Program değişse bile DB'deki tüm katılım kayıtlarının günlerini göster.
+    for (final recordDate in _attendance.keys) {
+      if (!recordDate.isBefore(_start) && !recordDate.isAfter(effectiveEnd)) {
+        daySet.add(recordDate);
+      }
+    }
+
+    final sortedDays = daySet.toList()..sort();
+    _cachedLessonDays = sortedDays;
+    return sortedDays;
   }
 
   AttendanceRecord _attendanceToRecord(

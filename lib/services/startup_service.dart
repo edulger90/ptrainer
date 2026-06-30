@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import 'ad_service.dart';
 import 'app_language_service.dart';
 import 'error_logger.dart';
 import 'notification_service.dart';
@@ -21,6 +22,10 @@ class StartupService {
 
         await AppLanguageService().load();
         PremiumService().init();
+        await AdService().init();
+        AdService().loadClientAd();
+        AdService().loadPeriodAd();
+        AdService().loadWeeklyPlanAd();
         await NotificationService.instance.initialize();
         await NotificationService.instance.rescheduleFromSavedSettings();
 

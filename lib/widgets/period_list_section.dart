@@ -16,6 +16,7 @@ class PeriodListSection extends StatelessWidget {
   final VoidCallback onAddPeriod;
   final void Function(Period period) onPeriodDetail;
   final VoidCallback onDataChanged;
+  final Future<void> Function(Period period)? onDeletePeriod;
 
   const PeriodListSection({
     super.key,
@@ -26,6 +27,7 @@ class PeriodListSection extends StatelessWidget {
     required this.onAddPeriod,
     required this.onPeriodDetail,
     required this.onDataChanged,
+    this.onDeletePeriod,
   });
 
   /// Periyot durumuna göre renk çifti döndürür (gradient başlangıç, bitiş)
@@ -46,6 +48,58 @@ class PeriodListSection extends StatelessWidget {
     return (const Color(0xFF4CAF50), const Color(0xFF81C784));
   }
 
+  bool _isOpenPeriod(Period period) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final effectiveEndStr = period.postponedEndDate ?? period.endDate;
+    final effectiveEnd = DateTime.tryParse(effectiveEndStr);
+    if (effectiveEnd == null) return false;
+    final normalizedEnd = DateTime(
+      effectiveEnd.year,
+      effectiveEnd.month,
+      effectiveEnd.day,
+    );
+    return !normalizedEnd.isBefore(today);
+  }
+
+  Future<void> _confirmAndDelete(BuildContext context, Period period) async {
+    final l = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red[400], size: 28),
+            const SizedBox(width: 10),
+            Expanded(child: Text(l.confirmDeletePeriodTitle)),
+          ],
+        ),
+        content: Text(l.confirmDeletePeriodMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l.cancel),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[400],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await onDeletePeriod?.call(period);
+    }
+  }
+
   String _formatDate(String isoDate) {
     try {
       final d = DateTime.parse(isoDate);
@@ -60,6 +114,25 @@ class PeriodListSection extends StatelessWidget {
       return client.sessionPackage ?? 0;
     }
 
+    // Kapatılmış periyotlar için güncel program yerine DB kayıt sayısını kullan.
+    // Böylece program günü değiştiğinde geçmiş periyotların toplamı etkilenmez.
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final effectiveEndStr = period.postponedEndDate ?? period.endDate;
+    final effectiveEndParsed = DateTime.tryParse(effectiveEndStr);
+    if (effectiveEndParsed != null) {
+      final normalizedEnd = DateTime(
+        effectiveEndParsed.year,
+        effectiveEndParsed.month,
+        effectiveEndParsed.day,
+      );
+      if (normalizedEnd.isBefore(today)) {
+        final periodId = period.id;
+        if (periodId != null) return attendedCounts[periodId] ?? 0;
+      }
+    }
+
+    // Aktif periyot: güncel programa göre hesapla
     final weekdays = schedules
         .map((s) => TrainerWeekday.fromStorageKey(s.dayOfWeek)?.weekdayNumber)
         .whereType<int>()
@@ -210,26 +283,48 @@ class PeriodListSection extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.25),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    l.lessonsProgress(
-                                      attendedCount,
-                                      totalCount,
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        l.lessonsProgress(
+                                          attendedCount,
+                                          totalCount,
+                                        ),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
                                     ),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                  ),
+                                    if (_isOpenPeriod(period) &&
+                                        onDeletePeriod != null) ...[
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        onTap: () =>
+                                            _confirmAndDelete(context, period),
+                                        child: Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ),

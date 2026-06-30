@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/period.dart';
@@ -8,6 +10,7 @@ import '../models/program_type.dart';
 import '../services/database.dart';
 import '../services/attendance_actions_service.dart';
 import '../services/error_logger.dart';
+import '../services/ad_service.dart';
 import '../services/premium_service.dart';
 import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
@@ -529,30 +532,28 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     final clientId = widget.client.id;
     if (clientId == null) return;
 
-    // Premium kontrolü: ücretsiz planda sporcu başına max 1 periyot
-    if (!PremiumService().canAddPeriod(_periods.length)) {
-      if (!mounted) return;
-      final l = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l.maxPeriodsReached(PremiumService.freeMaxPeriodsPerClient),
-          ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          action: SnackBarAction(
-            label: 'Premium',
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const PremiumPage()));
-            },
-          ),
-        ),
+    // Ücretsiz kullanıcı: zorunlu reklam izletme
+    if (!PremiumService().isPremium) {
+      final completer = Completer<bool>();
+      AdService().showPeriodAd(
+        onRewarded: () => completer.complete(true),
+        onFailed: () {
+          if (!mounted) return;
+          final l = AppLocalizations.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l.adNotReady),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          if (!completer.isCompleted) completer.complete(false);
+        },
       );
-      return;
+      final rewarded = await completer.future;
+      if (!rewarded) return;
     }
 
     DateTime? startDate;
@@ -1305,6 +1306,12 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                         onPeriodDetail: (period) =>
                             _showPeriodDetailDialog(context, period),
                         onDataChanged: _loadAllData,
+                        onDeletePeriod: (period) async {
+                          final id = period.id;
+                          if (id == null) return;
+                          await _db.deletePeriod(id);
+                          await _loadAllData();
+                        },
                       ),
                       const SizedBox(height: 24),
                       // ── Ders Günleri Başlık ──

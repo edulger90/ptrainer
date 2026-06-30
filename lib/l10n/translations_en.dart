@@ -377,6 +377,9 @@ const Map<String, String> enStrings = {
   'confirmDeleteScheduleTitle': 'Delete Attendance Time',
   'confirmDeleteScheduleMessage':
       'Are you sure you want to delete this attendance time?',
+  'confirmDeletePeriodTitle': 'Delete Period',
+  'confirmDeletePeriodMessage':
+      'This period and all its lesson records will be permanently deleted. This cannot be undone.',
 
   // Premium
   'premiumTitle': 'Premium',
@@ -409,6 +412,7 @@ const Map<String, String> enStrings = {
       'Free plan allows up to {max} athletes. Upgrade to Premium!',
   'maxPeriodsReached':
       'Free plan allows up to {max} periods per athlete. Upgrade to Premium!',
+  'adNotReady': 'Ad not ready yet, please wait a moment and try again.',
   'premiumRequired': 'This feature requires a Premium membership.',
   'premiumPlan': 'Current Plan',
   'upgradeToPremium': 'Upgrade to Premium',

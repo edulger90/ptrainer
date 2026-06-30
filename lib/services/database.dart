@@ -141,6 +141,11 @@ class AppDatabase {
     return id;
   }
 
+  Future<void> deletePeriod(int periodId) async {
+    await _periods.deletePeriod(periodId);
+    _triggerNotificationReschedule();
+  }
+
   Future<int> updatePeriod(Period period) async {
     final updated = await _periods.updatePeriod(period);
     _triggerNotificationReschedule();

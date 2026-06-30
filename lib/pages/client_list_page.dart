@@ -7,13 +7,14 @@ import '../models/trainer_weekday.dart';
 import '../models/user.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
+import '../services/ad_service.dart';
 import '../services/premium_service.dart';
 import '../services/screen_preload_service.dart';
 import '../services/session_timeout_service.dart';
-import '../pages/premium_page.dart';
 import 'add_client_page.dart';
 import 'client_detail_page.dart';
 import '../widgets/app_background.dart';
+import '../widgets/banner_ad_widget.dart';
 import '../l10n/app_localizations.dart';
 
 class ClientListPage extends StatefulWidget {
@@ -181,31 +182,20 @@ class _ClientListPageState extends State<ClientListPage> {
     }
   }
 
-  void _goToAddClient() async {
-    // Premium kontrolü: ücretsiz planda max 3 sporcu
-    final clientCount = _clients.length;
-    if (!PremiumService().canAddClient(clientCount)) {
-      if (!mounted) return;
-      final l = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l.maxClientsReached(PremiumService.freeMaxClients)),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          action: SnackBarAction(
-            label: 'Premium',
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const PremiumPage()));
-            },
-          ),
-        ),
-      );
+  void _goToAddClient() {
+    if (PremiumService().isPremium) {
+      _proceedToAddClient();
       return;
     }
+    // Ücretsiz kullanıcı: zorunlu reklam izletme
+    AdService().showClientAd(
+      onRewarded: _proceedToAddClient,
+      onFailed: _showAdNotReadyMessage,
+    );
+  }
+
+  Future<void> _proceedToAddClient() async {
+    if (!mounted) return;
     final createdClient = await Navigator.of(context).push<Client>(
       MaterialPageRoute(
         builder: (_) => AddClientPage(currentUser: widget.currentUser),
@@ -223,6 +213,18 @@ class _ClientListPageState extends State<ClientListPage> {
 
     if (!mounted) return;
     _loadClients();
+  }
+
+  void _showAdNotReadyMessage() {
+    if (!mounted) return;
+    final l = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l.adNotReady),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   @override
@@ -639,6 +641,7 @@ class _ClientListPageState extends State<ClientListPage> {
               label: Text(l.addAthlete),
             )
           : null,
+      bottomNavigationBar: const BannerAdWidget(),
     );
   }
 

@@ -380,6 +380,9 @@ const Map<String, String> esStrings = {
   'confirmDeleteScheduleTitle': 'Eliminar Horario de Asistencia',
   'confirmDeleteScheduleMessage':
       '¿Estás seguro de que quieres eliminar este horario de asistencia?',
+  'confirmDeletePeriodTitle': 'Eliminar Periodo',
+  'confirmDeletePeriodMessage':
+      'Este periodo y todos sus registros de lecciones se eliminarán permanentemente. Esta acción no se puede deshacer.',
 
   // Premium
   'premiumTitle': 'Premium',
@@ -412,6 +415,8 @@ const Map<String, String> esStrings = {
       'El plan gratuito permite hasta {max} atletas. ¡Actualiza a Premium!',
   'maxPeriodsReached':
       'El plan gratuito permite hasta {max} periodos por atleta. ¡Actualiza a Premium!',
+  'adNotReady':
+      'El anuncio aún no está listo, espera un momento e inténtalo de nuevo.',
   'premiumRequired': 'Esta función requiere una membresía Premium.',
   'premiumPlan': 'Plan Actual',
   'upgradeToPremium': 'Actualizar a Premium',

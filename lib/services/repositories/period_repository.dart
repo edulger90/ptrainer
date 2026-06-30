@@ -10,6 +10,20 @@ class PeriodRepository extends BaseRepository {
     return db.insert('periods', period.toMap());
   }
 
+  Future<void> deletePeriod(int periodId) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      // Önce bu periyoda ait tüm katılım kayıtlarını sil
+      await txn.delete(
+        'attendances',
+        where: 'periodId = ?',
+        whereArgs: [periodId],
+      );
+      // Ardından periyodu sil
+      await txn.delete('periods', where: 'id = ?', whereArgs: [periodId]);
+    });
+  }
+
   Future<int> updatePeriod(Period period) async {
     final db = await database;
     return db.update(

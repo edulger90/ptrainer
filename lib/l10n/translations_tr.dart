@@ -373,6 +373,9 @@ const Map<String, String> trStrings = {
   'confirmDeleteScheduleTitle': 'Katılım Saatini Sil',
   'confirmDeleteScheduleMessage':
       'Bu katılım saatini silmek istediğinize emin misiniz?',
+  'confirmDeletePeriodTitle': 'Periyodu Sil',
+  'confirmDeletePeriodMessage':
+      'Bu periyot ve tüm ders kayıtları kalıcı olarak silinecek. Bu işlem geri alınamaz.',
 
   // Premium
   'premiumTitle': 'Premium',
@@ -405,6 +408,8 @@ const Map<String, String> trStrings = {
       'Ücretsiz planda en fazla {max} sporcu ekleyebilirsiniz. Premium\'a geçin!',
   'maxPeriodsReached':
       'Ücretsiz planda sporcu başına en fazla {max} periyot ekleyebilirsiniz. Premium\'a geçin!',
+  'adNotReady':
+      'Reklam henüz yüklenmedi, lütfen biraz bekleyip tekrar deneyin.',
   'premiumRequired': 'Bu özellik Premium üyelik gerektirir.',
   'premiumPlan': 'Mevcut Plan',
   'upgradeToPremium': 'Premium\'a Yükselt',

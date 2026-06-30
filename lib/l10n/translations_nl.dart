@@ -383,6 +383,9 @@ const Map<String, String> nlStrings = {
   'confirmDeleteScheduleTitle': 'Aanwezigheidstijd Verwijderen',
   'confirmDeleteScheduleMessage':
       'Weet je zeker dat je deze aanwezigheidstijd wilt verwijderen?',
+  'confirmDeletePeriodTitle': 'Periode Verwijderen',
+  'confirmDeletePeriodMessage':
+      'Deze periode en alle bijbehorende lesrecords worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.',
 
   // Premium
   'premiumTitle': 'Premium',
@@ -415,6 +418,7 @@ const Map<String, String> nlStrings = {
       'Het gratis plan staat maximaal {max} sporters toe. Upgrade naar Premium!',
   'maxPeriodsReached':
       'Het gratis plan staat maximaal {max} perioden per sporter toe. Upgrade naar Premium!',
+  'adNotReady': 'Advertentie nog niet klaar, wacht even en probeer opnieuw.',
   'premiumRequired': 'Deze functie vereist een Premium lidmaatschap.',
   'premiumPlan': 'Huidig Plan',
   'upgradeToPremium': 'Upgraden naar Premium',

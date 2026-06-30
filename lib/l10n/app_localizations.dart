@@ -504,6 +504,8 @@ class AppLocalizations {
   String get confirmDeleteScheduleTitle => get('confirmDeleteScheduleTitle');
   String get confirmDeleteScheduleMessage =>
       get('confirmDeleteScheduleMessage');
+  String get confirmDeletePeriodTitle => get('confirmDeletePeriodTitle');
+  String get confirmDeletePeriodMessage => get('confirmDeletePeriodMessage');
 
   // ── Premium ──
   String get premiumTitle => get('premiumTitle');
@@ -535,6 +537,7 @@ class AppLocalizations {
       get('maxClientsReached').replaceAll('{max}', '$max');
   String maxPeriodsReached(int max) =>
       get('maxPeriodsReached').replaceAll('{max}', '$max');
+  String get adNotReady => get('adNotReady');
   String get premiumRequired => get('premiumRequired');
   String get premiumPlan => get('premiumPlan');
   String get upgradeToPremium => get('upgradeToPremium');

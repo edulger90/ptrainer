@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
+import '../services/ad_service.dart';
 import '../services/premium_service.dart';
 import '../services/session_timeout_service.dart';
 import 'analysis_page.dart';
@@ -9,6 +10,7 @@ import 'weekly_plan_page.dart';
 import 'settings_page.dart';
 import 'premium_page.dart';
 import '../widgets/app_background.dart';
+import '../widgets/banner_ad_widget.dart';
 import '../widgets/this_week_widget.dart';
 import '../l10n/app_localizations.dart';
 
@@ -22,6 +24,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _thisWeekRefreshKey = 0;
+  int _weeklyPlanTapCount = 0;
 
   Future<void> _logout() async {
     await SessionTimeoutService.instance.logoutNow();
@@ -34,6 +37,38 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// 4 tıklamada bir reklam gösterir; premium kullanıcılar için doğrudan açar.
+  void _openWeeklyPlan() {
+    if (PremiumService().isPremium) {
+      _navigateToWeeklyPlan();
+      return;
+    }
+    _weeklyPlanTapCount++;
+    if (_weeklyPlanTapCount % 4 == 0) {
+      // Her 4. tıklamada reklam göster
+      AdService().showWeeklyPlanAd(
+        onRewarded: _navigateToWeeklyPlan,
+        onFailed: () {
+          // Reklam yoksa yine de açıyoruz (UX friendly)
+          _navigateToWeeklyPlan();
+        },
+      );
+    } else {
+      _navigateToWeeklyPlan();
+    }
+  }
+
+  void _navigateToWeeklyPlan() {
+    if (!mounted) return;
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => WeeklyPlanPage(currentUser: widget.currentUser),
+          ),
+        )
+        .then((_) => _refreshThisWeek());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -41,6 +76,7 @@ class _HomePageState extends State<HomePage> {
     final canAccessAnalysis = premiumService.canAccessAnalysis;
     final canAccessMonthlyAttendance = premiumService.canAccessWeeklyPlan;
     return Scaffold(
+      bottomNavigationBar: const BannerAdWidget(),
       body: AppBackground(
         child: SafeArea(
           child: Padding(
@@ -206,6 +242,17 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 16),
                   _MenuCard(
+                    icon: Icons.calendar_month_rounded,
+                    title: l.weeklyPlan,
+                    subtitle: l.weeklyPlanDesc,
+                    gradientColors: const [
+                      Color(0xFF1E88E5),
+                      Color(0xFF42A5F5),
+                    ],
+                    onTap: _openWeeklyPlan,
+                  ),
+                  const SizedBox(height: 16),
+                  _MenuCard(
                     icon: Icons.calendar_view_month_rounded,
                     title: l.monthlyAttendance,
                     subtitle: l.monthlyAttendanceDesc,
@@ -265,40 +312,6 @@ class _HomePageState extends State<HomePage> {
                               AnalysisPage(currentUser: widget.currentUser),
                         ),
                       );
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-                  _MenuCard(
-                    icon: Icons.calendar_month_rounded,
-                    title: l.weeklyPlan,
-                    subtitle: l.weeklyPlanDesc,
-                    gradientColors: const [
-                      Color(0xFF1E88E5),
-                      Color(0xFF42A5F5),
-                    ],
-                    isLocked: !PremiumService().canAccessWeeklyPlan,
-                    badgeLabel: PremiumService().canAccessWeeklyPlan
-                        ? null
-                        : l.premiumLabel,
-                    onTap: () {
-                      if (!PremiumService().canAccessWeeklyPlan) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const PremiumPage(),
-                          ),
-                        );
-                        return;
-                      }
-                      Navigator.of(context)
-                          .push(
-                            MaterialPageRoute(
-                              builder: (_) => WeeklyPlanPage(
-                                currentUser: widget.currentUser,
-                              ),
-                            ),
-                          )
-                          .then((_) => _refreshThisWeek());
                     },
                   ),
                 ],

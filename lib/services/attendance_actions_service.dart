@@ -213,10 +213,17 @@ class AttendanceActionsService {
       if (lessonDate == null) continue;
       final normalizedDate = _normalizeDay(lessonDate);
 
+      // Sadece "hiç giriş yapılmamış" kayıtlar taşınır:
+      // attended, cancelled, erteleme, telafi, sebep veya herhangi bir
+      // giriş verisi olan kayıtlar yerinde bırakılır.
       final isMovable =
           !record.attended &&
           !record.cancelled &&
+          !record.isPostponed &&
           record.makeupDate == null &&
+          record.reason == null &&
+          record.reasonNote == null &&
+          record.attendedDate == null &&
           !normalizedDate.isBefore(today);
 
       if (isMovable) {
