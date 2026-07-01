@@ -961,8 +961,10 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
                                           switch (action) {
                                             case _MonthlyEntryAction
                                                 .toggleAttendance:
-                                              if (!canRunActions || isCancelled)
+                                              if (!canRunActions ||
+                                                  isCancelled) {
                                                 return;
+                                              }
                                               if (!await _toggleAttendanceForEntry(
                                                 entry,
                                               )) {
@@ -971,8 +973,10 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
                                               await refreshDayEntries();
                                               return;
                                             case _MonthlyEntryAction.setMakeup:
-                                              if (!canRunActions || isCancelled)
+                                              if (!canRunActions ||
+                                                  isCancelled) {
                                                 return;
+                                              }
                                               if (!await _setMakeupForEntry(
                                                 entry,
                                               )) {
@@ -991,8 +995,9 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
                                               await refreshDayEntries();
                                               return;
                                             case _MonthlyEntryAction.reset:
-                                              if (!canRunActions || !canReset)
+                                              if (!canRunActions || !canReset) {
                                                 return;
+                                              }
                                               if (!await _resetEntry(entry)) {
                                                 return;
                                               }
@@ -1231,7 +1236,7 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               DropdownButtonFormField<_HolidayCountry>(
-                                value: _selectedCountry,
+                                initialValue: _selectedCountry,
                                 decoration: InputDecoration(
                                   labelText: l.monthlyAttendanceCountryLabel,
                                   border: OutlineInputBorder(
@@ -1300,7 +1305,7 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
                               SizedBox(
                                 width: 108,
                                 child: DropdownButtonFormField<_HolidayCountry>(
-                                  value: _selectedCountry,
+                                  initialValue: _selectedCountry,
                                   decoration: InputDecoration(
                                     labelText: l.monthlyAttendanceCountryLabel,
                                     border: OutlineInputBorder(

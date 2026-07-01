@@ -22,79 +22,6 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
             />
-            <meta-data
-              android:name="com.google.android.gms.ads.APPLICATION_ID"
-              android:value="ca-app-pub-8094152890068517~9900106551            import 'dart:io';
-            import 'package:google_mobile_ads/google_mobile_ads.dart';
-            
-            class AdService {
-              static final AdService _instance = AdService._internal();
-              factory AdService() => _instance;
-              AdService._internal();
-            
-              // TEST ID'leri — canlıya geçince gerçek ID ile değiştir
-              static String get _clientAddUnitId => Platform.isIOS
-                  ? 'ca-app-pub-3940256099942544/1712485313'   // iOS test rewarded
-                  : 'ca-app-pub-3940256099942544/5224354917';  // Android test rewarded
-            
-              static String get _periodAddUnitId => Platform.isIOS
-                  ? 'ca-app-pub-3940256099942544/1712485313'
-                  : 'ca-app-pub-3940256099942544/5224354917';
-            
-              RewardedAd? _clientAd;
-              RewardedAd? _periodAd;
-            
-              Future<void> init() => MobileAds.instance.initialize();
-            
-              Future<void> loadClientAd() async {
-                await RewardedAd.load(
-                  adUnitId: _clientAddUnitId,
-                  request: const AdRequest(),
-                  rewardedAdLoadCallback: RewardedAdLoadCallback(
-                    onAdLoaded: (ad) => _clientAd = ad,
-                    onAdFailedToLoad: (_) => _clientAd = null,
-                  ),
-                );
-              }
-            
-              Future<void> loadPeriodAd() async {
-                await RewardedAd.load(
-                  adUnitId: _periodAddUnitId,
-                  request: const AdRequest(),
-                  rewardedAdLoadCallback: RewardedAdLoadCallback(
-                    onAdLoaded: (ad) => _periodAd = ad,
-                    onAdFailedToLoad: (_) => _periodAd = null,
-                  ),
-                );
-              }
-            
-              /// [onRewarded] → reklam izlendi, devam et
-              /// [onFailed]   → reklam yok/hata, ne yapılacağı caller'a bırakılıyor
-              Future<void> showClientAd({
-                required void Function() onRewarded,
-                required void Function() onFailed,
-              }) async {
-                if (_clientAd == null) { onFailed(); return; }
-                _clientAd!.fullScreenContentCallback = FullScreenContentCallback(
-                  onAdDismissedFullScreenContent: (ad) { ad.dispose(); _clientAd = null; loadClientAd(); },
-                  onAdFailedToShowFullScreenContent: (ad, _) { ad.dispose(); _clientAd = null; loadClientAd(); onFailed(); },
-                );
-                await _clientAd!.show(onUserEarnedReward: (_, __) => onRewarded());
-              }
-            
-              Future<void> showPeriodAd({
-                required void Function() onRewarded,
-                required void Function() onFailed,
-              }) async {
-                if (_periodAd == null) { onFailed(); return; }
-                _periodAd!.fullScreenContentCallback = FullScreenContentCallback(
-                  onAdDismissedFullScreenContent: (ad) { ad.dispose(); _periodAd = null; loadPeriodAd(); },
-                  onAdFailedToShowFullScreenContent: (ad, _) { ad.dispose(); _periodAd = null; loadPeriodAd(); onFailed(); },
-                );
-                await _periodAd!.show(onUserEarnedReward: (_, __) => onRewarded());
-              }
-            }"
-              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -105,6 +32,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8094152890068517~9900106551" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
