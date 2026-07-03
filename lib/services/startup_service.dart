@@ -24,7 +24,7 @@ class StartupService {
         PremiumService().init();
         await AdService().init();
         AdService().loadClientAd();
-        AdService().loadPeriodAd();
+        AdService().loadActionAd();
         AdService().loadWeeklyPlanAd();
         await NotificationService.instance.initialize();
         await NotificationService.instance.rescheduleFromSavedSettings();

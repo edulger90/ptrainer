@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -20,7 +21,8 @@ class AdService {
         : 'ca-app-pub-8094152890068517/6937077468';
   }
 
-  static String get _periodAddUnitId {
+  // Program ekleme + done yapma paylaşımlı birim (3'te bir gösterilir)
+  static String get _actionUnitId {
     if (kDebugMode) {
       return Platform.isIOS
           ? 'ca-app-pub-3940256099942544/1712485313'
@@ -43,7 +45,8 @@ class AdService {
   }
 
   RewardedAd? _clientAd;
-  RewardedAd? _periodAd;
+  RewardedAd? _actionAd;
+  int _actionCount = 0;
   RewardedAd? _weeklyPlanAd;
 
   Future<void> init() => MobileAds.instance.initialize();
@@ -96,23 +99,50 @@ class AdService {
     );
   }
 
-  Future<void> loadPeriodAd() async {
+  Future<void> loadActionAd() async {
     await RewardedAd.load(
-      adUnitId: _periodAddUnitId,
+      adUnitId: _actionUnitId,
       request: const AdRequest(keywords: _adKeywords),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          debugPrint('[AdService] Period ad loaded.');
-          _periodAd = ad;
+          debugPrint('[AdService] Action ad loaded.');
+          _actionAd = ad;
         },
         onAdFailedToLoad: (error) {
           debugPrint(
-            '[AdService] Period ad failed: ${error.code} – ${error.message}',
+            '[AdService] Action ad failed: ${error.code} – ${error.message}',
           );
-          _periodAd = null;
+          _actionAd = null;
         },
       ),
     );
+  }
+
+  /// Program ekleme veya done yapma işlemlerinde çağrılır.
+  /// Her 3 işlemde bir reklam gösterir; reklam bitince (veya yüklenemezse)
+  /// Future tamamlanır ve işlem devam eder.
+  Future<void> showActionAdIfNeeded() async {
+    _actionCount++;
+    if (_actionCount % 3 != 0 || _actionAd == null) {
+      return;
+    }
+    final completer = Completer<void>();
+    _actionAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _actionAd = null;
+        loadActionAd();
+        if (!completer.isCompleted) completer.complete();
+      },
+      onAdFailedToShowFullScreenContent: (ad, _) {
+        ad.dispose();
+        _actionAd = null;
+        loadActionAd();
+        if (!completer.isCompleted) completer.complete();
+      },
+    );
+    await _actionAd!.show(onUserEarnedReward: (_, __) {});
+    await completer.future;
   }
 
   /// [onRewarded] → reklam izlendi, devam et
@@ -141,32 +171,6 @@ class AdService {
       },
     );
     await _clientAd!.show(onUserEarnedReward: (_, __) => earned = true);
-  }
-
-  Future<void> showPeriodAd({
-    required void Function() onRewarded,
-    required void Function() onFailed,
-  }) async {
-    if (_periodAd == null) {
-      onFailed();
-      return;
-    }
-    bool earned = false;
-    _periodAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _periodAd = null;
-        loadPeriodAd();
-        if (earned) onRewarded();
-      },
-      onAdFailedToShowFullScreenContent: (ad, _) {
-        ad.dispose();
-        _periodAd = null;
-        loadPeriodAd();
-        onFailed();
-      },
-    );
-    await _periodAd!.show(onUserEarnedReward: (_, __) => earned = true);
   }
 
   Future<void> loadWeeklyPlanAd() async {

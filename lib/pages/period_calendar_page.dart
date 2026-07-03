@@ -8,6 +8,8 @@ import '../models/program_type.dart';
 import '../models/trainer_weekday.dart';
 import '../services/attendance_actions_service.dart';
 import '../services/attendance_service.dart';
+import '../services/ad_service.dart';
+import '../services/premium_service.dart';
 import '../services/error_logger.dart';
 import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
@@ -288,6 +290,12 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
     final att = _attendance[day];
     if (att != null && att.cancelled) {
       return;
+    }
+
+    // Ücretsiz kullanıcı done işaretliyorsa (yeni yoklama): 3'te bir reklam
+    if (att == null && !PremiumService().isPremium) {
+      await AdService().showActionAdIfNeeded();
+      if (!mounted) return;
     }
 
     await _attendanceActionsService.toggleAttendance(

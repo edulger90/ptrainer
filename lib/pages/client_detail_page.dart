@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import '../models/client.dart';
 import '../models/period.dart';
@@ -532,28 +530,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     final clientId = widget.client.id;
     if (clientId == null) return;
 
-    // Ücretsiz kullanıcı: zorunlu reklam izletme
+    // Ücretsiz kullanıcı: 3'te bir reklam
     if (!PremiumService().isPremium) {
-      final completer = Completer<bool>();
-      AdService().showPeriodAd(
-        onRewarded: () => completer.complete(true),
-        onFailed: () {
-          if (!mounted) return;
-          final l = AppLocalizations.of(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l.adNotReady),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-          if (!completer.isCompleted) completer.complete(false);
-        },
-      );
-      final rewarded = await completer.future;
-      if (!rewarded) return;
+      await AdService().showActionAdIfNeeded();
     }
 
     DateTime? startDate;

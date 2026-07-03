@@ -18,6 +18,7 @@ import '../services/database.dart';
 import '../services/error_logger.dart';
 import '../services/period_service.dart';
 import '../services/premium_service.dart';
+import '../services/ad_service.dart';
 import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
 import 'premium_page.dart';
@@ -540,6 +541,12 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
     if (clientId == null || periodId == null) return false;
     if (!await _confirmPastPeriodUpdateIfNeeded(entry)) return false;
     if (attendance != null && attendance.cancelled) return false;
+
+    // Ücretsiz kullanıcı done işaretliyorsa (yeni yoklama): 3'te bir reklam
+    if (attendance == null && !PremiumService().isPremium) {
+      await AdService().showActionAdIfNeeded();
+      if (!mounted) return false;
+    }
 
     await _attendanceActionsService.toggleAttendance(
       clientId: clientId,
