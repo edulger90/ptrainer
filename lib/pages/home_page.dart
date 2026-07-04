@@ -24,7 +24,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _thisWeekRefreshKey = 0;
-  int _weeklyPlanTapCount = 0;
 
   Future<void> _logout() async {
     await SessionTimeoutService.instance.logoutNow();
@@ -37,25 +36,19 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  /// 4 tıklamada bir reklam gösterir; premium kullanıcılar için doğrudan açar.
+  /// Ücretsiz kullanıcılar her basışta reklam izler; premium doğrudan açar.
   void _openWeeklyPlan() {
     if (PremiumService().isPremium) {
       _navigateToWeeklyPlan();
       return;
     }
-    _weeklyPlanTapCount++;
-    if (_weeklyPlanTapCount % 4 == 0) {
-      // Her 4. tıklamada reklam göster
-      AdService().showWeeklyPlanAd(
-        onRewarded: _navigateToWeeklyPlan,
-        onFailed: () {
-          // Reklam yoksa yine de açıyoruz (UX friendly)
-          _navigateToWeeklyPlan();
-        },
-      );
-    } else {
-      _navigateToWeeklyPlan();
-    }
+    AdService().showWeeklyPlanAd(
+      onRewarded: _navigateToWeeklyPlan,
+      onFailed: () {
+        // Reklam yoksa yine de açıyoruz (UX friendly)
+        _navigateToWeeklyPlan();
+      },
+    );
   }
 
   void _navigateToWeeklyPlan() {
