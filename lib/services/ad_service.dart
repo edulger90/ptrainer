@@ -223,13 +223,12 @@ class AdService {
       onFailed();
       return;
     }
-    bool earned = false;
     _weeklyPlanAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         _weeklyPlanAd = null;
         loadWeeklyPlanAd();
-        if (earned) onRewarded();
+        onRewarded(); // reklam kapandıktan sonra her zaman devam et
       },
       onAdFailedToShowFullScreenContent: (ad, _) {
         ad.dispose();
@@ -238,6 +237,6 @@ class AdService {
         onFailed();
       },
     );
-    await _weeklyPlanAd!.show(onUserEarnedReward: (_, __) => earned = true);
+    await _weeklyPlanAd!.show(onUserEarnedReward: (_, __) {});
   }
 }
