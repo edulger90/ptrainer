@@ -44,10 +44,7 @@ class _HomePageState extends State<HomePage> {
     }
     AdService().showWeeklyPlanAd(
       onRewarded: _navigateToWeeklyPlan,
-      onFailed: () {
-        // Reklam yoksa yine de açıyoruz (UX friendly)
-        _navigateToWeeklyPlan();
-      },
+      onFailed: () => _navigateToWeeklyPlan(),
     );
   }
 
@@ -62,12 +59,35 @@ class _HomePageState extends State<HomePage> {
         .then((_) => _refreshThisWeek());
   }
 
+  /// Ücretsiz kullanıcılar her basışta reklam izler; premium doğrudan açar.
+  void _openMonthlyAttendance() {
+    if (PremiumService().isPremium) {
+      _navigateToMonthlyAttendance();
+      return;
+    }
+    AdService().showWeeklyPlanAd(
+      onRewarded: _navigateToMonthlyAttendance,
+      onFailed: () => _navigateToMonthlyAttendance(),
+    );
+  }
+
+  void _navigateToMonthlyAttendance() {
+    if (!mounted) return;
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) =>
+                MonthlyAttendancePage(currentUser: widget.currentUser),
+          ),
+        )
+        .then((_) => _refreshThisWeek());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final premiumService = PremiumService();
     final canAccessAnalysis = premiumService.canAccessAnalysis;
-    final canAccessMonthlyAttendance = premiumService.canAccessWeeklyPlan;
     return Scaffold(
       bottomNavigationBar: const BannerAdWidget(),
       body: AppBackground(
@@ -253,29 +273,7 @@ class _HomePageState extends State<HomePage> {
                       Color(0xFFEF6C00),
                       Color(0xFFFFB74D),
                     ],
-                    isLocked: !canAccessMonthlyAttendance,
-                    badgeLabel: canAccessMonthlyAttendance
-                        ? null
-                        : l.premiumLabel,
-                    onTap: () {
-                      if (!canAccessMonthlyAttendance) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const PremiumPage(),
-                          ),
-                        );
-                        return;
-                      }
-                      Navigator.of(context)
-                          .push(
-                            MaterialPageRoute(
-                              builder: (_) => MonthlyAttendancePage(
-                                currentUser: widget.currentUser,
-                              ),
-                            ),
-                          )
-                          .then((_) => _refreshThisWeek());
-                    },
+                    onTap: _openMonthlyAttendance,
                   ),
                   const SizedBox(height: 16),
                   _MenuCard(
