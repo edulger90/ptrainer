@@ -609,6 +609,11 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
     final selection = await _pickReasonDialog(entry.client);
     if (selection == null) return false;
 
+    if (!PremiumService().isPremium) {
+      await AdService().showActionAdIfNeeded();
+      if (!mounted) return false;
+    }
+
     await _attendanceActionsService.setMakeup(
       clientId: clientId,
       periodId: periodId,
@@ -689,6 +694,11 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
         );
       },
     );
+
+    if (!PremiumService().isPremium) {
+      await AdService().showActionAdIfNeeded();
+      if (!mounted) return false;
+    }
 
     await _attendanceActionsService.cancelLesson(
       clientId: clientId,

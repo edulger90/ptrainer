@@ -360,6 +360,11 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
         pickedTime.minute,
       );
 
+      if (!PremiumService().isPremium) {
+        await AdService().showActionAdIfNeeded();
+        if (!mounted) return;
+      }
+
       await _attendanceActionsService.setMakeup(
         clientId: clientId,
         periodId: periodId,
@@ -515,6 +520,11 @@ class _PeriodCalendarPageState extends State<PeriodCalendarPage> {
         );
       },
     );
+
+    if (!PremiumService().isPremium) {
+      await AdService().showActionAdIfNeeded();
+      if (!mounted) return;
+    }
 
     await _attendanceActionsService.cancelLesson(
       clientId: clientId,
