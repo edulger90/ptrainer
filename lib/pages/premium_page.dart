@@ -259,14 +259,16 @@ class _PremiumPageState extends State<PremiumPage> {
                       _FeatureRow(
                         icon: Icons.people,
                         title: l.premiumFeatureClients,
-                        freeValue: '${PremiumService.freeMaxClients}',
+                        freeValue: l.premiumWithAds,
                         premiumValue: l.premiumUnlimited,
+                        freeWithAds: true,
                       ),
                       _FeatureRow(
                         icon: Icons.timeline,
                         title: l.premiumFeaturePeriods,
-                        freeValue: '${PremiumService.freeMaxPeriodsPerClient}',
+                        freeValue: l.premiumWithAds,
                         premiumValue: l.premiumUnlimited,
+                        freeWithAds: true,
                       ),
                       _FeatureRow(
                         icon: Icons.straighten,
@@ -278,9 +280,9 @@ class _PremiumPageState extends State<PremiumPage> {
                       _FeatureRow(
                         icon: Icons.calendar_month,
                         title: l.premiumFeatureWeeklyPlan,
-                        freeValue: '—',
+                        freeValue: l.premiumWithAds,
                         premiumValue: '✓',
-                        freeBlocked: true,
+                        freeWithAds: true,
                       ),
                       _FeatureRow(
                         icon: Icons.payments,
@@ -790,6 +792,7 @@ class _FeatureRow extends StatelessWidget {
   final String freeValue;
   final String premiumValue;
   final bool freeBlocked;
+  final bool freeWithAds;
 
   const _FeatureRow({
     required this.icon,
@@ -797,6 +800,7 @@ class _FeatureRow extends StatelessWidget {
     required this.freeValue,
     required this.premiumValue,
     this.freeBlocked = false,
+    this.freeWithAds = false,
   });
 
   @override
@@ -814,6 +818,8 @@ class _FeatureRow extends StatelessWidget {
                       value: freeValue,
                       valueColor: freeBlocked
                           ? Colors.red[300]!
+                          : freeWithAds
+                          ? const Color(0xFFFF8F00)
                           : Colors.grey[700]!,
                       labelColor: Colors.grey[400]!,
                     ),
@@ -838,6 +844,8 @@ class _FeatureRow extends StatelessWidget {
                       value: freeValue,
                       valueColor: freeBlocked
                           ? Colors.red[300]!
+                          : freeWithAds
+                          ? const Color(0xFFFF8F00)
                           : Colors.grey[700]!,
                       labelColor: Colors.grey[400]!,
                     ),

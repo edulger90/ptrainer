@@ -520,6 +520,7 @@ class AppLocalizations {
   String get premiumFeatureWeeklyPlan => get('premiumFeatureWeeklyPlan');
   String get premiumFeaturePayments => get('premiumFeaturePayments');
   String get premiumUnlimited => get('premiumUnlimited');
+  String get premiumWithAds => get('premiumWithAds');
   String get premiumFree => get('premiumFree');
   String get premiumLabel => get('premiumLabel');
   String get premiumChoosePlan => get('premiumChoosePlan');
