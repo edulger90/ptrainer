@@ -273,9 +273,9 @@ class _PremiumPageState extends State<PremiumPage> {
                       _FeatureRow(
                         icon: Icons.straighten,
                         title: l.premiumFeatureMeasurements,
-                        freeValue: '—',
+                        freeValue: l.premiumWithAds,
                         premiumValue: '✓',
-                        freeBlocked: true,
+                        freeWithAds: true,
                       ),
                       _FeatureRow(
                         icon: Icons.calendar_month,

@@ -8,12 +8,12 @@ const Map<String, String> trStrings = {
   'reasonTrainerKisisel': 'Trainer Kişisel',
   'reasonHastalik': 'Hastalık',
   'reasonOther': 'Diğer',
-  'reasonNoteLabel': 'Sebep Detayı',
-  'reasonNoteHint': 'Sebep detayını yazın (maks. 4000 karakter)',
+  'reasonNoteLabel': 'Mazeret Detayı',
+  'reasonNoteHint': 'Mazeret detayını yazın (maks. 4000 karakter)',
   // Period sonuna ders ekleme dialogu
-  'addLessonToPeriodEndTitle': 'Period Sonuna Katılım Eklensin mi?',
+  'addLessonToPeriodEndTitle': 'Period Sonu bir gün uzatılsın mı?',
   'addLessonToPeriodEndBody':
-      'Bu katılımı iptal ettiniz. Period sonuna yeni bir katılım eklemek ister misiniz?',
+      'Bu günü iptal ettiniz. Period sonuna yeni bir gün eklemek ister misiniz?',
   'yes': 'Evet',
   'no': 'Hayır',
   // Genel
@@ -73,7 +73,7 @@ const Map<String, String> trStrings = {
   // Home
   'myAthletes': 'Programlarım',
   'weeklyPlan': 'Haftalık Katılım Planı',
-  'monthlyAttendance': 'Aylık Katılım',
+  'monthlyAttendance': 'Aylık ',
   'monthlyAttendanceDesc':
       'Aylık takvimde gün, saat, kişi ve resmi tatilleri görüntüle',
   'analysis': 'Analiz',
@@ -121,8 +121,8 @@ const Map<String, String> trStrings = {
   'registrationDate': 'İlk Kayıt Tarihi',
   'nameEmpty': 'Ad Soyad boş bırakamazsınız',
   'atLeastOneSchedule': 'En az bir katılım saati tanımlamanız gerekir',
-  'packageSize': 'Paket (Katılım Sayısı)',
-  'packageCountValidation': 'Paket katılım sayısı 1 ile 100 arasında olmalıdır',
+  'packageSize': 'Paket (Gün Sayısı)',
+  'packageCountValidation': 'Paket gün sayısı 1 ile 100 arasında olmalıdır',
   'programTypeLabel': 'Program Tipi',
   'programTypeSport': 'Spor',
   'programTypeCourse': 'Kurs',
@@ -130,7 +130,7 @@ const Map<String, String> trStrings = {
   'packageTypeLabel': 'Paket Tipi',
   'packageTypeDaily': 'Günlük',
   'packageTypeMonthly': 'Aylık',
-  'packageOption': '{count} Katılımlık Paket',
+  'packageOption': '{count} Günlük Paket',
   'lessonSchedules': 'Katılım Saatleri',
   'addLessonTime': 'Katılım Saati Ekle',
   'noScheduleYet': 'Henüz katılım saati eklenmemiştir',
@@ -236,12 +236,12 @@ const Map<String, String> trStrings = {
   'undoCancelBody':
       '{date} tarihli katılım iptalini geri almak istiyor musunuz?\n\nPeriyot bitiş tarihi bir katılım günü geri çekilecek.',
   'confirmUndo': 'Geri Al',
-  'cancelled': 'Katılım İptal Edildi',
+  'cancelled': 'Gün İptal Edildi',
   'makeupLabel': 'Telafi: {date}',
-  'postponedLesson': 'Ötelenen katılım',
-  'selectMakeupDate': 'Telafi katılım tarihi seç',
+  'postponedLesson': 'Ötelenen gün',
+  'selectMakeupDate': 'Telafi gün tarihi seç',
   'undoCancelTooltip': 'İptali geri al',
-  'cancelAndPostpone': 'Katılımı iptal et ve ötele',
+  'cancelAndPostpone': 'Günü iptal et ve ötele',
   'resetAction': 'İşlemi Geri Al',
   'resetActionBody':
       '{date} tarihli katılım için yapılan tüm işlemler (yoklama, telafi, vb.) geri alınacak.\n\nDevam etmek istiyor musunuz?',

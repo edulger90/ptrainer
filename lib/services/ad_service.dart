@@ -145,6 +145,29 @@ class AdService {
     await completer.future;
   }
 
+  /// Beden ölçümü girişinde çağrılır — her seferinde reklam gösterir.
+  /// Reklam yoksa direkt tamamlanır (kullanıcıyı bloklamaz).
+  Future<void> showMeasurementAd() async {
+    if (_actionAd == null) return;
+    final completer = Completer<void>();
+    _actionAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _actionAd = null;
+        loadActionAd();
+        if (!completer.isCompleted) completer.complete();
+      },
+      onAdFailedToShowFullScreenContent: (ad, _) {
+        ad.dispose();
+        _actionAd = null;
+        loadActionAd();
+        if (!completer.isCompleted) completer.complete();
+      },
+    );
+    await _actionAd!.show(onUserEarnedReward: (_, __) {});
+    await completer.future;
+  }
+
   /// [onRewarded] → reklam izlendi, devam et
   /// [onFailed]   → reklam yok/hata, ne yapılacağı caller'a bırakılıyor
   Future<void> showClientAd({

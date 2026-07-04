@@ -14,7 +14,6 @@ import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
 import '../widgets/period_list_section.dart';
 import '../l10n/app_localizations.dart';
-import 'premium_page.dart';
 import '../models/trainer_weekday.dart';
 
 class ClientDetailPage extends StatefulWidget {
@@ -117,6 +116,11 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   }) async {
     final clientId = widget.client.id;
     if (clientId == null) return;
+    // Yeni ölçüm girişinde (ücretsiz kullanıcı): her seferinde reklam göster
+    if (measurement == null && !PremiumService().isPremium) {
+      await AdService().showMeasurementAd();
+      if (!mounted) return;
+    }
     DateTime date = measurement?.date ?? DateTime.now();
     final chestController = TextEditingController(
       text: measurement?.chest?.toString() ?? '',
@@ -1502,18 +1506,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       if (_showsBodyMeasurements) ...[
                         const SizedBox(height: 24),
                         // ── Beden Ölçüleri Başlık ──
-                        if (!PremiumService().canAccessBodyMeasurements)
-                          _buildPremiumLockedSection(
-                            context,
-                            icon: Icons.straighten,
-                            iconColor: const Color(0xFFAD1457),
-                            bgColor: const Color(
-                              0xFFE91E63,
-                            ).withValues(alpha: 0.12),
-                            title: l.bodyMeasurements,
-                          )
-                        else ...[
-                          Row(
+                        Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(8),
@@ -1731,7 +1724,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                     );
                                   },
                                 ),
-                        ], // end else body measurements premium
                       ],
                     ],
                   ),
@@ -1741,83 +1733,5 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     );
   }
 
-  Widget _buildPremiumLockedSection(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required Color bgColor,
-    required String title,
-  }) {
-    final l = AppLocalizations.of(context);
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => const PremiumPage()));
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 22),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.lock, color: Color(0xFFFFB300), size: 20),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.workspace_premium,
-                    color: Color(0xFFFFB300),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    l.premiumRequired,
-                    style: const TextStyle(
-                      color: Color(0xFFFF8F00),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
+
