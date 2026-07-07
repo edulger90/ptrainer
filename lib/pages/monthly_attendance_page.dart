@@ -21,7 +21,6 @@ import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import '../services/screen_preload_service.dart';
 import '../widgets/app_background.dart';
-import 'premium_page.dart';
 import 'client_detail_page.dart';
 
 class MonthlyAttendancePage extends StatefulWidget {
@@ -1131,9 +1130,6 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final visibleMonth = _visibleMonth;
-    if (!PremiumService().canAccessWeeklyPlan) {
-      return const PremiumPage();
-    }
 
     return Scaffold(
       body: AppBackground(
