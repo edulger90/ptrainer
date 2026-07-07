@@ -187,11 +187,10 @@ class _ClientListPageState extends State<ClientListPage> {
       _proceedToAddClient();
       return;
     }
-    // Ücretsiz kullanıcı: zorunlu reklam izletme
-    AdService().showClientAd(
-      onRewarded: _proceedToAddClient,
-      onFailed: _showAdNotReadyMessage,
-    );
+    // Ücretsiz kullanıcı: her 2 eklemede bir reklam
+    AdService().showClientAdIfNeeded().then((_) {
+      _proceedToAddClient();
+    });
   }
 
   Future<void> _proceedToAddClient() async {
@@ -213,18 +212,6 @@ class _ClientListPageState extends State<ClientListPage> {
 
     if (!mounted) return;
     _loadClients();
-  }
-
-  void _showAdNotReadyMessage() {
-    if (!mounted) return;
-    final l = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l.adNotReady),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
   }
 
   @override

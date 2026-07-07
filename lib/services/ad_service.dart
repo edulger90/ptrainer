@@ -45,6 +45,7 @@ class AdService {
   }
 
   RewardedAd? _clientAd;
+  int _clientCount = 0;
   RewardedAd? _actionAd;
   int _actionCount = 0;
   RewardedAd? _weeklyPlanAd;
@@ -168,32 +169,29 @@ class AdService {
     await completer.future;
   }
 
-  /// [onRewarded] → reklam izlendi, devam et
-  /// [onFailed]   → reklam yok/hata, ne yapılacağı caller'a bırakılıyor
-  Future<void> showClientAd({
-    required void Function() onRewarded,
-    required void Function() onFailed,
-  }) async {
-    if (_clientAd == null) {
-      onFailed();
-      return;
-    }
-    bool earned = false;
+  /// Program (sporcu) ekleme işleminde çağrılır.
+  /// Her 2 eklemede bir reklam gösterir; reklam bitince (veya yüklenemezse)
+  /// Future tamamlanır ve işlem devam eder.
+  Future<void> showClientAdIfNeeded() async {
+    _clientCount++;
+    if (_clientCount % 2 != 0 || _clientAd == null) return;
+    final completer = Completer<void>();
     _clientAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         _clientAd = null;
         loadClientAd();
-        if (earned) onRewarded();
+        if (!completer.isCompleted) completer.complete();
       },
       onAdFailedToShowFullScreenContent: (ad, _) {
         ad.dispose();
         _clientAd = null;
         loadClientAd();
-        onFailed();
+        if (!completer.isCompleted) completer.complete();
       },
     );
-    await _clientAd!.show(onUserEarnedReward: (_, __) => earned = true);
+    await _clientAd!.show(onUserEarnedReward: (_, __) {});
+    await completer.future;
   }
 
   Future<void> loadWeeklyPlanAd() async {
