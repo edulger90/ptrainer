@@ -48,6 +48,7 @@ class AdService {
   int _clientCount = 0;
   RewardedAd? _actionAd;
   int _actionCount = 0;
+  int _periodAddCount = 0;
   RewardedAd? _weeklyPlanAd;
 
   Future<void> init() => MobileAds.instance.initialize();
@@ -119,7 +120,30 @@ class AdService {
     );
   }
 
-  /// Program ekleme veya done yapma işlemlerinde çağrılır.
+  /// Period ekleme işleminde çağrılır — her 3 eklemede bir reklam gösterir.
+  Future<void> showPeriodAddAdIfNeeded() async {
+    _periodAddCount++;
+    if (_periodAddCount % 3 != 0 || _actionAd == null) return;
+    final completer = Completer<void>();
+    _actionAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _actionAd = null;
+        loadActionAd();
+        if (!completer.isCompleted) completer.complete();
+      },
+      onAdFailedToShowFullScreenContent: (ad, _) {
+        ad.dispose();
+        _actionAd = null;
+        loadActionAd();
+        if (!completer.isCompleted) completer.complete();
+      },
+    );
+    await _actionAd!.show(onUserEarnedReward: (_, __) {});
+    await completer.future;
+  }
+
+  /// Done/cancel/makeup işlemlerinde çağrılır.
   /// Her 3 işlemde bir reklam gösterir; reklam bitince (veya yüklenemezse)
   /// Future tamamlanır ve işlem devam eder.
   Future<void> showActionAdIfNeeded() async {

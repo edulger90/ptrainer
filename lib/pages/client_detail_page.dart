@@ -534,9 +534,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     final clientId = widget.client.id;
     if (clientId == null) return;
 
-    // Ücretsiz kullanıcı: 3'te bir reklam
+    // Ücretsiz kullanıcı: her 3 period eklemede bir reklam
     if (!PremiumService().isPremium) {
-      await AdService().showActionAdIfNeeded();
+      await AdService().showPeriodAddAdIfNeeded();
     }
 
     DateTime? startDate;
