@@ -242,8 +242,8 @@ class ErrorLogger {
 /// Uygulama versiyon bilgileri.
 /// pubspec.yaml'daki version alanından alınır.
 class AppVersionInfo {
-  static String _version = '1.0.11';
-  static String _buildNumber = '21';
+  static String _version = '1.0.12';
+  static String _buildNumber = '22';
   static bool _initialized = false;
 
   static String get version => _version;
