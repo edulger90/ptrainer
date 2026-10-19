@@ -88,6 +88,9 @@ class AppLocalizations {
 
   // ── Genel ──
   String get appTitle => get('appTitle');
+  String get motivation => get('motivation');
+  String get motivationToggleTitle => get('motivationToggleTitle');
+  String get motivationToggleSubtitle => get('motivationToggleSubtitle');
   String get cancel => get('cancel');
   String get ok => get('ok');
   String get save => get('save');

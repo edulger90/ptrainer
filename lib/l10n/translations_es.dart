@@ -13,6 +13,10 @@ const Map<String, String> esStrings = {
   // General
   'showPassiveClients': 'Mostrar clientes pasivos',
   'appTitle': 'P-Trainer',
+  'motivation': 'Motivación',
+  'motivationToggleTitle': 'Recibir mensajes de motivación',
+  'motivationToggleSubtitle':
+      'Muestra un mensaje inspirador aleatorio cada vez que se abre la aplicación.',
   'cancel': 'Cancelar',
   'ok': 'Aceptar',
   'save': 'Guardar',

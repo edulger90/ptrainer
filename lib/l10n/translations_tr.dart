@@ -19,6 +19,10 @@ const Map<String, String> trStrings = {
   // Genel
   'showPassiveClients': 'Pasifleri Göster',
   'appTitle': 'P-Trainer',
+  'motivation': 'Motivasyon',
+  'motivationToggleTitle': 'Motivasyon mesajı al',
+  'motivationToggleSubtitle':
+      'Uygulama her açıldığında rastgele bir ilham mesajı göster.',
   'cancel': 'İptal',
   'ok': 'Tamam',
   'save': 'Kaydet',

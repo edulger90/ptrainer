@@ -19,6 +19,10 @@ const Map<String, String> nlStrings = {
   // General
   'showPassiveClients': 'Toon passieve klanten',
   'appTitle': 'P-Trainer',
+  'motivation': 'Motivatie',
+  'motivationToggleTitle': 'Motivatieberichten ontvangen',
+  'motivationToggleSubtitle':
+      'Toon elke keer dat de app wordt geopend een willekeurig inspirerend bericht.',
   'cancel': 'Annuleren',
   'ok': 'OK',
   'save': 'Opslaan',

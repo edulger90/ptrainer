@@ -658,6 +658,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
         );
       },
     );
+    if (!mounted) return false;
     if (confirmed != true) return false;
 
     await _attendanceActionsService.undoCancelledLesson(
@@ -677,14 +678,16 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
     if (clientId == null || periodId == null || att == null || !mounted) {
       return false;
     }
+    final pageContext = context;
+    final l = AppLocalizations.of(pageContext);
     if (!await _confirmPastPeriodUpdateIfNeeded(info)) return false;
 
-    final l = AppLocalizations.of(context);
+    if (!pageContext.mounted) return false;
     final dateStr =
         '${info.lessonDate.day.toString().padLeft(2, '0')}.${info.lessonDate.month.toString().padLeft(2, '0')}.${info.lessonDate.year}';
 
     final confirmed = await showDialog<bool>(
-      context: context,
+      context: pageContext,
       builder: (context) {
         return AlertDialog(
           title: Text(l.resetAction),
@@ -703,6 +706,7 @@ class _ThisWeekWidgetState extends State<ThisWeekWidget>
         );
       },
     );
+    if (!mounted) return false;
     if (confirmed != true) return false;
 
     await _attendanceActionsService.resetAttendance(

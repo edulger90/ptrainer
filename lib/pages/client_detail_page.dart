@@ -117,6 +117,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     final clientId = widget.client.id;
     if (clientId == null) return;
     // Yeni ölçüm girişinde (ücretsiz kullanıcı): her seferinde reklam göster
+    final currentContext = context;
     if (measurement == null && !PremiumService().isPremium) {
       await AdService().showMeasurementAd();
       if (!mounted) return;
@@ -131,8 +132,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     final hipsController = TextEditingController(
       text: measurement?.hips?.toString() ?? '',
     );
+    if (!currentContext.mounted) return;
     await showDialog(
-      context: context,
+      context: currentContext,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
@@ -152,6 +154,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     children: [
                       ElevatedButton(
                         onPressed: () async {
+                          if (!context.mounted) return;
                           final picked = await showDatePicker(
                             context: context,
                             initialDate: date,
@@ -160,6 +163,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                               const Duration(days: 365),
                             ),
                           );
+                          if (!mounted) return;
                           if (picked != null) {
                             setStateDialog(() => date = picked);
                           }
@@ -543,6 +547,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     DateTime? endDate;
     final paymentController = TextEditingController();
     bool isPaid = false;
+    if (!context.mounted) return;
     await showDialog(
       context: context,
       builder: (context) {
@@ -562,6 +567,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     children: [
                       ElevatedButton(
                         onPressed: () async {
+                          if (!context.mounted) return;
                           final picked = await showDatePicker(
                             context: context,
                             initialDate: DateTime.now(),
@@ -570,6 +576,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                               const Duration(days: 365),
                             ),
                           );
+                          if (!mounted) return;
                           if (picked != null) {
                             setStateDialog(() {
                               startDate = _findFirstLessonDay(picked);
@@ -589,6 +596,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       if (widget.client.packageType != PackageType.monthly)
                         ElevatedButton(
                           onPressed: () async {
+                            if (!context.mounted) return;
                             final picked = await showDatePicker(
                               context: context,
                               initialDate:
@@ -598,6 +606,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                 const Duration(days: 365),
                               ),
                             );
+                            if (!mounted) return;
                             if (picked != null) {
                               setStateDialog(() => endDate = picked);
                             }

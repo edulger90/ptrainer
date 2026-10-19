@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../services/app_language_service.dart';
 import '../services/database.dart';
 import '../services/error_logger.dart';
+import '../services/motivation_service.dart';
 import '../services/notification_service.dart';
 import '../services/premium_service.dart';
 import '../services/session_timeout_service.dart';
@@ -29,6 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final _notificationService = NotificationService.instance;
   bool _isPremium = PremiumService().isPremium;
   bool _isDeletingAccount = false;
+  bool _motivationEnabled = true;
   NotificationPreferences _notificationPreferences =
       const NotificationPreferences.defaults();
   bool _isLoadingNotificationPreferences = true;
@@ -36,7 +38,16 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
+    _loadMotivationPreference();
     _loadNotificationPreferences();
+  }
+
+  Future<void> _loadMotivationPreference() async {
+    final enabled = await MotivationService.isEnabled();
+    if (!mounted) return;
+    setState(() {
+      _motivationEnabled = enabled;
+    });
   }
 
   Future<void> _loadNotificationPreferences() async {
@@ -462,6 +473,32 @@ class _SettingsPageState extends State<SettingsPage> {
                   onTap: _showLanguagePicker,
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(l.motivation, Icons.psychology_outlined),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: SwitchListTile.adaptive(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              secondary: const Icon(
+                Icons.psychology_outlined,
+                color: Color(0xFF00897B),
+              ),
+              title: Text(l.motivationToggleTitle),
+              subtitle: Text(l.motivationToggleSubtitle),
+              value: _motivationEnabled,
+              onChanged: (value) async {
+                setState(() {
+                  _motivationEnabled = value;
+                });
+                await MotivationService.setEnabled(value);
+              },
             ),
           ),
           const SizedBox(height: 24),

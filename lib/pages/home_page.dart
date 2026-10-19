@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/ad_service.dart';
+import '../services/motivation_service.dart';
 import '../services/premium_service.dart';
 import '../services/session_timeout_service.dart';
 import 'analysis_page.dart';
@@ -24,6 +25,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _thisWeekRefreshKey = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      MotivationService.showIfEnabled(context);
+    });
+  }
 
   Future<void> _logout() async {
     await SessionTimeoutService.instance.logoutNow();
@@ -105,11 +115,14 @@ class _HomePageState extends State<HomePage> {
 
                       Widget settingsButton() {
                         return Container(
+                          width: 50,
+                          height: 50,
                           decoration: BoxDecoration(
                             color: Colors.teal[50],
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: IconButton(
+                            padding: EdgeInsets.zero,
                             icon: Icon(Icons.settings, color: Colors.teal[400]),
                             tooltip: l.settings,
                             onPressed: () {
@@ -127,17 +140,29 @@ class _HomePageState extends State<HomePage> {
 
                       Widget logoutButton() {
                         return Container(
+                          width: 50,
+                          height: 50,
                           decoration: BoxDecoration(
                             color: Colors.red[50],
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: IconButton(
+                            padding: EdgeInsets.zero,
                             icon: Icon(Icons.logout, color: Colors.red[400]),
                             tooltip: l.logout,
                             onPressed: _logout,
                           ),
                         );
                       }
+
+                      final actionButtons = Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          settingsButton(),
+                          const SizedBox(width: 8),
+                          logoutButton(),
+                        ],
+                      );
 
                       final titleBlock = Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,9 +196,11 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Container(
+                                width: 68,
+                                height: 68,
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
@@ -182,7 +209,7 @@ class _HomePageState extends State<HomePage> {
                                       Color(0xFF00BCD4),
                                     ],
                                   ),
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(18),
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(
@@ -196,15 +223,14 @@ class _HomePageState extends State<HomePage> {
                                 child: const Icon(
                                   Icons.fitness_center,
                                   color: Colors.white,
-                                  size: 28,
+                                  size: 32,
                                 ),
                               ),
                               const SizedBox(width: 14),
                               Expanded(child: titleBlock),
                               if (!useCompactHeader) ...[
-                                settingsButton(),
-                                const SizedBox(width: 8),
-                                logoutButton(),
+                                const SizedBox(width: 12),
+                                actionButtons,
                               ],
                             ],
                           ),
@@ -212,11 +238,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                settingsButton(),
-                                const SizedBox(width: 8),
-                                logoutButton(),
-                              ],
+                              children: [actionButtons],
                             ),
                           ],
                         ],

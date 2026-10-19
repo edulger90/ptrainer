@@ -1,3 +1,6 @@
 {
-    "cmake.ignoreCMakeListsMissing": true
+  "cmake.ignoreCMakeListsMissing": true,
+  "dart.analysisExcludedFolders": [
+    "/Users/ecegecit/development/ptrainer/build"
+  ]
 }

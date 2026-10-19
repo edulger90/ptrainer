@@ -19,6 +19,10 @@ const Map<String, String> enStrings = {
   // General
   'showPassiveClients': 'Show Passive Clients',
   'appTitle': 'P-Trainer',
+  'motivation': 'Motivation',
+  'motivationToggleTitle': 'Receive motivation messages',
+  'motivationToggleSubtitle':
+      'Show a random inspirational message whenever the app opens.',
   'cancel': 'Cancel',
   'ok': 'OK',
   'save': 'Save',

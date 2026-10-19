@@ -759,11 +759,13 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
         !mounted) {
       return false;
     }
+    final pageContext = context;
+    final l = AppLocalizations.of(pageContext);
     if (!await _confirmPastPeriodUpdateIfNeeded(entry)) return false;
 
-    final l = AppLocalizations.of(context);
+    if (!pageContext.mounted) return false;
     final confirmed = await showDialog<bool>(
-      context: context,
+      context: pageContext,
       builder: (context) {
         return AlertDialog(
           title: Text(l.resetAction),
@@ -784,6 +786,7 @@ class _MonthlyAttendancePageState extends State<MonthlyAttendancePage> {
         );
       },
     );
+    if (!mounted) return false;
     if (confirmed != true) return false;
 
     await _attendanceActionsService.resetAttendance(
