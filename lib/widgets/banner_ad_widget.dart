@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -20,11 +19,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   bool _isLoaded = false;
 
   static String get _unitId {
-    if (kDebugMode) {
-      return Platform.isIOS
-          ? 'ca-app-pub-3940256099942544/2934735716' // Google iOS test banner
-          : 'ca-app-pub-3940256099942544/6300978111'; // Google Android test banner
-    }
     return Platform.isIOS
         ? 'ca-app-pub-8094152890068517/5962529840'
         : 'ca-app-pub-8094152890068517/2458399108';

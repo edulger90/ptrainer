@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -8,14 +9,7 @@ class AdService {
   factory AdService() => _instance;
   AdService._internal();
 
-  // Debug modda Google'ın evrensel test ID'leri kullanılır.
-  // Release modda gerçek AdMob unit ID'leri devreye girer.
   static String get _clientAddUnitId {
-    if (kDebugMode) {
-      return Platform.isIOS
-          ? 'ca-app-pub-3940256099942544/1712485313' // Google iOS test rewarded
-          : 'ca-app-pub-3940256099942544/5224354917'; // Google Android test rewarded
-    }
     return Platform.isIOS
         ? 'ca-app-pub-8094152890068517/7002893167'
         : 'ca-app-pub-8094152890068517/6937077468';
@@ -23,22 +17,12 @@ class AdService {
 
   // Program ekleme + done yapma paylaşımlı birim (3'te bir gösterilir)
   static String get _actionUnitId {
-    if (kDebugMode) {
-      return Platform.isIOS
-          ? 'ca-app-pub-3940256099942544/1712485313'
-          : 'ca-app-pub-3940256099942544/5224354917';
-    }
     return Platform.isIOS
         ? 'ca-app-pub-8094152890068517/4376729820'
         : 'ca-app-pub-8094152890068517/5063546996';
   }
 
   static String get _weeklyPlanUnitId {
-    if (kDebugMode) {
-      return Platform.isIOS
-          ? 'ca-app-pub-3940256099942544/1712485313'
-          : 'ca-app-pub-3940256099942544/5224354917';
-    }
     return Platform.isIOS
         ? 'ca-app-pub-8094152890068517/2350166436'
         : 'ca-app-pub-8094152890068517/8177629641';
